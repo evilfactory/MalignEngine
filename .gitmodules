@@ -1,0 +1,3 @@
+[submodule "MalignEngine/Libraries/Arch"]
+	path = MalignEngine/Libraries/Arch
+	url = https://github.com/genaray/Arch
