@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <DefineConstants>SERVER</DefineConstants>
+        <RootNamespace>MalignEngine</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Remove="..\MalignEngine.Shared\**\*.cs" />
+        <Content Remove="..\MalignEngine.Shared\**\*.props" />
+        <Compile Include="..\MalignEngine.Shared\**\*.cs" />
+        <Compile Remove="..\MalignEngine.Shared\Content\**\*.cs" />
+    </ItemGroup>
+</Project>

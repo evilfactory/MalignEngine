@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Remove="..\Sample.Shared\**\*.cs" />
+        <Content Remove="..\Sample.Shared\**\*.props" />
+        <Compile Include="..\Sample.Shared\**\*.cs" />
+        <Compile Remove="..\Sample.Shared\Content\**\*.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\MalignEngine\MalignEngine.Client\MalignEngine.Client.csproj" />
+    </ItemGroup>
+</Project>
