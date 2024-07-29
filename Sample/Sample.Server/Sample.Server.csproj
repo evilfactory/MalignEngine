@@ -12,6 +12,7 @@
         <Content Remove="..\Sample.Shared\**\*.props" />
         <Compile Include="..\Sample.Shared\**\*.cs" />
         <Compile Remove="..\Sample.Shared\Content\**\*.cs" />
+        <Content Include="..\Sample.Shared\**\*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
     <ItemGroup>

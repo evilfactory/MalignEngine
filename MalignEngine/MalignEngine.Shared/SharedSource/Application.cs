@@ -1,28 +1,24 @@
+using Arch.Core;
+
 namespace MalignEngine
 {
-    public class Application
+    public abstract class Application
     {
         public Application()
         {
-            Initialize();
         }
 
-        protected virtual void Initialize()
+        public virtual void Initialize()
+        {
+            
+        }
+
+        public virtual void Update(float deltaTime)
         {
 
         }
 
-        protected virtual void Update()
-        {
-
-        }
-
-        protected virtual void Draw()
-        {
-
-        }
-
-        public void Run()
+        public virtual void Run()
         {
 
         }
