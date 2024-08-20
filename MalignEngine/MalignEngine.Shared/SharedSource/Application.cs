@@ -7,20 +7,5 @@ namespace MalignEngine
         public Application()
         {
         }
-
-        public virtual void Initialize()
-        {
-            
-        }
-
-        public virtual void Update(float deltaTime)
-        {
-
-        }
-
-        public virtual void Run()
-        {
-
-        }
     }
 }

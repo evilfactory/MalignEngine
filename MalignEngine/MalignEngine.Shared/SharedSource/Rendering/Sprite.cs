@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace MalignEngine
 {
@@ -13,7 +13,7 @@ namespace MalignEngine
         {
             Texture = texture;
             Origin = new Vector2(texture.Width / 2, texture.Height / 2);
-            Rect = new Rectangle(0, 0, texture.Width, texture.Height);
+            Rect = new Rectangle(0, 0, (int)texture.Width, (int)texture.Height);
             Color = Color.White;
         }
 

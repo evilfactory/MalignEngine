@@ -1,6 +1,6 @@
 using Arch.Core;
 using Arch.Core.Extensions;
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace MalignEngine
 {
@@ -8,6 +8,16 @@ namespace MalignEngine
     {
         [Dependency]
         protected RenderingSystem RenderingSystem = default!;
+
+        private Shader shader;
+
+        public override void Initialize()
+        {
+            using (var stream = File.OpenRead("Content/SpriteShader.glsl"))
+            {
+                shader = RenderingSystem.LoadShader(stream);
+            }
+        }
 
         public override void Draw(float deltaTime)
         {
@@ -22,7 +32,7 @@ namespace MalignEngine
                 if (entity.Has<Rotation2D>()) { rotation = entity.Get<Rotation2D>().Rotation; }
                 if (entity.Has<Depth>()) { depth = entity.Get<Depth>().Value; }
 
-                RenderingSystem.Draw(spriteRenderer.Sprite.Texture, pos.Position, spriteRenderer.Sprite.Rect, spriteRenderer.Color, rotation, spriteRenderer.Sprite.Origin, scale, depth);
+                RenderingSystem.DrawTexture2D(spriteRenderer.Sprite.Texture, pos.Position, scale, spriteRenderer.Sprite.Origin, spriteRenderer.Sprite.Rect, spriteRenderer.Color, rotation, depth);
             });
             RenderingSystem.End();
         }

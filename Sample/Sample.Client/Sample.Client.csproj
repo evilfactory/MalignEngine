@@ -7,6 +7,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    
     <ItemGroup>
         <Content Remove="..\Sample.Shared\**\*.cs" />
         <Content Remove="..\Sample.Shared\**\*.props" />

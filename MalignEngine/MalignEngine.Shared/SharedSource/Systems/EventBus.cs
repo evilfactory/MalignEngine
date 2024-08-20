@@ -1,6 +1,8 @@
 using Arch.Core;
 using Arch.Core.Extensions;
+using nkast.Aether.Physics2D.Dynamics;
 using System.ComponentModel.Design;
+using System.Reflection;
 using System.Security.Cryptography;
 
 namespace MalignEngine
@@ -17,8 +19,11 @@ namespace MalignEngine
         }
     }
 
-    public class EventBus
+    public class EventSystem : BaseSystem
     {
+        [Dependency]
+        protected WorldSystem WorldSystem = default!;
+
         private class EventSubscription
         {
             public Delegate Handler { get; private set; }
@@ -32,6 +37,51 @@ namespace MalignEngine
         }
 
         private List<EventSubscription> eventSubscriptions = new List<EventSubscription>();
+
+        public void RegisterComponent<T>()
+        {
+            WorldSystem.World.SubscribeComponentAdded((in Entity entity, ref T component) =>
+            {
+                RaiseLocalEvent<ComponentAddedEvent, T>(new ComponentAddedEvent(entity.Reference()));
+            });
+
+            WorldSystem.World.SubscribeComponentRemoved((in Entity entity, ref T component) =>
+            {
+                RaiseLocalEvent<ComponentRemovedEvent, T>(new ComponentRemovedEvent(entity.Reference()));
+            });
+        }
+        public override void Initialize()
+        {
+            WorldSystem.World.SubscribeEntityCreated(OnEntityCreated);
+            WorldSystem.World.SubscribeEntityDestroyed(OnEntityDestroyed);
+
+            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly assembly in loadedAssemblies)
+            {
+                foreach (Type type in assembly.GetTypes())
+                {
+                    if (type.IsGenericType) { continue; }
+
+                    RegisterComponent attribute = type.GetCustomAttribute<RegisterComponent>();
+                    if (attribute != null)
+                    {
+                        var mi = typeof(EventSystem).GetMethod(nameof(RegisterComponent));
+                        var fooRef = mi.MakeGenericMethod(type);
+                        fooRef.Invoke(this, null);
+                    }
+                }
+            }
+        }
+
+        private void OnEntityCreated(in Entity entity)
+        {
+            RaiseLocalEvent(new EntityCreatedEvent(entity.Reference()));
+        }
+
+        private void OnEntityDestroyed(in Entity entity)
+        {
+            RaiseLocalEvent(new EntityDestroyedEvent(entity.Reference()));
+        }
 
         public void SubscribeLocalEvent<T>(Action<T> handler) where T : EventArgs
         {

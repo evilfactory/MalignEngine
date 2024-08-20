@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+using System.Numerics;
 
 namespace MalignEngine
 {
@@ -6,6 +6,18 @@ namespace MalignEngine
     public struct Position2D
     {
         public Vector2 Position;
+
+        public float X
+        {
+            get => Position.X;
+            set => Position.X = value;
+        }
+
+        public float Y
+        {
+            get => Position.Y;
+            set => Position.Y = value;
+        }
 
         public Position2D(Vector2 position)
         {

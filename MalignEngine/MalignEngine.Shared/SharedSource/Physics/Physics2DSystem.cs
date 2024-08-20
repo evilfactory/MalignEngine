@@ -1,13 +1,11 @@
-using Microsoft.Xna.Framework;
+using System.Numerics;
 using Arch.Core.Extensions;
-using Genbox.VelcroPhysics.Dynamics;
 using Arch.Core;
-using Genbox.VelcroPhysics.Definitions;
-using World = Genbox.VelcroPhysics.Dynamics.World;
-using Genbox.VelcroPhysics.Collision.Shapes;
-using Genbox.VelcroPhysics.Definitions.Shapes;
-using Genbox.VelcroPhysics.Shared;
+using nkast.Aether.Physics2D.Dynamics;
 using Arch.Buffer;
+using World = nkast.Aether.Physics2D.Dynamics.World;
+using AVector2 = nkast.Aether.Physics2D.Common.Vector2;
+using nkast.Aether.Physics2D.Collision.Shapes;
 
 namespace MalignEngine
 {
@@ -17,19 +15,19 @@ namespace MalignEngine
 
         public Vector2 Gravity
         {
-            get => physicsWorld.Gravity;
-            set => physicsWorld.Gravity = value;
+            get => new Vector2(physicsWorld.Gravity.X, physicsWorld.Gravity.Y);
+            set => physicsWorld.Gravity = new AVector2(value.X, value.Y);
         }
 
         public override void Initialize()
         {
-            physicsWorld = new World(new Vector2(0, -9.81f));
+            physicsWorld = new World(new AVector2(0, -9.81f));
 
-            EventBus.SubscribeLocalEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
-            EventBus.SubscribeLocalEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
+            EventSystem.SubscribeLocalEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
+            EventSystem.SubscribeLocalEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
 
-            EventBus.SubscribeLocalEvent<ComponentAddedEvent, BoxCollider2D>(BoxColliderAdded);
-            EventBus.SubscribeLocalEvent<ComponentRemovedEvent, BoxCollider2D>(BoxColliderRemoved);
+            EventSystem.SubscribeLocalEvent<ComponentAddedEvent, BoxCollider2D>(BoxColliderAdded);
+            EventSystem.SubscribeLocalEvent<ComponentRemovedEvent, BoxCollider2D>(BoxColliderRemoved);
         }
 
         public override void Update(float deltaTime)
@@ -43,12 +41,12 @@ namespace MalignEngine
             {
                 if (entity.Has<Dirty<Position2D>>())
                 {
-                    physicsBody.Body.Position = position.Position;
+                    physicsBody.Body.Position = new AVector2(position.Position.X, position.Position.Y);
                     commandBuffer.Remove<Dirty<Position2D>>(entity);
                 }
                 else
                 {
-                    position.Position = physicsBody.Body.Position;
+                    position.Position = new Vector2(physicsBody.Body.Position.X, physicsBody.Body.Position.Y);
                 }
             });
 
@@ -74,23 +72,7 @@ namespace MalignEngine
             var entity = args.Entity;
             ref BoxCollider2D boxCollider = ref entity.Get<BoxCollider2D>();
 
-            Shape shape = new PolygonShape(new Vertices(new List<Vector2>()
-            {
-                new Vector2(-boxCollider.Size.X / 2, -boxCollider.Size.Y / 2),
-                new Vector2(boxCollider.Size.X / 2, -boxCollider.Size.Y / 2),
-                new Vector2(boxCollider.Size.X / 2, boxCollider.Size.Y / 2),
-                new Vector2(-boxCollider.Size.X / 2, boxCollider.Size.Y / 2),
-            }), boxCollider.Density);
-
-            FixtureDef fixtureDef = new FixtureDef()
-            {
-                Shape = shape,
-                Friction = boxCollider.Friction,
-                Restitution = boxCollider.Restitution,
-                
-            };
-
-            entity.Get<PhysicsBody2D>().Body.CreateFixture(fixtureDef);
+            boxCollider.Fixture = entity.Get<PhysicsBody2D>().Body.CreateRectangle(boxCollider.Size.X, boxCollider.Size.Y, boxCollider.Density, AVector2.Zero);
         }
 
         private void BoxColliderRemoved(ComponentRemovedEvent args)
@@ -98,7 +80,7 @@ namespace MalignEngine
             var entity = args.Entity;
             ref BoxCollider2D boxCollider = ref entity.Get<BoxCollider2D>();
 
-            entity.Get<PhysicsBody2D>().Body.DestroyFixture(boxCollider.Fixture);
+            entity.Get<PhysicsBody2D>().Body.Remove(boxCollider.Fixture);
         }
 
         private void PhysicsBodyAdded(ComponentAddedEvent args)
@@ -117,15 +99,7 @@ namespace MalignEngine
                 startRotation = entity.Get<Rotation2D>().Rotation;
             }
 
-            BodyDef bodyDef = new BodyDef()
-            {
-                Position = startPosition,
-                Angle = startRotation,
-            };
-
-            bodyDef.Type = (BodyType)physicsBody.BodyType;
-
-            Body body = physicsWorld.CreateBody(bodyDef);
+            Body body = physicsWorld.CreateBody(new AVector2(startPosition.X, startPosition.Y), startRotation, (BodyType)physicsBody.BodyType);
             body.Mass = physicsBody.Mass;
             physicsBody.Body = body;
         }
@@ -135,7 +109,7 @@ namespace MalignEngine
             var entity = args.Entity;
             ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
 
-            physicsWorld.DestroyBody(physicsBody.Body);
+            physicsWorld.Remove(physicsBody.Body);
         }
     }
 }

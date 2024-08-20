@@ -17,12 +17,14 @@ namespace MalignEngine
 
         public static object Resolve(Type type)
         {
-            return instances[type];
+            // Include types that inherit from type
+            return instances.Values.FirstOrDefault(x => x.GetType() == type || x.GetType().IsSubclassOf(type));
         }
 
         public static T Resolve<T>()
         {
-            return (T)instances[typeof(T)];
+            // Include types that inherit from T
+            return (T)instances.Values.FirstOrDefault(x => x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T)));
         }
 
         public static void InjectDependencies(object obj)
@@ -32,9 +34,20 @@ namespace MalignEngine
             {
                 if (field.GetCustomAttribute<Dependency>() != null)
                 {
-                    field.SetValue(obj, Resolve(field.FieldType));
+                    object value = Resolve(field.FieldType);
+                    if (value == null)
+                    {
+                        throw new Exception($"Failed to resolve dependency of type {field.FieldType}");
+                    }
+                    field.SetValue(obj, value);
                 }
             }
+        }
+
+        public static Type[] GetDependencies(Type type)
+        {
+            var fields = type.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
+            return fields.Where(x => x.GetCustomAttribute<Dependency>() != null).Select(x => x.FieldType).ToArray();
         }
     }
 }
