@@ -3,7 +3,16 @@ using System.Reflection;
 namespace MalignEngine
 {
     [AttributeUsage(AttributeTargets.Field)]
-    public class Dependency : Attribute { }
+    public class Dependency : Attribute
+    {
+        public bool Optional { get; private set; } = false;
+
+        public Dependency() { }
+        public Dependency(bool optional)
+        {
+            Optional = optional;
+        }
+    }
 
     public static class IoCManager
     {

@@ -5,25 +5,21 @@ using Arch.Core.Extensions;
 
 class GameMain : BaseSystem
 {
-    private AssetRegistry assetRegistry;
-
     private SystemGroup systemGroup;
 
     private InputSystem inputSystem;
     private RenderingSystem renderingSystem;
+    private AssetSystem assetSystem;
 
     private Entity camera;
 
     public GameMain()
     {
-        assetRegistry = new AssetRegistry();
-
-        IoCManager.Register(assetRegistry);
-
         systemGroup = new SystemGroup();
-        var window = new WindowSystem(systemGroup, "Malign Engine", new Vector2(800, 600));
+        var window = new WindowSystem("Malign Engine", new Vector2(800, 600));
         systemGroup.AddSystem(new WorldSystem());
         systemGroup.AddSystem(new EventSystem());
+        systemGroup.AddSystem(new AssetSystem());
         systemGroup.AddSystem(window);
         systemGroup.AddSystem(new GLRenderingSystem());
         systemGroup.AddSystem(new InputSystem());
@@ -34,6 +30,8 @@ class GameMain : BaseSystem
         systemGroup.AddSystem(new SpriteRenderingSystem());
         systemGroup.AddSystem(new EditorSystem());
         systemGroup.AddSystem(new EditorInspectorSystem());
+        systemGroup.AddSystem(new EditorPerformanceSystem());
+        systemGroup.AddSystem(new EditorSceneViewSystem());
         systemGroup.AddSystem(this);
 
         window.Run();
@@ -43,21 +41,23 @@ class GameMain : BaseSystem
     {
         inputSystem = IoCManager.Resolve<InputSystem>();
         renderingSystem = IoCManager.Resolve<RenderingSystem>();
+        assetSystem = IoCManager.Resolve<AssetSystem>();
 
-        assetRegistry.Add(new Sprite("player", Texture2D.CreateFromFile("Content/Textures/player.png")));
-        assetRegistry.Add(new Sprite("fuck", Texture2D.CreateFromFile("Content/Textures/luatrauma.png")));
+        assetSystem.Add(new Sprite("white", Texture2D.White));
+        assetSystem.Add(new Sprite("player", Texture2D.CreateFromFile("Content/Textures/player.png")));
+        assetSystem.Add(new Sprite("fuck", Texture2D.CreateFromFile("Content/Textures/luatrauma.png")));
 
         var worldSystem = IoCManager.Resolve<WorldSystem>();
 
-        camera = worldSystem.World.Create(new Position2D(0, 0), new OrthographicCamera() { Zoom = 3f });
+        camera = worldSystem.World.Create(new Position2D(0, 0), new OrthographicCamera() { ViewSize = 3f, IsMain = true });
 
-        Entity entity = worldSystem.World.Create(new Position2D(0, 0), new Depth(0f), new Rotation2D(0f), new SpriteRenderer() { Sprite = assetRegistry.Get<Sprite>("player"), Color = Color.White });
+        Entity entity = worldSystem.World.Create(new Position2D(0, 0), new Depth(0f), new Rotation2D(0f), new SpriteRenderer() { Sprite = assetSystem.Get<Sprite>("player"), Color = Color.White });
         entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50 });
         entity.Add(new BoxCollider2D() { Size = new Vector2(1, 1), Density = 1 });
 
-        Entity entity2 = worldSystem.World.Create(new Position2D(0, -3), new SpriteRenderer() { Sprite = assetRegistry.Get<Sprite>("player"), Color = Color.White });
+        Entity entity2 = worldSystem.World.Create(new Position2D(0, -3), new Scale2D(10000, 1), new SpriteRenderer() { Sprite = assetSystem.Get<Sprite>("white"), Color = Color.White });
         entity2.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static, Mass = 50 });
-        entity2.Add(new BoxCollider2D() { Size = new Vector2(100, 1), Density = 1 });
+        entity2.Add(new BoxCollider2D() { Size = new Vector2(10000, 1), Density = 1 });
     }
 
     public override void Update(float deltaTime)
@@ -85,16 +85,15 @@ class GameMain : BaseSystem
         {
             var worldSystem = IoCManager.Resolve<WorldSystem>();
             var cameraSystem = IoCManager.Resolve<CameraSystem>();
-            var inputSystem = IoCManager.Resolve<InputSystem>();
 
-            Vector2 position = cameraSystem.ScreenToWorld(inputSystem.MousePosition);
+            Vector2 position = cameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
-            Entity entity = worldSystem.World.Create(new Position2D(position), new Depth(0f), new Rotation2D(0f), new SpriteRenderer() { Sprite = assetRegistry.Get<Sprite>("player"), Color = Color.White });
+            Entity entity = worldSystem.World.Create(new Position2D(position), new Depth(0f), new Rotation2D(0f), new SpriteRenderer() { Sprite = assetSystem.Get<Sprite>("player"), Color = Color.White });
             entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50 });
             entity.Add(new BoxCollider2D() { Size = new Vector2(1, 1), Density = 1 });
         }
 
-        camera.Get<OrthographicCamera>().Zoom -= inputSystem.MouseScroll * deltaTime * 10f;
+        camera.Get<OrthographicCamera>().ViewSize -= inputSystem.MouseScroll * deltaTime * 10f;
     }
 
     public override void Draw(float deltaTime)

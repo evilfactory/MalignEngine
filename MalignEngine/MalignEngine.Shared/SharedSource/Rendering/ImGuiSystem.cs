@@ -87,9 +87,19 @@ namespace MalignEngine
             imGuiController.Update(deltaTime);
         }
 
-        public override void AfterDraw(float deltaTime)
+        public override void DrawGUI(float deltaTime)
         {
             imGuiController.Render();
+        }
+
+        public void Image(RenderTexture texture, Vector2 size, Vector2 uv0, Vector2 uv1)
+        {
+            ImGui.Image((IntPtr)((GLRenderTextureHandle)texture.handle).textureHandle, size, uv0, uv1);
+        }
+
+        public void Image(Texture2D texture, Vector2 size, Vector2 uv0, Vector2 uv1)
+        {
+            ImGui.Image((IntPtr)((GLTextureHandle)texture.handle).handle, size, uv0, uv1);
         }
     }
 }

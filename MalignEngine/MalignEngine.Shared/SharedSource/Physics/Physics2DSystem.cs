@@ -6,11 +6,15 @@ using Arch.Buffer;
 using World = nkast.Aether.Physics2D.Dynamics.World;
 using AVector2 = nkast.Aether.Physics2D.Common.Vector2;
 using nkast.Aether.Physics2D.Collision.Shapes;
+using System.Diagnostics;
 
 namespace MalignEngine
 {
     public class Physics2DSystem : EntitySystem
     {
+        [Dependency(true)]
+        protected EditorPerformanceSystem EditorPerformanceSystem = default!;
+
         private World physicsWorld;
 
         public Vector2 Gravity
@@ -32,12 +36,16 @@ namespace MalignEngine
 
         public override void Update(float deltaTime)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             physicsWorld.Step(deltaTime);
+            stopwatch.Stop();
+            EditorPerformanceSystem?.AddElapsedTicks("Physics2DSystem", stopwatch.ElapsedTicks);
 
             CommandBuffer commandBuffer = new CommandBuffer();
 
             var query = new QueryDescription().WithAll<PhysicsBody2D, Position2D>();
-            World.Query(query, (Entity entity, ref PhysicsBody2D physicsBody, ref Position2D position) =>
+            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Position2D position) =>
             {
                 if (entity.Has<Dirty<Position2D>>())
                 {
@@ -51,16 +59,16 @@ namespace MalignEngine
             });
 
             query = new QueryDescription().WithAll<PhysicsBody2D, Rotation2D>();
-            World.Query(query, (Entity entity, ref PhysicsBody2D physicsBody, ref Rotation2D rotation) =>
+            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Rotation2D rotation) =>
             {
                 if (entity.Has<Dirty<Rotation2D>>())
                 {
                     physicsBody.Body.Rotation = rotation.Rotation;
+                    commandBuffer.Remove<Dirty<Rotation2D>>(entity);
                 }
                 else
                 {
                     rotation.Rotation = physicsBody.Body.Rotation;
-                    commandBuffer.Remove<Dirty<Rotation2D>>(entity);
                 }
             });
 

@@ -4,6 +4,7 @@ namespace MalignEngine
 {
     public abstract class BaseSystem
     {
+        public SystemGroup SystemGroup { get; set; }
         public bool Enabled { get; set; } = true;
 
         public virtual void Initialize() { }
@@ -13,6 +14,7 @@ namespace MalignEngine
         public virtual void BeforeDraw(float deltaTime) { }
         public virtual void Draw(float deltaTime) { }
         public virtual void AfterDraw(float deltaTime) { }
+        public virtual void DrawGUI(float deltaTime) { }
 
     }
 }

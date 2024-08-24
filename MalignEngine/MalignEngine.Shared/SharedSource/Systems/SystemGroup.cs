@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 
 namespace MalignEngine
@@ -14,6 +15,7 @@ namespace MalignEngine
         public void AddSystem(BaseSystem system)
         {
             systems.Add(system);
+            system.SystemGroup = this;
             IoCManager.Register(system);
 
             Logger.LogVerbose($"Added system {system.GetType().Name}");
@@ -94,6 +96,15 @@ namespace MalignEngine
             {
                 if (!system.Enabled) { continue; }
                 system.AfterDraw(deltaTime);
+            }
+        }
+
+        public void DrawGUI(float deltaTime)
+        {
+            foreach (var system in systems)
+            {
+                if (!system.Enabled) { continue; }
+                system.DrawGUI(deltaTime);
             }
         }
     }

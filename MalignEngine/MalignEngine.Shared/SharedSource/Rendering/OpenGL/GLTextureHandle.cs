@@ -4,10 +4,15 @@ using System.IO;
 
 namespace MalignEngine
 {
-    public class GLTextureHandle : TextureHandle
+    public interface IGLBindableTexture
+    {
+        public void Bind(TextureUnit textureSlot = TextureUnit.Texture0);
+    }
+
+    public class GLTextureHandle : TextureHandle, IGLBindableTexture
     {
         private GL gl;
-        private uint handle;
+        internal uint handle;
 
         public GLTextureHandle(GL gl, uint width, uint height) : base(width, height)
         {

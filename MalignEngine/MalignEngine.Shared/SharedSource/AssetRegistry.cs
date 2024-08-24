@@ -2,19 +2,12 @@ using System.Collections.Concurrent;
 
 namespace MalignEngine
 {
-    public class AssetRegistry
+    public class AssetSystem : BaseSystem
     {
-        public static AssetRegistry Instance
-        {
-            get;
-            private set;
-        }
-
         private Dictionary<string, Asset> assets;
 
-        public AssetRegistry()
+        public AssetSystem()
         {
-            Instance = this;
             assets = new Dictionary<string, Asset>();
         }
 

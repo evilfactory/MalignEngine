@@ -41,7 +41,7 @@ namespace MalignEngine
         private BufferObject<Vertex> vbo;
         private BufferObject<uint> ebo;
         private VertexArrayObject<Vertex, uint> vao;
-        private Texture2D[] textures;
+        private IGLBindableTexture[] textures;
 
         private uint indexCount = 0;
         private uint batchIndex = 0;
@@ -56,17 +56,15 @@ namespace MalignEngine
 
         private Matrix4x4 currentMatrix;
         private GLShader spriteShader;
+        private RenderTexture renderTexture;
+
+        private Shader postProcessingShader;
 
         private uint vertexSize = (uint)Marshal.SizeOf<Vertex>();
 
         public override void Initialize()
         {
             openGL = GL.GetApi(Window.window);
-
-            Window.OnFrameBufferResize += (Vector2 size) =>
-            {
-                openGL.Viewport(0, 0, (uint)size.X, (uint)size.Y);
-            };
 
             openGL.Enable(GLEnum.Blend);
             openGL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
@@ -79,7 +77,7 @@ namespace MalignEngine
                 openGL.DebugMessageCallback(GLDebugMessageCallback, null);
             }
 
-            textures = new Texture2D[MaxTextures];
+            textures = new IGLBindableTexture[MaxTextures];
 
             triangleIndices = new uint[MaxIndexCount];
             uint offset = 0;
@@ -113,11 +111,6 @@ namespace MalignEngine
             currentMatrix = Matrix4x4.Identity;
         }
 
-        public override void Draw(float deltaTime)
-        {
-            Clear(Color.LightSkyBlue);
-        }
-
         private void GLDebugMessageCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
         {
             string stringMessage = SilkMarshal.PtrToString(message);
@@ -130,10 +123,11 @@ namespace MalignEngine
         public override void Begin(Shader shader, Matrix4x4 matrix)
         {
             drawing = true;
-            drawingShader = (GLShader)shader;
+            drawingShader = (GLShader)shader ?? spriteShader;
             drawingMatrix = matrix;
 
             batchIndex = 0;
+            textureSlotIndex = -1;
         }
 
         public override void Begin(Matrix4x4 matrix)
@@ -153,7 +147,18 @@ namespace MalignEngine
             openGL.ClearStencil(0);
         }
 
+
+        public override void DrawRenderTexture(RenderTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        {
+            DrawTexture2D((GLRenderTextureHandle)texture.handle, position, size, origin, sourceRectangle, color, rotation, layerDepth);
+        }
+
         public override void DrawTexture2D(Texture2D texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        {
+            DrawTexture2D((IGLBindableTexture)texture.handle, position, size, origin, sourceRectangle, color, rotation, layerDepth);
+        }
+
+        private void DrawTexture2D(IGLBindableTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
         {
             if (!drawing)
             {
@@ -196,7 +201,7 @@ namespace MalignEngine
                     0f
                 );
 
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromYawPitchRoll(rotation, 0, 0));
+                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
                 drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
 
                 vertices[batchIndex] = new Vertex(drawPosition, new Vector2(1, 0), textureSlot, color);
@@ -211,7 +216,7 @@ namespace MalignEngine
                 );
 
 
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromYawPitchRoll(rotation, 0, 0));
+                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
                 drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
 
                 vertices[batchIndex] = new Vertex(drawPosition, new Vector2(1, 1), textureSlot, color);
@@ -226,12 +231,12 @@ namespace MalignEngine
                 );
 
 
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromYawPitchRoll(rotation, 0, 0));
+                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
                 drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
 
                 vertices[batchIndex] = new Vertex(drawPosition, new Vector2(0, 1), textureSlot, color);
                 batchIndex++;
-            } 
+            }
 
             {
                 Vector3 drawPosition = new Vector3(
@@ -241,7 +246,7 @@ namespace MalignEngine
                 );
 
 
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromYawPitchRoll(rotation, 0, 0));
+                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
                 drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
 
                 vertices[batchIndex] = new Vertex(drawPosition, new Vector2(0, 0), textureSlot, color);
@@ -286,7 +291,7 @@ namespace MalignEngine
                 if (textures[i] == null) { break; }
 
                 TextureUnit textureUnit = TextureUnit.Texture0 + i;
-                ((GLTextureHandle)textures[i].handle).Bind(textureUnit);
+                textures[i].Bind(textureUnit);
             }
 
             unsafe
@@ -303,6 +308,11 @@ namespace MalignEngine
             return new GLTextureHandle(openGL, texture.Width, texture.Height);
         }
 
+        public override RenderTextureHandle CreateRenderTextureHandle(RenderTexture texture)
+        {
+            return new GLRenderTextureHandle(openGL, texture.Width, texture.Height);
+        }
+
         public override Shader LoadShader(Stream data)
         {
             StreamReader reader = new StreamReader(data);
@@ -313,5 +323,24 @@ namespace MalignEngine
         {
             currentMatrix = matrix;
         }
+
+        public override void SetRenderTarget(RenderTexture renderTexture, uint width = 0, uint height = 0)
+        {
+            this.renderTexture = renderTexture;
+
+            if (this.renderTexture != null)
+            {
+                if (width == 0) { width = renderTexture.Width; }
+                if (height == 0) { height = renderTexture.Height; }
+                ((GLRenderTextureHandle)this.renderTexture.handle).Bind();
+                openGL.Viewport(0, 0, width, height);
+            }
+            else
+            {
+                openGL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                openGL.Viewport(0, 0, (uint)Window.Width, (uint)Window.Height);
+            }
+        }
+
     }
 }

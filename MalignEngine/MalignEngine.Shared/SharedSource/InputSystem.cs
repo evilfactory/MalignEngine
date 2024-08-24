@@ -52,6 +52,10 @@ namespace MalignEngine
             get { return usedMouse.Position; }
         }
 
+        public Vector2 LastMousePosition { get; private set; }
+
+        public Vector2 MouseDelta { get; private set; }
+
         public bool IsMouseInsideRectangle(Vector2 position, Vector2 size, bool center = true)
         {
             Vector2 mousePosition = MousePosition;
@@ -104,6 +108,10 @@ namespace MalignEngine
 
         public override void AfterUpdate(float delta)
         {
+            MouseDelta = MousePosition - LastMousePosition;
+
+            LastMousePosition = MousePosition;
+
             lastMouseScroll = 0f;
             for (int button = 0; button < mouseButtonsState.Length; button++)
             {

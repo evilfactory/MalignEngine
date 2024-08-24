@@ -1,3 +1,4 @@
+using Arch.Core;
 using ImGuiNET;
 using System.Numerics;
 
@@ -5,6 +6,8 @@ namespace MalignEngine
 {
     public class EditorSystem : BaseSystem
     {
+        public EntityReference SelectedEntity { get; set; } = EntityReference.Null;
+
         private readonly List<BaseEditorWindowSystem> windows = new List<BaseEditorWindowSystem>();
 
         public void AddWindow(BaseEditorWindowSystem window)

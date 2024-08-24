@@ -27,14 +27,13 @@ namespace MalignEngine
                 ImGui.BeginChild("scrolling", new Vector2(0, 0), false);
 
                 var query = new QueryDescription();
-                World.Query(query, (Entity entity) =>
+                World.Query(in query, (Entity entity) =>
                 {
                     string name = "Unnamed";
 
-
-                    if (ImGui.Selectable($"{name} - {entity.Id}", selectedEntity == entity))
+                    if (ImGui.Selectable($"{name} - {entity.Id}", EditorSystem.SelectedEntity.Entity == entity))
                     {
-                        selectedEntity = entity;
+                        EditorSystem.SelectedEntity = entity.Reference();
                     }
                 });
 
@@ -44,9 +43,9 @@ namespace MalignEngine
 
                 ImGui.BeginChild("scrolling2", new Vector2(0, 0), false);
 
-                if (selectedEntity != null)
+                if (EditorSystem.SelectedEntity != EntityReference.Null)
                 {
-                    Entity entity = selectedEntity.Value;
+                    Entity entity = EditorSystem.SelectedEntity.Entity;
 
                     ImGui.Text($"Entity Id: {entity.Id}");
                     ImGui.Text($"Entity Version: {entity.Version()}");
@@ -84,8 +83,6 @@ namespace MalignEngine
 
             ImGui.End();
         }
-
-        private static Entity? selectedEntity = null;
 
         private static string FormatObject(object obj)
         {
