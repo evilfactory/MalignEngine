@@ -9,39 +9,43 @@ namespace MalignEngine
         [Dependency]
         protected RenderingSystem RenderingSystem = default!;
 
-        private Shader shader;
-
-        public override void Initialize()
+        public override void OnInitialize()
         {
-            using (var stream = File.OpenRead("Content/SpriteShader.glsl"))
-            {
-                shader = RenderingSystem.LoadShader(stream);
-            }
         }
 
-        public override void Draw(float deltaTime)
+        public override void OnDraw(float deltaTime)
         {
             RenderingSystem.Begin();
-            var query = new QueryDescription().WithAll<SpriteRenderer, Position2D>();
-            World.Query(query, (Entity entity, ref Position2D pos, ref SpriteRenderer spriteRenderer) =>
+            var query = new QueryDescription().WithAll<SpriteRenderer, WorldTransform>();
+            World.Query(query, (Entity entity, ref WorldTransform transform, ref SpriteRenderer spriteRenderer) =>
             {
-                Vector2 scale = new Vector2(1, 1);
-                float rotation = 0;
                 float depth = 0;
-                if (entity.Has<Scale2D>()) { scale = entity.Get<Scale2D>().Scale; }
-                if (entity.Has<Rotation2D>()) { rotation = entity.Get<Rotation2D>().Rotation; }
                 if (entity.Has<Depth>()) { depth = entity.Get<Depth>().Value; }
 
-                RenderingSystem.DrawTexture2D(spriteRenderer.Sprite.Texture, pos.Position, scale, spriteRenderer.Sprite.Origin, spriteRenderer.Sprite.Rect, spriteRenderer.Color, rotation, depth);
+                RenderingSystem.DrawTexture2D(spriteRenderer.Sprite.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), spriteRenderer.Sprite.Origin, spriteRenderer.Sprite.Rect, spriteRenderer.Color, transform.ZAxis, depth);
             });
             RenderingSystem.End();
         }
     }
 
-    [RegisterComponent]
-    public struct SpriteRenderer
+    public struct SpriteRenderer : IComponent
     {
         public Sprite Sprite;
         public Color Color;
+    }
+
+    public struct Depth : IComponent
+    {
+        public float Value;
+
+        public Depth(float value)
+        {
+            Value = value;
+        }
+
+        public Depth()
+        {
+            Value = 0;
+        }
     }
 }

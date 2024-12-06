@@ -15,7 +15,6 @@ namespace MalignEngine
         public void AddSystem(BaseSystem system)
         {
             systems.Add(system);
-            system.SystemGroup = this;
             IoCManager.Register(system);
 
             Logger.LogVerbose($"Added system {system.GetType().Name}");
@@ -57,54 +56,7 @@ namespace MalignEngine
             foreach (var system in systems)
             {
                 if (!system.Enabled) { continue; }
-                system.Initialize();
-            }
-        }
-
-        public void Update(float deltaTime)
-        {
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.BeforeUpdate(deltaTime);
-            }
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.Update(deltaTime);
-            }
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.AfterUpdate(deltaTime);
-            }
-        }
-
-        public void Draw(float deltaTime)
-        {
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.BeforeDraw(deltaTime);
-            }
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.Draw(deltaTime);
-            }
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.AfterDraw(deltaTime);
-            }
-        }
-
-        public void DrawGUI(float deltaTime)
-        {
-            foreach (var system in systems)
-            {
-                if (!system.Enabled) { continue; }
-                system.DrawGUI(deltaTime);
+                system.OnInitialize();
             }
         }
     }

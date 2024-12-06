@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class ImGuiSystem : BaseSystem
+    public class ImGuiSystem : BaseSystem, IDrawGUI
     {
         [Dependency]
         protected GLRenderingSystem RenderingSystem = default!;
@@ -15,7 +15,7 @@ namespace MalignEngine
 
         private ImGuiController imGuiController;
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
             imGuiController = new ImGuiController(RenderingSystem.openGL, Window.window, Input.input, () =>
             {
@@ -23,6 +23,8 @@ namespace MalignEngine
                 //io.Fonts.AddFontFromFileTTF("Content/fonts/Ruda-Regular.ttf", 18f);
                 io.ConfigFlags |= ImGuiNET.ImGuiConfigFlags.ViewportsEnable;
                 io.ConfigFlags |= ImGuiNET.ImGuiConfigFlags.DockingEnable;
+
+                io.DeltaTime = 1f / 120f;
 
                 ImGuiStylePtr style = ImGui.GetStyle();
                 var colors = style.Colors;
@@ -82,12 +84,12 @@ namespace MalignEngine
         }
 
 
-        public override void BeforeDraw(float deltaTime)
+        public override void OnDraw(float deltaTime)
         {
             imGuiController.Update(deltaTime);
         }
 
-        public override void DrawGUI(float deltaTime)
+        public void OnDrawGUI(float deltaTime)
         {
             imGuiController.Render();
         }

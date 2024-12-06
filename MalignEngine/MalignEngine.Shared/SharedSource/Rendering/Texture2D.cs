@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class Texture2D
+    public class Texture2D : IAsset
     {
         public static Texture2D White = new Texture2D(new Color[,] { { Color.White } }, 1, 1);
 
@@ -51,9 +51,14 @@ namespace MalignEngine
             handle.SubmitData(data);
         }
 
-        public static Texture2D CreateFromFile(string filePath)
+        public override string ToString()
         {
-            using (var img = Image.Load<Rgba32>(filePath))
+            return $"Texture2D: ({Width}x{Height})";
+        }
+
+        public static IAsset Load(string assetPath)
+        {
+            using (var img = Image.Load<Rgba32>(assetPath))
             {
                 img.Mutate(x => x.AutoOrient());
 
@@ -78,9 +83,9 @@ namespace MalignEngine
             }
         }
 
-        public override string ToString()
+        public static IAsset CreateDummyAsset()
         {
-            return $"Texture2D: ({Width}x{Height})";
+            return White;
         }
     }
 }

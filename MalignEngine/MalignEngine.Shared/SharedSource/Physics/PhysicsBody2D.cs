@@ -10,8 +10,7 @@ namespace MalignEngine
         Dynamic
     }
 
-    [RegisterComponent]
-    public struct PhysicsBody2D
+    public struct PhysicsBody2D : IComponent
     {
         public PhysicsBodyType BodyType;
 

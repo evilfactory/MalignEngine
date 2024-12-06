@@ -2,14 +2,14 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class Sprite : Asset
+    public class Sprite
     {
         public Texture2D Texture { get; private set; }
         public Vector2 Origin { get; private set; }
         public Rectangle Rect { get; private set; }
         public Color Color { get; private set; }
 
-        public Sprite(string identifier, Texture2D texture) : base(identifier)
+        public Sprite(Texture2D texture)
         {
             Texture = texture;
             Origin = new Vector2(texture.Width / 2, texture.Height / 2);
@@ -17,7 +17,7 @@ namespace MalignEngine
             Color = Color.White;
         }
 
-        public Sprite(string identifier, Texture2D texture, Vector2 origin, Rectangle rect) : base(identifier)
+        public Sprite(Texture2D texture, Vector2 origin, Rectangle rect)
         {
             Texture = texture;
             Origin = origin;
@@ -25,7 +25,7 @@ namespace MalignEngine
             Color = Color.White;
         }
 
-        public Sprite(string identifier, Texture2D texture, Vector2 origin, Rectangle rect, Color color) : base(identifier)
+        public Sprite(Texture2D texture, Vector2 origin, Rectangle rect, Color color)
         {
             Texture = texture;
             Origin = origin;
@@ -35,7 +35,7 @@ namespace MalignEngine
 
         public override string ToString()
         {
-            return $"Sprite: {Identifier} ({Texture.Width}x{Texture.Height})";
+            return $"Sprite: ({Texture.Width}x{Texture.Height})";
         }
     }
 }

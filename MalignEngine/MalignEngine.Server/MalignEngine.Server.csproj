@@ -6,6 +6,8 @@
         <DefineConstants>SERVER</DefineConstants>
         <RootNamespace>MalignEngine</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>latest</LangVersion>
+        <EnablePreviewFeatures>true</EnablePreviewFeatures>
     </PropertyGroup>
 
     <ItemGroup>

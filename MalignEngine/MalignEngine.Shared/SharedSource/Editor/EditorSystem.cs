@@ -15,7 +15,7 @@ namespace MalignEngine
             windows.Add(window);
         }
 
-        public override void Draw(float deltaTime)
+        public override void OnDraw(float deltaTime)
         {
             uint dockspaceId = ImGui.GetID("MyDockSpace");
             ImGui.DockSpace(dockspaceId, new Vector2(0, 0), ImGuiDockNodeFlags.PassthruCentralNode);

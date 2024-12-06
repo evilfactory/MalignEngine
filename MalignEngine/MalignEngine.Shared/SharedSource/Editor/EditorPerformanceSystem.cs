@@ -41,7 +41,7 @@ namespace MalignEngine
             }
         }
 
-        public override void Update(float deltatime)
+        public override void OnUpdate(float deltatime)
         {
             updatesPerSecond = 1.0f / deltatime;
 
@@ -51,7 +51,7 @@ namespace MalignEngine
             }
         }
 
-        public override void Draw(float deltatime)
+        public override void OnDraw(float deltatime)
         {
             if (!Active) { return; }
 

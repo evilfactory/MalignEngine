@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class InputSystem : BaseSystem
+    public class InputSystem : BaseSystem, IPostUpdate
     {
         [Dependency]
         protected WindowSystem Window = default!;
@@ -22,7 +22,7 @@ namespace MalignEngine
         private Dictionary<Key, bool> keysHeld = new Dictionary<Key, bool>();
         private Dictionary<Key, bool> keysState = new Dictionary<Key, bool>();
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
             input = Window.window.CreateInput();
 
@@ -106,7 +106,7 @@ namespace MalignEngine
             return keysHeld[key];
         }
 
-        public override void AfterUpdate(float delta)
+        public void OnPostUpdate(float delta)
         {
             MouseDelta = MousePosition - LastMousePosition;
 

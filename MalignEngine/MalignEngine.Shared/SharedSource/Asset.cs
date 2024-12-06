@@ -1,12 +1,15 @@
 namespace MalignEngine
 {
-    public abstract class Asset
+    public interface IAsset
     {
-        public string Identifier { get; private set; }
-
-        public Asset(string identifier)
+        public static IAsset Load(string assetPath)
         {
-            Identifier = identifier;
+            throw new NotImplementedException();
+        }
+
+        public static IAsset CreateDummyAsset()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -23,18 +23,18 @@ namespace MalignEngine
             set => physicsWorld.Gravity = new AVector2(value.X, value.Y);
         }
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
             physicsWorld = new World(new AVector2(0, -9.81f));
 
-            EventSystem.SubscribeLocalEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
-            EventSystem.SubscribeLocalEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
+            EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
+            EntityEventSystem.SubscribeLocalEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
 
-            EventSystem.SubscribeLocalEvent<ComponentAddedEvent, BoxCollider2D>(BoxColliderAdded);
-            EventSystem.SubscribeLocalEvent<ComponentRemovedEvent, BoxCollider2D>(BoxColliderRemoved);
+            EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, BoxCollider2D>(BoxColliderAdded);
+            EntityEventSystem.SubscribeLocalEvent<ComponentRemovedEvent, BoxCollider2D>(BoxColliderRemoved);
         }
 
-        public override void Update(float deltaTime)
+        public override void OnUpdate(float deltaTime)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -44,31 +44,18 @@ namespace MalignEngine
 
             CommandBuffer commandBuffer = new CommandBuffer();
 
-            var query = new QueryDescription().WithAll<PhysicsBody2D, Position2D>();
-            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Position2D position) =>
+            var query = new QueryDescription().WithAll<PhysicsBody2D, Transform>();
+            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Transform transform) =>
             {
-                if (entity.Has<Dirty<Position2D>>())
+                if (entity.Has<Dirty<Transform>>())
                 {
-                    physicsBody.Body.Position = new AVector2(position.Position.X, position.Position.Y);
-                    commandBuffer.Remove<Dirty<Position2D>>(entity);
+                    physicsBody.Body.Position = new AVector2(transform.Position.X, transform.Position.Y);
+                    physicsBody.Body.Rotation = transform.ZAxis;
                 }
                 else
                 {
-                    position.Position = new Vector2(physicsBody.Body.Position.X, physicsBody.Body.Position.Y);
-                }
-            });
-
-            query = new QueryDescription().WithAll<PhysicsBody2D, Rotation2D>();
-            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Rotation2D rotation) =>
-            {
-                if (entity.Has<Dirty<Rotation2D>>())
-                {
-                    physicsBody.Body.Rotation = rotation.Rotation;
-                    commandBuffer.Remove<Dirty<Rotation2D>>(entity);
-                }
-                else
-                {
-                    rotation.Rotation = physicsBody.Body.Rotation;
+                    transform.Position = new Vector3(physicsBody.Body.Position.X, physicsBody.Body.Position.Y, 0f);
+                    transform.ZAxis = physicsBody.Body.Rotation;
                 }
             });
 
@@ -97,14 +84,12 @@ namespace MalignEngine
             ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
 
             Vector2 startPosition = Vector2.Zero;
-            if (entity.Has<Position2D>())
-            {
-                startPosition = entity.Get<Position2D>().Position;
-            }
             float startRotation = 0;
-            if (entity.Has<Rotation2D>())
+
+            if (entity.Has<Transform>())
             {
-                startRotation = entity.Get<Rotation2D>().Rotation;
+                startPosition = entity.Get<Transform>().Position.ToVector2();
+                startRotation = entity.Get<Transform>().ZAxis;
             }
 
             Body body = physicsWorld.CreateBody(new AVector2(startPosition.X, startPosition.Y), startRotation, (BodyType)physicsBody.BodyType);

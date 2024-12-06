@@ -3,8 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    [RegisterComponent]
-    public struct BoxCollider2D
+    public struct BoxCollider2D : IComponent
     {
         internal Fixture Fixture;
 

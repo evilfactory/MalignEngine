@@ -7,9 +7,7 @@ using System.Security.Cryptography;
 
 namespace MalignEngine
 {
-
-    public abstract class EventArgs { }
-    public abstract class EntityEventArgs : EventArgs
+    public abstract class EntityEventArgs
     {
         public Entity Entity { get; private set; }
 
@@ -18,8 +16,34 @@ namespace MalignEngine
             Entity = entity;
         }
     }
+    public class EntityCreatedEvent : EntityEventArgs
+    {
+        public EntityCreatedEvent(EntityReference entity) : base(entity)
+        {
+        }
+    }
+    public class EntityDestroyedEvent : EntityEventArgs
+    {
+        public EntityDestroyedEvent(EntityReference entity) : base(entity)
+        {
+        }
+    }
 
-    public class EventSystem : BaseSystem
+    public class ComponentAddedEvent : EntityEventArgs
+    {
+        public ComponentAddedEvent(EntityReference entity) : base(entity)
+        {
+        }
+    }
+
+    public class ComponentRemovedEvent : EntityEventArgs
+    {
+        public ComponentRemovedEvent(EntityReference entity) : base(entity)
+        {
+        }
+    }
+
+    public class EntityEventSystem : BaseSystem
     {
         [Dependency]
         protected WorldSystem WorldSystem = default!;
@@ -50,25 +74,21 @@ namespace MalignEngine
                 RaiseLocalEvent<ComponentRemovedEvent, T>(new ComponentRemovedEvent(entity.Reference()));
             });
         }
-        public override void Initialize()
+        public override void OnInitialize()
         {
             WorldSystem.World.SubscribeEntityCreated(OnEntityCreated);
             WorldSystem.World.SubscribeEntityDestroyed(OnEntityDestroyed);
 
             var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly assembly in loadedAssemblies)
+            foreach (Type type in loadedAssemblies.SelectMany(assembly => assembly.GetTypes()))
             {
-                foreach (Type type in assembly.GetTypes())
-                {
-                    if (type.IsGenericType) { continue; }
+                if (type.IsGenericType) { continue; }
 
-                    RegisterComponent attribute = type.GetCustomAttribute<RegisterComponent>();
-                    if (attribute != null)
-                    {
-                        var mi = typeof(EventSystem).GetMethod(nameof(RegisterComponent));
-                        var fooRef = mi.MakeGenericMethod(type);
-                        fooRef.Invoke(this, null);
-                    }
+                if (type.IsAssignableTo(typeof(IComponent)))
+                {
+                    MethodInfo method = typeof(EntityEventSystem).GetMethod("RegisterComponent");
+                    MethodInfo generic = method.MakeGenericMethod(type);
+                    generic.Invoke(this, null);
                 }
             }
         }
@@ -93,7 +113,7 @@ namespace MalignEngine
             eventSubscriptions.Add(new EventSubscription(handler, typeof(TComp)));
         }
 
-        public void RaiseLocalEvent<TEvent>(TEvent args) where TEvent : EventArgs
+        public void RaiseLocalEvent<TEvent>(TEvent args) where TEvent : EntityEventArgs
         {
             foreach (var subscription in eventSubscriptions)
             {

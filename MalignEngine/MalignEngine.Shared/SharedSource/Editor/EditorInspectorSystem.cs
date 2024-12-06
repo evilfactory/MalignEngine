@@ -9,9 +9,78 @@ namespace MalignEngine
 {
     public class EditorInspectorSystem : BaseEditorWindowSystem
     {
+        [Dependency]
+        protected ParentSystem ParentSystem = default!;
+
         public override string WindowName => "Inspector";
 
-        public override void Draw(float deltaTime)
+        private void RecursiveEntityTree(EntityReference[] entities)
+        {
+            foreach (Entity entity in entities)
+            {
+                string name = "Unknown";
+                if (entity.TryGet(out NameComponent nameComponent))
+                {
+                    name = nameComponent.Name;
+                }
+
+                if (entity.TryGet(out Children children))
+                {
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow;
+
+                    if (EditorSystem.SelectedEntity.Entity == entity)
+                    {
+                        flags |= ImGuiTreeNodeFlags.Selected;
+                    }
+
+                    if (ImGui.TreeNodeEx($"{name} - {entity.Id}", flags))
+                    {
+                        if (ImGui.IsItemClicked())
+                        {
+                            EditorSystem.SelectedEntity = entity.Reference();
+                        }
+
+                        RecursiveEntityTree(children.Childs.ToArray());
+                        ImGui.TreePop();
+                    }
+                    else
+                    {
+                        if (ImGui.IsItemClicked())
+                        {
+                            EditorSystem.SelectedEntity = entity.Reference();
+                        }
+                    }
+                }
+                else
+                {
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.Leaf;
+
+                    if (EditorSystem.SelectedEntity.Entity == entity)
+                    {
+                        flags |= ImGuiTreeNodeFlags.Selected;
+                    }
+
+                    if (ImGui.TreeNodeEx($"{name} - {entity.Id}", flags))
+                    {
+                        if (ImGui.IsItemClicked())
+                        {
+                            EditorSystem.SelectedEntity = entity.Reference();
+                        }
+
+                        ImGui.TreePop();
+                    }
+                    else
+                    {
+                        if (ImGui.IsItemClicked())
+                        {
+                            EditorSystem.SelectedEntity = entity.Reference();
+                        }
+                    }
+                }
+            }
+        }
+
+        public override void OnDraw(float deltaTime)
         {
             if (!Active) { return; }
 
@@ -26,16 +95,10 @@ namespace MalignEngine
 
                 ImGui.BeginChild("scrolling", new Vector2(0, 0), false);
 
-                var query = new QueryDescription();
-                World.Query(in query, (Entity entity) =>
+                if (ImGui.TreeNodeEx("Entities", ImGuiTreeNodeFlags.Selected))
                 {
-                    string name = "Unnamed";
-
-                    if (ImGui.Selectable($"{name} - {entity.Id}", EditorSystem.SelectedEntity.Entity == entity))
-                    {
-                        EditorSystem.SelectedEntity = entity.Reference();
-                    }
-                });
+                    RecursiveEntityTree(ParentSystem.RootEntities.Select(e => e.Reference()).ToArray());
+                }
 
                 ImGui.EndChild();
 
@@ -52,8 +115,11 @@ namespace MalignEngine
 
                     object[] components = entity.GetAllComponents();
 
+                    int i = 0;
                     foreach (object component in components)
                     {
+                        ImGui.PushID(i);
+
                         ImGui.Separator();
 
                         Type type = component.GetType();
@@ -73,6 +139,10 @@ namespace MalignEngine
                         {
                             DrawMember(entity, property, component);
                         }
+
+                        ImGui.PopID();
+
+                        i++;
                     }
                 }
 
@@ -90,14 +160,14 @@ namespace MalignEngine
 
             if (obj is Entity entity)
             {
-                //if (entity.Has<NameComponent>())
-                //{
-                //    return entity.Get<NameComponent>().Name;
-                //}
-                //else
-                //{
+                if (entity.Has<NameComponent>())
+                {
+                    return entity.Get<NameComponent>().Name;
+                }
+                else
+                {
                     return $"Unnamed - {entity.Id}";
-                //}
+                }
             }
 
             return obj.ToString();

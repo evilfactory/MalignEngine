@@ -79,6 +79,11 @@ namespace MalignEngine
             gl.Uniform1(GetLocation(name), value);
         }
 
+        public void SetUniform(string name, uint value)
+        {
+            gl.Uniform1(GetLocation(name), value);
+        }
+
         public unsafe void SetUniform(string name, Matrix4x4 value)
         {
             gl.UniformMatrix4(GetLocation(name), 1, false, (float*)&value);

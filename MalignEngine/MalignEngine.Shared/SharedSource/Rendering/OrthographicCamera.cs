@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    // Post processing
     public struct OrthographicCamera
     {
         public float ViewSize;
@@ -10,6 +11,6 @@ namespace MalignEngine
         public Matrix4x4 Matrix;
 
         public RenderTexture RenderTexture;
-        public Shader PostProcessing;
+        public PostProcessBaseSystem[] PostProcessingSteps;
     }
 }

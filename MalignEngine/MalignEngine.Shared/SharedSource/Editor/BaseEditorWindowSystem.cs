@@ -11,7 +11,7 @@ namespace MalignEngine
         [Dependency]
         protected ImGuiSystem ImGuiSystem = default!;
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
             EditorSystem.AddWindow(this);
         }

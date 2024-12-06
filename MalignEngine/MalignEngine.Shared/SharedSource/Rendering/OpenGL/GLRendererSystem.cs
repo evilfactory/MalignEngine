@@ -51,24 +51,25 @@ namespace MalignEngine
         private uint[] triangleIndices;
 
         private bool drawing = false;
-        private GLShader drawingShader;
+        private Material drawingMaterial;
         private Matrix4x4 drawingMatrix;
 
         private Matrix4x4 currentMatrix;
-        private GLShader spriteShader;
+        private Material basicMaterial;
         private RenderTexture renderTexture;
 
         private Shader postProcessingShader;
 
         private uint vertexSize = (uint)Marshal.SizeOf<Vertex>();
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
             openGL = GL.GetApi(Window.window);
 
             openGL.Enable(GLEnum.Blend);
             openGL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-            openGL.Enable(GLEnum.DepthTest);
+            //openGL.Enable(GLEnum.DepthTest);
+            openGL.Enable(GLEnum.StencilTest);
 
             openGL.Enable(GLEnum.DebugOutput);
             openGL.Enable(GLEnum.DebugOutputSynchronous);
@@ -107,8 +108,13 @@ namespace MalignEngine
             vao.VertexAttributePointer(2, 1, VertexAttribPointerType.Float, vertexSize, 5 * 4); // texture index
             vao.VertexAttributePointer(3, 4, VertexAttribPointerType.UnsignedByte, vertexSize, 6 * 4); // color
 
-            spriteShader = new GLShader(openGL, File.ReadAllText("Content/SpriteShader.glsl"));
             currentMatrix = Matrix4x4.Identity;
+
+            using (Stream file = File.OpenRead("Content/SpriteShader.glsl"))
+            {
+                basicMaterial = new Material((GLShader)LoadShader(file));
+                basicMaterial.UseTextureBatching = true;
+            }
         }
 
         private void GLDebugMessageCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
@@ -120,24 +126,29 @@ namespace MalignEngine
             Debug.Assert(false);
         }
 
-        public override void Begin(Shader shader, Matrix4x4 matrix)
+        public override void Begin(Matrix4x4 matrix, Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
         {
             drawing = true;
-            drawingShader = (GLShader)shader ?? spriteShader;
+            drawingMaterial = material ?? basicMaterial;
             drawingMatrix = matrix;
 
             batchIndex = 0;
             textureSlotIndex = -1;
+
+            switch (blendingMode)
+            {
+                case BlendingMode.AlphaBlend:
+                    openGL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+                    break;
+                case BlendingMode.Additive:
+                    openGL.BlendFunc(GLEnum.One, GLEnum.One);
+                    break;
+            }
         }
 
-        public override void Begin(Matrix4x4 matrix)
+        public override void Begin(Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
         {
-            Begin(spriteShader, matrix);
-        }
-
-        public override void Begin()
-        {
-            Begin(currentMatrix);
+            Begin(currentMatrix, material, blendingMode);
         }
 
         public override void Clear(Color color)
@@ -167,10 +178,11 @@ namespace MalignEngine
 
             if (texture == null) { throw new ArgumentNullException(nameof(texture)); }
 
-            if (indexCount >= MaxIndexCount)
+            // Don't batch draw multiple textures if texture batching is disabled
+            if (indexCount >= MaxIndexCount || (!drawingMaterial.UseTextureBatching && texture != textures[0]))
             {
                 End();
-                Begin(drawingShader, drawingMatrix);
+                Begin(drawingMatrix, drawingMaterial);
             }
 
             int textureSlot = -1;
@@ -270,21 +282,47 @@ namespace MalignEngine
                 }
             }
 
-            //Vector2[] lightPositions = new Vector2[] { new Vector2(0f, 0f), new Vector2(1f, 0f) };
-            //for (int i = 0; i < lightPositions.Length; i++)
-            //{
-            //    lightPositions[i] = Camera.Main.WorldToScreen(lightPositions[i]);
-            //}
-
-
+            GLShader drawingShader = (GLShader)drawingMaterial.Shader;
 
             drawingShader.Use();
 
             drawingShader.SetUniform("uModel", Matrix4x4.Identity);
             drawingShader.SetUniform("uView", Matrix4x4.Identity);
             drawingShader.SetUniform("uProjection", drawingMatrix);
+
             drawingShader.SetUniform("uTextures", new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
-            // if (activeShader.HasUniform("uLights")) { activeShader.SetUniform("uLights", lightPositions); }
+
+            // First 16 textures are reserved for the texture batching
+            int textureIndex = (int)MaxTextures;
+            foreach (var property in drawingMaterial.GetProperties())
+            {
+                object propertyValue = property.Value;
+
+                if (propertyValue is int)
+                {
+                    drawingShader.SetUniform(property.Key, (int)propertyValue);
+                }
+                else if (propertyValue is float)
+                {
+                    drawingShader.SetUniform(property.Key, (float)propertyValue);
+                }
+                else if (propertyValue is Matrix4x4)
+                {
+                    drawingShader.SetUniform(property.Key, (Matrix4x4)propertyValue);
+                }
+                else if (propertyValue is Texture2D)
+                {
+                    ((GLTextureHandle)((Texture2D)propertyValue).handle).Bind(TextureUnit.Texture0 + (int)textureIndex);
+                    drawingShader.SetUniform(property.Key, textureIndex);
+                    textureIndex++;
+                }
+                else if (propertyValue is RenderTexture)
+                {
+                    ((GLRenderTextureHandle)((RenderTexture)propertyValue).handle).Bind(TextureUnit.Texture0 + (int)textureIndex);
+                    drawingShader.SetUniform(property.Key, textureIndex);
+                    textureIndex++;
+                }
+            }
 
             for (int i = 0; i < textures.Length; i++)
             {
@@ -340,6 +378,67 @@ namespace MalignEngine
                 openGL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
                 openGL.Viewport(0, 0, (uint)Window.Width, (uint)Window.Height);
             }
+        }
+
+        public override void SetStencil(StencilFunction function, int reference, uint mask, StencilOperation fail, StencilOperation zfail, StencilOperation zpass)
+        {
+            GLEnum functiongl = GLEnum.Always;
+
+            switch (function)
+            {
+                case StencilFunction.Equal:
+                    functiongl = GLEnum.Equal;
+                    break;
+                case StencilFunction.NotEqual:
+                    functiongl = GLEnum.Notequal;
+                    break;
+                case StencilFunction.Less:
+                    functiongl = GLEnum.Less;
+                    break;
+                case StencilFunction.LessThanOrEqual:
+                    functiongl = GLEnum.Lequal;
+                    break;
+                case StencilFunction.Greater:
+                    functiongl = GLEnum.Greater;
+                    break;
+                case StencilFunction.GreaterThanOrEqual:
+                    functiongl = GLEnum.Gequal;
+                    break;
+                case StencilFunction.Always:
+                    functiongl = GLEnum.Always;
+                    break;
+                case StencilFunction.Never:
+                    functiongl = GLEnum.Never;
+                    break;
+            }
+
+            GLEnum OperationToGl(StencilOperation operation)
+            {
+                switch (operation)
+                {
+                    case StencilOperation.Keep:
+                        return GLEnum.Keep;
+                    case StencilOperation.Zero:
+                        return GLEnum.Zero;
+                    case StencilOperation.Replace:
+                        return GLEnum.Replace;
+                    case StencilOperation.Increment:
+                        return GLEnum.Incr;
+                    case StencilOperation.IncrementWrap:
+                        return GLEnum.IncrWrap;
+                    case StencilOperation.Decrement:
+                        return GLEnum.Decr;
+                    case StencilOperation.DecrementWrap:
+                        return GLEnum.DecrWrap;
+                    case StencilOperation.Invert:
+                        return GLEnum.Invert;
+                    default:
+                        return GLEnum.Keep;
+                }
+            }
+
+            openGL.StencilOp(OperationToGl(fail), OperationToGl(zfail), OperationToGl(zpass));
+            openGL.StencilFunc(functiongl, reference, mask);
         }
 
     }

@@ -4,13 +4,13 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class WindowSystem : BaseSystem
+    public class WindowSystem : BaseSystem, IApplicationRun
     {
+        [Dependency]
+        protected EventSystem EventSystem = default!;
+
         public int Width => window.Size.X;
         public int Height => window.Size.Y;
-
-        public event Action<float> OnWindowDraw;
-        public event Action<float> OnWindowUpdate;
 
         internal IWindow window;
 
@@ -34,26 +34,26 @@ namespace MalignEngine
             window.Render += WindowRender;
         }
 
-        public void Run()
+        public void OnApplicationRun()
         {
             window.Run();
         }
 
         private void WindowLoad()
         {
-            SystemGroup.Initialize();
+            EventSystem.PublishEvent<IInit>(e => e.OnInitialize());
         }
 
         private void WindowUpdate(double delta)
         {
-            OnWindowUpdate?.Invoke((float)delta);
-
-            SystemGroup.Update((float)delta);
+            EventSystem.PublishEvent<IPreUpdate>(e => e.OnPreUpdate((float)delta));
+            EventSystem.PublishEvent<IUpdate>(e => e.OnUpdate((float)delta));
+            EventSystem.PublishEvent<IPostUpdate>(e => e.OnPostUpdate((float)delta));
         }
 
         private void WindowRender(double delta)
         {
-            OnWindowDraw?.Invoke((float)delta);
+            EventSystem.PublishEvent<IWindowDraw>(e => e.OnWindowDraw((float)delta));
         }
     }
 }

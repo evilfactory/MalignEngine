@@ -1,13 +1,13 @@
 using Arch.Core;
 using Arch.Core.Extensions;
-using Silk.NET.Input;
-using Silk.NET.OpenGLES;
 using System.Numerics;
 
 namespace MalignEngine
 {
-    public class CameraSystem : EntitySystem
+    public class CameraSystem : EntitySystem, IWindowDraw
     {
+        [Dependency]
+        protected EventSystem EventSystem = default!;
         [Dependency]
         protected WindowSystem Window = default!;
         [Dependency]
@@ -15,12 +15,11 @@ namespace MalignEngine
 
         private Matrix4x4 matrix;
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
-            Window.OnWindowDraw += RequestDraw;
         }
 
-        public void RequestDraw(float delta)
+        public void OnWindowDraw(float delta)
         {
             if (Window.Width == 0 || Window.Height == 0)
             {
@@ -30,8 +29,8 @@ namespace MalignEngine
             List<Entity> cameraEntities = new List<Entity>();
             Entity mainCamera = Entity.Null;
 
-            var query = new QueryDescription().WithAll<OrthographicCamera, Position2D>();
-            World.Query(in query, (Entity entity, ref OrthographicCamera camera, ref Position2D position) =>
+            var query = new QueryDescription().WithAll<OrthographicCamera, Transform>();
+            World.Query(in query, (Entity entity, ref OrthographicCamera camera, ref Transform transform) =>
             {
                 if (camera.RenderTexture == null)
                 {
@@ -42,7 +41,7 @@ namespace MalignEngine
                     camera.RenderTexture.Resize((uint)Window.Width, (uint)Window.Height);
                 }
 
-                camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, position.Position);
+                camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, transform.Position.ToVector2());
 
                 cameraEntities.Add(entity);
 
@@ -60,7 +59,15 @@ namespace MalignEngine
 
                 Renderer.SetRenderTarget(camera.RenderTexture, camera.RenderTexture.Width, camera.RenderTexture.Height);
                 Renderer.Clear(Color.LightSkyBlue);
-                SystemGroup.Draw(delta);
+                EventSystem.PublishEvent<IDraw>(e => e.OnDraw(delta));
+
+                if (camera.PostProcessingSteps != null)
+                {
+                    for (int i = 0; i < camera.PostProcessingSteps.Length; i++)
+                    {
+                        camera.PostProcessingSteps[i].Process(camera.RenderTexture);
+                    }
+                }
             }
 
             Renderer.SetRenderTarget(null);
@@ -70,13 +77,14 @@ namespace MalignEngine
             {
                 OrthographicCamera camera = mainCamera.Get<OrthographicCamera>();
 
-                Renderer.Begin(camera.PostProcessing, Matrix4x4.CreateOrthographicOffCenter(0f, Window.Width, Window.Height, 0, 0.001f, 100f));
+                Renderer.SetMatrix(camera.Matrix);
+
+                Renderer.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, Window.Width, Window.Height, 0, 0.001f, 100f));
                 Renderer.DrawRenderTexture(camera.RenderTexture, new Vector2(Window.Width / 2f, Window.Height / 2f), new Vector2(Window.Width, Window.Height), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
                 Renderer.End();
             }
 
-            SystemGroup.DrawGUI(delta);
-
+            EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
         }
 
         public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position)

@@ -12,6 +12,13 @@ namespace MalignEngine
         [Dependency]
         protected World World = default!;
         [Dependency]
-        protected EventSystem EventSystem = default!;
+        protected EntityEventSystem EntityEventSystem = default!;
+
+        public static bool Resolve<T>(in Entity entity, ref T comp)
+        {
+            bool success = false;
+            comp = entity.TryGetRef<T>(out success);
+            return success;
+        }
     }
 }

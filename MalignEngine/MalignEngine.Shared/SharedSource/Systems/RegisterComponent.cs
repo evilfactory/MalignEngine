@@ -1,7 +1,4 @@
 namespace MalignEngine
 {
-    public class RegisterComponent : Attribute
-    {
-
-    }
+    public interface IComponent { }
 }

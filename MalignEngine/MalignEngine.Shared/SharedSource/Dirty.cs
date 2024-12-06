@@ -1,5 +1,4 @@
 namespace MalignEngine
 {
-    [RegisterComponent]
-    public class Dirty<T> { }
+    public class Dirty<T> : IComponent { }
 }

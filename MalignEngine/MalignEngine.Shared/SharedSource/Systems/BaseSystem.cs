@@ -2,19 +2,16 @@ using Arch.Core;
 
 namespace MalignEngine
 {
-    public abstract class BaseSystem
+    public interface ISystem : IInit, IUpdate, IDraw
     {
-        public SystemGroup SystemGroup { get; set; }
+    }
+
+    public abstract class BaseSystem : ISystem
+    {
         public bool Enabled { get; set; } = true;
 
-        public virtual void Initialize() { }
-        public virtual void BeforeUpdate(float deltaTime) { }
-        public virtual void Update(float deltaTime) { }
-        public virtual void AfterUpdate(float deltaTime) { }
-        public virtual void BeforeDraw(float deltaTime) { }
-        public virtual void Draw(float deltaTime) { }
-        public virtual void AfterDraw(float deltaTime) { }
-        public virtual void DrawGUI(float deltaTime) { }
-
+        public virtual void OnInitialize() { }
+        public virtual void OnUpdate(float deltaTime) { }
+        public virtual void OnDraw(float deltaTime) { }
     }
 }

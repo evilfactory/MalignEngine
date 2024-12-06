@@ -13,72 +13,63 @@ class GameMain : BaseSystem
 
     private Entity camera;
 
+    Sprite player;
+    Sprite white;
+    Sprite fuck;
+
     public GameMain()
     {
-        systemGroup = new SystemGroup();
-        var window = new WindowSystem("Malign Engine", new Vector2(800, 600));
-        systemGroup.AddSystem(new WorldSystem());
-        systemGroup.AddSystem(new EventSystem());
-        systemGroup.AddSystem(new AssetSystem());
-        systemGroup.AddSystem(window);
-        systemGroup.AddSystem(new GLRenderingSystem());
-        systemGroup.AddSystem(new InputSystem());
-        systemGroup.AddSystem(new ImGuiSystem());
-        systemGroup.AddSystem(new CameraSystem());
-        systemGroup.AddSystem(new Transform2DSystem());
-        systemGroup.AddSystem(new Physics2DSystem());
-        systemGroup.AddSystem(new SpriteRenderingSystem());
-        systemGroup.AddSystem(new EditorSystem());
-        systemGroup.AddSystem(new EditorInspectorSystem());
-        systemGroup.AddSystem(new EditorPerformanceSystem());
-        systemGroup.AddSystem(new EditorSceneViewSystem());
-        systemGroup.AddSystem(this);
-
-        window.Run();
     }
 
-    public override void Initialize()
+    public override void OnInitialize()
     {
         inputSystem = IoCManager.Resolve<InputSystem>();
         renderingSystem = IoCManager.Resolve<RenderingSystem>();
         assetSystem = IoCManager.Resolve<AssetSystem>();
 
-        assetSystem.Add(new Sprite("white", Texture2D.White));
-        assetSystem.Add(new Sprite("player", Texture2D.CreateFromFile("Content/Textures/player.png")));
-        assetSystem.Add(new Sprite("fuck", Texture2D.CreateFromFile("Content/Textures/luatrauma.png")));
+        player = new Sprite(assetSystem.Load<Texture2D>("Content/Textures/player.png"));
+        white = new Sprite(Texture2D.White);
+        fuck = new Sprite(assetSystem.Load<Texture2D>("Content/Textures/luatrauma.png"));
 
         var worldSystem = IoCManager.Resolve<WorldSystem>();
 
-        camera = worldSystem.World.Create(new Position2D(0, 0), new OrthographicCamera() { ViewSize = 3f, IsMain = true });
+        camera = worldSystem.World.Create(new GlobalLight2D() { Color = Color.White }, new Transform(new Vector2(0, 0)), new OrthographicCamera() { ViewSize = 3f, IsMain = true, PostProcessingSteps = new PostProcessBaseSystem[] { IoCManager.Resolve<LightingPostProcessingSystem2D>() } });
 
-        Entity entity = worldSystem.World.Create(new Position2D(0, 0), new Depth(0f), new Rotation2D(0f), new SpriteRenderer() { Sprite = assetSystem.Get<Sprite>("player"), Color = Color.White });
+        Entity entity = worldSystem.World.Create(new Transform(new Vector2(0, 5)), new Depth(0f), new SpriteRenderer() { Sprite = player, Color = Color.White });
         entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50 });
         entity.Add(new BoxCollider2D() { Size = new Vector2(1, 1), Density = 1 });
 
-        Entity entity2 = worldSystem.World.Create(new Position2D(0, -3), new Scale2D(10000, 1), new SpriteRenderer() { Sprite = assetSystem.Get<Sprite>("white"), Color = Color.White });
+        Entity light = worldSystem.World.Create(
+            new Transform(new Vector2(0, 0), 0f, new Vector2(3f, 3f)), 
+            new Light2D() { Texture = assetSystem.Load<Texture2D>("Content/Textures/lightcone.png"), Color = Color.White },
+            new ParentOf() { Parent = entity.Reference() });
+
+        Entity entity2 = worldSystem.World.Create(new Transform(new Vector2(0, 0), 0f, new Vector2(10000, 1)), new SpriteRenderer() { Sprite = white, Color = Color.White });
         entity2.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static, Mass = 50 });
         entity2.Add(new BoxCollider2D() { Size = new Vector2(10000, 1), Density = 1 });
+
+        Entity entity3 = worldSystem.World.Create(new Transform(new Vector2(0, -2f)), new Light2D { Texture = assetSystem.Load<Texture2D>("Content/Textures/lightcone.png") });
     }
 
-    public override void Update(float deltaTime)
+    public override void OnUpdate(float deltaTime)
     {
         float speed = 20f;
 
         if (inputSystem.IsKeyDown(Key.W))
         {
-            camera.Get<Position2D>().Position += new Vector2(0, 1) * deltaTime * speed;
+            camera.Get<Transform>().Position += new Vector3(0, 1, 0) * deltaTime * speed;
         }
         if (inputSystem.IsKeyDown(Key.S))
         {
-            camera.Get<Position2D>().Position += new Vector2(0, -1) * deltaTime * speed;
+            camera.Get<Transform>().Position += new Vector3(0, -1, 0) * deltaTime * speed;
         }
         if (inputSystem.IsKeyDown(Key.A))
         {
-            camera.Get<Position2D>().Position += new Vector2(-1, 0) * deltaTime * speed;
+            camera.Get<Transform>().Position += new Vector3(-1, 0, 0) * deltaTime * speed;
         }
         if (inputSystem.IsKeyDown(Key.D))
         {
-            camera.Get<Position2D>().Position += new Vector2(1, 0) * deltaTime * speed;
+            camera.Get<Transform>().Position += new Vector3(1, 0, 0) * deltaTime * speed;
         }
 
         if (inputSystem.IsKeyDown(Key.Space))
@@ -88,7 +79,7 @@ class GameMain : BaseSystem
 
             Vector2 position = cameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
-            Entity entity = worldSystem.World.Create(new Position2D(position), new Depth(0f), new Rotation2D(0f), new SpriteRenderer() { Sprite = assetSystem.Get<Sprite>("player"), Color = Color.White });
+            Entity entity = worldSystem.World.Create(new Transform(position), new Depth(0f), new SpriteRenderer() { Sprite = player, Color = Color.White });
             entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50 });
             entity.Add(new BoxCollider2D() { Size = new Vector2(1, 1), Density = 1 });
         }
@@ -96,7 +87,7 @@ class GameMain : BaseSystem
         camera.Get<OrthographicCamera>().ViewSize -= inputSystem.MouseScroll * deltaTime * 10f;
     }
 
-    public override void Draw(float deltaTime)
+    public override void OnDraw(float deltaTime)
     {
 
     }
