@@ -19,7 +19,7 @@ namespace Sample
             application.AddSystem(new CameraSystem());
             application.AddSystem(new ParentSystem());
             application.AddSystem(new TransformSystem());
-            application.AddSystem(new Physics2DSystem());
+            application.AddSystem(new PhysicsSystem2D());
             application.AddSystem(new SpriteRenderingSystem());
             application.AddSystem(new LightingSystem2D());
             application.AddSystem(new LightingPostProcessingSystem2D());
@@ -27,6 +27,7 @@ namespace Sample
             application.AddSystem(new EditorInspectorSystem());
             application.AddSystem(new EditorPerformanceSystem());
             application.AddSystem(new EditorSceneViewSystem());
+            application.AddSystem(new AudioSystem());
 
             application.AddSystem(new GameMain());
 

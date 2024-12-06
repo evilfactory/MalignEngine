@@ -5,13 +5,16 @@ using nkast.Aether.Physics2D.Dynamics;
 using Arch.Buffer;
 using World = nkast.Aether.Physics2D.Dynamics.World;
 using AVector2 = nkast.Aether.Physics2D.Common.Vector2;
+using Vertices = nkast.Aether.Physics2D.Common.Vertices;
 using nkast.Aether.Physics2D.Collision.Shapes;
 using System.Diagnostics;
 
 namespace MalignEngine
 {
-    public class Physics2DSystem : EntitySystem
+    public class PhysicsSystem2D : EntitySystem
     {
+        private Dictionary<PhysicsSimId, Body> simBodies = new Dictionary<PhysicsSimId, Body>();
+
         [Dependency(true)]
         protected EditorPerformanceSystem EditorPerformanceSystem = default!;
 
@@ -29,9 +32,6 @@ namespace MalignEngine
 
             EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
             EntityEventSystem.SubscribeLocalEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
-
-            EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, BoxCollider2D>(BoxColliderAdded);
-            EntityEventSystem.SubscribeLocalEvent<ComponentRemovedEvent, BoxCollider2D>(BoxColliderRemoved);
         }
 
         public override void OnUpdate(float deltaTime)
@@ -40,42 +40,87 @@ namespace MalignEngine
             stopwatch.Start();
             physicsWorld.Step(deltaTime);
             stopwatch.Stop();
-            EditorPerformanceSystem?.AddElapsedTicks("Physics2DSystem", stopwatch.ElapsedTicks);
+            EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", stopwatch.ElapsedTicks);
 
-            CommandBuffer commandBuffer = new CommandBuffer();
-
-            var query = new QueryDescription().WithAll<PhysicsBody2D, Transform>();
-            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Transform transform) =>
+            var query = new QueryDescription().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
+            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
             {
-                if (entity.Has<Dirty<Transform>>())
+                Body body = GetBody(physicsSimId);
+
+                transform.Position = new Vector3(body.Position.X, body.Position.Y, 0f);
+                transform.ZAxis = body.Rotation;
+
+                physicsBody.LinearVelocity = new Vector2(body.LinearVelocity.X, body.LinearVelocity.Y);
+                physicsBody.AngularVelocity = body.AngularVelocity;
+            });
+        }
+
+        public void ApplyForce(in Entity entity, Vector2 force)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+            simBody.ApplyForce(new AVector2(force.X, force.Y));
+        }
+
+        public void ApplyImpulse(in Entity entity, Vector2 impulse)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+            simBody.ApplyLinearImpulse(new AVector2(impulse.X, impulse.Y));
+        }
+
+        public void ApplyTorque(in Entity entity, float torque)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+            simBody.ApplyTorque(torque);
+        }
+
+        public void SetLinearVelocity(in Entity entity, Vector2 velocity)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+            simBody.LinearVelocity = new AVector2(velocity.X, velocity.Y);
+        }
+
+        public void SetAngularVelocity(in Entity entity, float velocity)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+            simBody.AngularVelocity = velocity;
+        }
+
+        public void UpdateFixtures(in Entity entity)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+
+            ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
+
+            foreach (var fixture in simBody.FixtureList)
+            {
+                simBody.Remove(fixture);
+            }
+
+            foreach (var fixtureData in physicsBody.Fixtures)
+            {
+                Fixture fixture;
+                if (fixtureData.Shape.Type == ShapeType.Polygon)
                 {
-                    physicsBody.Body.Position = new AVector2(transform.Position.X, transform.Position.Y);
-                    physicsBody.Body.Rotation = transform.ZAxis;
+                    AVector2[] vertices = new AVector2[fixtureData.Shape.Vertices.Length];
+                    for (int i = 0; i < fixtureData.Shape.Vertices.Length; i++)
+                    {
+                        vertices[i] = new AVector2(fixtureData.Shape.Vertices[i].X, fixtureData.Shape.Vertices[i].Y);
+                    }
+
+                    fixture = simBody.CreateFixture(new PolygonShape(new Vertices(vertices), fixtureData.Density));
+                }
+                else if (fixtureData.Shape.Type == ShapeType.Circle)
+                {
+                    fixture = simBody.CreateFixture(new CircleShape(fixtureData.Shape.Radius / 2f, fixtureData.Density));
                 }
                 else
                 {
-                    transform.Position = new Vector3(physicsBody.Body.Position.X, physicsBody.Body.Position.Y, 0f);
-                    transform.ZAxis = physicsBody.Body.Rotation;
+                    throw new Exception("Shape type not supported");
                 }
-            });
 
-            commandBuffer.Playback(World);
-        }
-
-        private void BoxColliderAdded(ComponentAddedEvent args)
-        {
-            var entity = args.Entity;
-            ref BoxCollider2D boxCollider = ref entity.Get<BoxCollider2D>();
-
-            boxCollider.Fixture = entity.Get<PhysicsBody2D>().Body.CreateRectangle(boxCollider.Size.X, boxCollider.Size.Y, boxCollider.Density, AVector2.Zero);
-        }
-
-        private void BoxColliderRemoved(ComponentRemovedEvent args)
-        {
-            var entity = args.Entity;
-            ref BoxCollider2D boxCollider = ref entity.Get<BoxCollider2D>();
-
-            entity.Get<PhysicsBody2D>().Body.Remove(boxCollider.Fixture);
+                fixture.Restitution = fixtureData.Restitution;
+                fixture.Friction = fixtureData.Friction;
+            }
         }
 
         private void PhysicsBodyAdded(ComponentAddedEvent args)
@@ -92,9 +137,16 @@ namespace MalignEngine
                 startRotation = entity.Get<Transform>().ZAxis;
             }
 
+            // Create Body
             Body body = physicsWorld.CreateBody(new AVector2(startPosition.X, startPosition.Y), startRotation, (BodyType)physicsBody.BodyType);
             body.Mass = physicsBody.Mass;
-            physicsBody.Body = body;
+
+            uint id = GetFreeId();
+            entity.Add(new PhysicsSimId() { Id = id });
+            simBodies.Add(new PhysicsSimId() { Id = id }, body);
+
+            // Create Fixtures
+            UpdateFixtures(entity);
         }
 
         private void PhysicsBodyRemoved(ComponentRemovedEvent args)
@@ -102,7 +154,36 @@ namespace MalignEngine
             var entity = args.Entity;
             ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
 
-            physicsWorld.Remove(physicsBody.Body);
+            PhysicsSimId id = entity.Get<PhysicsSimId>();
+
+            physicsWorld.Remove(GetBody(id));
+            simBodies.Remove(id);
+        }
+
+        private uint GetFreeId()
+        {
+            uint id = 1;
+            while (simBodies.ContainsKey(new PhysicsSimId() { Id = id }))
+            {
+                id++;
+                if (id == uint.MaxValue)
+                {
+                    throw new Exception("No free id found");
+                }
+            }
+            return id;
+        }
+
+        private Body GetBody(PhysicsSimId id)
+        {
+            if (simBodies.TryGetValue(id, out Body body))
+            {
+                return body;
+            }
+            else
+            {
+                throw new Exception("Body not found");
+            }
         }
     }
 }

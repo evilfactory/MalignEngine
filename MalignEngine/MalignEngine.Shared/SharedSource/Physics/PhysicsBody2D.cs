@@ -1,5 +1,6 @@
 
 using nkast.Aether.Physics2D.Dynamics;
+using System.Numerics;
 
 namespace MalignEngine
 {
@@ -13,9 +14,16 @@ namespace MalignEngine
     public struct PhysicsBody2D : IComponent
     {
         public PhysicsBodyType BodyType;
-
         public float Mass;
 
-        internal Body Body;
+        public Vector2 LinearVelocity;
+        public float AngularVelocity;
+
+        public FixtureData2D[] Fixtures;
+    }
+
+    internal struct PhysicsSimId
+    {
+        public uint Id;
     }
 }

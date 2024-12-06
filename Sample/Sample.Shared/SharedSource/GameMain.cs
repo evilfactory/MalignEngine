@@ -36,8 +36,7 @@ class GameMain : BaseSystem
         camera = worldSystem.World.Create(new GlobalLight2D() { Color = Color.White }, new Transform(new Vector2(0, 0)), new OrthographicCamera() { ViewSize = 3f, IsMain = true, PostProcessingSteps = new PostProcessBaseSystem[] { IoCManager.Resolve<LightingPostProcessingSystem2D>() } });
 
         Entity entity = worldSystem.World.Create(new Transform(new Vector2(0, 5)), new Depth(0f), new SpriteRenderer() { Sprite = player, Color = Color.White });
-        entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50 });
-        entity.Add(new BoxCollider2D() { Size = new Vector2(1, 1), Density = 1 });
+        entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50, Fixtures = new FixtureData2D[] { new FixtureData2D(new CircleShape2D(1f), 1, 0, 0) } });
 
         Entity light = worldSystem.World.Create(
             new Transform(new Vector2(0, 0), 0f, new Vector2(3f, 3f)), 
@@ -45,8 +44,10 @@ class GameMain : BaseSystem
             new ParentOf() { Parent = entity.Reference() });
 
         Entity entity2 = worldSystem.World.Create(new Transform(new Vector2(0, 0), 0f, new Vector2(10000, 1)), new SpriteRenderer() { Sprite = white, Color = Color.White });
-        entity2.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static, Mass = 50 });
-        entity2.Add(new BoxCollider2D() { Size = new Vector2(10000, 1), Density = 1 });
+        entity2.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static, Mass = 50, Fixtures = new FixtureData2D[] 
+        {
+            new FixtureData2D(new RectangleShape2D(10000, 1), 1, 1, 1)
+        } });
 
         Entity entity3 = worldSystem.World.Create(new Transform(new Vector2(0, -2f)), new Light2D { Texture = assetSystem.Load<Texture2D>("Content/Textures/lightcone.png") });
     }
@@ -80,8 +81,7 @@ class GameMain : BaseSystem
             Vector2 position = cameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
             Entity entity = worldSystem.World.Create(new Transform(position), new Depth(0f), new SpriteRenderer() { Sprite = player, Color = Color.White });
-            entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50 });
-            entity.Add(new BoxCollider2D() { Size = new Vector2(1, 1), Density = 1 });
+            entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50, Fixtures = new FixtureData2D[] { new FixtureData2D(new CircleShape2D(1f), 1, 0, 0) } });
         }
 
         camera.Get<OrthographicCamera>().ViewSize -= inputSystem.MouseScroll * deltaTime * 10f;
