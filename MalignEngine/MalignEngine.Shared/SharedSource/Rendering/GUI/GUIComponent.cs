@@ -34,6 +34,14 @@ namespace MalignEngine
             transform.GUIComponent = this;
         }
 
+
+        public virtual void Update()
+        {
+            foreach (var child in Children)
+            {
+                child.Update();
+            }
+        }
         public virtual void Draw()
         {
             // draw children

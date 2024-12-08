@@ -16,11 +16,9 @@ namespace MalignEngine
 
         private Matrix4x4 matrix;
 
-        private RenderTexture guiRenderTarget;
-
         public override void OnInitialize()
         {
-            guiRenderTarget = new RenderTexture((uint)Window.Width, (uint)Window.Height);
+
         }
 
         public void OnWindowDraw(float delta)
@@ -80,12 +78,6 @@ namespace MalignEngine
             {
                 OrthographicCamera camera = mainCamera.Get<OrthographicCamera>();
 
-                guiRenderTarget.Resize((uint)Window.Width, (uint)Window.Height);
-                Renderer.SetRenderTarget(guiRenderTarget);
-                Renderer.Clear(Color.Transparent);
-                EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
-
-
                 Renderer.SetRenderTarget(null);
                 Renderer.Clear(Color.LightSkyBlue);
 
@@ -93,8 +85,9 @@ namespace MalignEngine
 
                 Renderer.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f));
                 Renderer.DrawRenderTexture(camera.RenderTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
-                Renderer.DrawRenderTexture(guiRenderTarget, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
                 Renderer.End();
+
+                EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
             }
         }
 

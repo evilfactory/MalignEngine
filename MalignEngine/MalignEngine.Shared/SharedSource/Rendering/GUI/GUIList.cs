@@ -18,9 +18,8 @@ namespace MalignEngine
             float accumulator = 0;
             foreach (var child in RectTransform.Children)
             {
-                accumulator += child.ScaledSize.Y;
-                child.AbsoluteOffset = new Vector2(child.AbsoluteOffset.X, accumulator);
-                accumulator += Spacing;
+                child.AbsoluteOffset = new Vector2(child.AbsoluteOffset.X, accumulator + Spacing);
+                accumulator += child.ScaledSize.Y + Spacing;
             }
 
             base.Draw();

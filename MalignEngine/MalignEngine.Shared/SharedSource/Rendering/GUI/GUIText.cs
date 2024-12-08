@@ -7,7 +7,7 @@ namespace MalignEngine
         public GUIStyle Style = GUIStyle.Default;
         public Color Color { get; private set; } = new Color(1f, 1f, 1f, 1f);
 
-        public int FontSize { get; private set; } = 12;
+        public int FontSize { get; private set; } = 100;
         public string Text { get; private set; }
 
         public GUIText(RectTransform transform, string text, Color color) : base(transform)
@@ -31,9 +31,7 @@ namespace MalignEngine
 
         public override void Draw()
         {
-            RenderingSystem.DrawTexture2D(Style.FrameTexture, RectTransform.TopLeft + RectTransform.ScaledSize / 2f, RectTransform.ScaledSize, Vector2.Zero, new Rectangle(), Color, 0f, 0f);
-
-            FontSystem.DrawFont(Style.NormalFont, 100, Text, RectTransform.TopLeft, Color, 0, new Vector2(0, 0), new Vector2(1f, 1f));
+            FontSystem.DrawFont(Style.NormalFont, FontSize, Text, RectTransform.TopLeft + RectTransform.ScaledSize / 2f - Style.NormalFont.MeasureText(Text, FontSize) / 2f, Color, 0, new Vector2(0, 0), new Vector2(1f, 1f));
 
             base.Draw();
         }

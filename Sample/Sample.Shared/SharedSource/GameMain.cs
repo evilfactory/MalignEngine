@@ -37,7 +37,7 @@ class GameMain : BaseSystem, IDrawGUI
     {
         GUIStyle.Default = new GUIStyle()
         {
-            FrameTexture = AssetSystem.Load<Texture2D>("Content/Textures/luatrauma.png"),
+            FrameTexture = Texture2D.White,
             NormalFont = AssetSystem.Load<Font>("Content/Roboto-Regular.ttf")
         };
 
@@ -45,11 +45,18 @@ class GameMain : BaseSystem, IDrawGUI
         frame.RectTransform.AbsoluteSize = new Vector2(WindowSystem.Width, WindowSystem.Height);
 
         var blueFrame = new GUIFrame(new RectTransform(frame.RectTransform, new Vector2(0.25f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Blue);
-
+        blueFrame.RectTransform.AbsoluteOffset = new Vector2(0, 0);
         var blueGuiList = new GUIList(new RectTransform(blueFrame.RectTransform, Vector2.One, Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), 10f);
-        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.Center), Color.Pink);
-        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.Center), Color.Salmon);
-        new GUIText(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.Center), "Funny", Color.SeaGreen);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Pink);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
+        var button = new GUIButton(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), () => { Logger.LogInfo("funny"); });
+        button.DefaultColor = Color.Black;
+        button.HoverColor = Color.Gray;
+        button.ClickColor = Color.BlueViolet;
+        new GUIText(new RectTransform(button.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.Center, Pivot.Center), "Button", Color.SeaGreen);
+        new GUIText(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), "Funny", Color.SeaGreen);
 
         new GUIFrame(new RectTransform(frame.RectTransform, new Vector2(1f, 0.1f), Vector2.Zero, Anchor.BottomCenter, Pivot.Center), Color.Blue);
 
@@ -82,6 +89,8 @@ class GameMain : BaseSystem, IDrawGUI
 
     public override void OnUpdate(float deltaTime)
     {
+        frame.Update();
+
         float speed = 20f;
 
         if (inputSystem.IsKeyDown(Key.W))
@@ -116,11 +125,11 @@ class GameMain : BaseSystem, IDrawGUI
 
     public override void OnDraw(float deltaTime)
     {
-        Vector2 position = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
+        //Vector2 position = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
-        RenderingSystem.Begin();
-        FontSystem.DrawFont(AssetSystem.Load<Font>("Content/Roboto-Regular.ttf"), 100, "Hello World", position, Color.Red, 0f, default, new Vector2(0.01f, -0.01f));
-        RenderingSystem.End();
+        //RenderingSystem.Begin();
+        //FontSystem.DrawFont(AssetSystem.Load<Font>("Content/Roboto-Regular.ttf"), 100, "Hello World", position, Color.Red, 0f, default, new Vector2(0.01f, -0.01f));
+        //RenderingSystem.End();
     }
 
     public void OnDrawGUI(float deltaTime)
