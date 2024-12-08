@@ -25,6 +25,14 @@ namespace MalignEngine
 
         private Color[,] textureData;
 
+        public Texture2D(uint width, uint height)
+        {
+            Width = width;
+            Height = height;
+
+            CreateHandle();
+        }
+
         public Texture2D(Color[,] data, uint width, uint height)
         {
             textureData = data;
@@ -32,23 +40,23 @@ namespace MalignEngine
             Height = height;
 
             CreateHandle();
+
+            // flatten the 2D array into a 1D array
+            Color[] flattenData = new Color[Width * Height];
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    flattenData[y * Width + x] = textureData[x, y];
+                }
+            }
+            handle.SubmitData(flattenData);
         }
 
         private void CreateHandle()
         {
             var rendering = IoCManager.Resolve<RenderingSystem>();
             handle = rendering.CreateTextureHandle(this);
-
-            // flatten the 2D array into a 1D array
-            Color[] data = new Color[Width * Height];
-            for (int y = 0; y < Height; y++)
-            {
-                for (int x = 0; x < Width; x++)
-                {
-                    data[y * Width + x] = textureData[x, y];
-                }
-            }
-            handle.SubmitData(data);
         }
 
         public override string ToString()

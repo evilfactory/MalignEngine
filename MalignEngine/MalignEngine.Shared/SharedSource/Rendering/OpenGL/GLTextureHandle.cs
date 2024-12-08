@@ -46,6 +46,28 @@ namespace MalignEngine
             }
         }
 
+        public override void SubmitData(System.Drawing.Rectangle bounds, byte[] data)
+        {
+            unsafe
+            {
+                Bind();
+                fixed (byte* ptr = data)
+                {
+                    gl.TexSubImage2D(
+                        target: TextureTarget.Texture2D,
+                        level: 0,
+                        xoffset: bounds.Left,
+                        yoffset: bounds.Top,
+                        width: (uint)bounds.Width,
+                        height: (uint)bounds.Height,
+                        format: PixelFormat.Rgba,
+                        type: PixelType.UnsignedByte,
+                        pixels: ptr
+                    );
+                }
+            }
+        }
+
         public void Bind(TextureUnit textureSlot = TextureUnit.Texture0)
         {
             gl.ActiveTexture(textureSlot);

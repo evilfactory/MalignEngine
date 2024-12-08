@@ -27,10 +27,8 @@ namespace MalignEngine
             camera = World.Create(new OrthographicCamera { ViewSize = 6f, IsMain = false, RenderTexture = new RenderTexture(800, 600) }, new Transform(new Vector2(0, 0)));
         }
 
-        public override void OnDraw(float deltaTime)
+        public override void DrawWindow(float deltaTime)
         {
-            if (!Active) { return; }
-
             ImGui.Begin("Scene View");
 
             if (ImGui.IsWindowHovered())

@@ -11,5 +11,6 @@ namespace MalignEngine
             Height = height;
         }
         public abstract void SubmitData(Color[] data);
+        public abstract void SubmitData(System.Drawing.Rectangle bounds, byte[] data);
     }
 }

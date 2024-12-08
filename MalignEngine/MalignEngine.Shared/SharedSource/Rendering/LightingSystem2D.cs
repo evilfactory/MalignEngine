@@ -19,14 +19,18 @@ namespace MalignEngine
                 RenderingSystem.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), new Vector2(0.5f, 0.5f), new Rectangle(), light.Color, transform.ZAxis, 0f);
             });
             RenderingSystem.End();
+        }
 
-            RenderingSystem.Begin(Matrix4x4.Identity, null, blendingMode: BlendingMode.Additive);
-            query = new QueryDescription().WithAll<GlobalLight2D, WorldTransform>();
-            World.Query(query, (Entity entity, ref WorldTransform pos, ref GlobalLight2D light) =>
+        public Color GetAmbientColor()
+        {
+            Color color = Color.Black;
+            var query = new QueryDescription().WithAll<GlobalLight2D>();
+            World.Query(query, (Entity entity, ref GlobalLight2D light) =>
             {
-                RenderingSystem.DrawTexture2D(Texture2D.White, pos.Position.ToVector2(), new Vector2(100f, 100f), new Vector2(0.5f, 0.5f), new Rectangle(), light.Color, 0, 0f);
+                color = light.Color;
             });
-            RenderingSystem.End();
+
+            return color;
         }
     }
 
@@ -64,14 +68,14 @@ namespace MalignEngine
             lightingTexture.Resize(source.Width, source.Height);
 
             RenderingSystem.SetRenderTarget(lightingTexture);
-            RenderingSystem.Clear(Color.Black);
+            RenderingSystem.Clear(LightingSystem2D.GetAmbientColor());
             LightingSystem2D.DrawLights();
 
             lightingMaterial.SetProperty("uLightingTexture", source);
 
             RenderingSystem.SetRenderTarget(source);
-            RenderingSystem.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, source.Width, source.Height, 0, 0.001f, 100f), lightingMaterial);
-            RenderingSystem.DrawRenderTexture(lightingTexture, new Vector2(source.Width / 2f, source.Height / 2f), new Vector2(source.Width, source.Height), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 10f);
+            RenderingSystem.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f), lightingMaterial);
+            RenderingSystem.DrawRenderTexture(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
             RenderingSystem.End();
         }
     }

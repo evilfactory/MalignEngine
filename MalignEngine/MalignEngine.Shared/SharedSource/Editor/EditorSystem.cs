@@ -6,13 +6,26 @@ namespace MalignEngine
 {
     public class EditorSystem : BaseSystem
     {
+        [Dependency]
+        protected InputSystem InputSystem = default!;
+
         public EntityReference SelectedEntity { get; set; } = EntityReference.Null;
+
+        private bool hideAllWindows = true;
 
         private readonly List<BaseEditorWindowSystem> windows = new List<BaseEditorWindowSystem>();
 
         public void AddWindow(BaseEditorWindowSystem window)
         {
             windows.Add(window);
+        }
+
+        public override void OnUpdate(float deltaTime)
+        {
+            if (InputSystem.IsKeyHeld(Key.F1))
+            {
+                hideAllWindows = !hideAllWindows;
+            }
         }
 
         public override void OnDraw(float deltaTime)
@@ -25,6 +38,8 @@ namespace MalignEngine
             {
                 if (ImGui.BeginMenu("Windows"))
                 {
+                    ImGui.MenuItem("Hide all", null, ref hideAllWindows);
+
                     for (int i = 0; i < windows.Count; i++)
                     {
                         ImGui.MenuItem(windows[i].WindowName, null, ref windows[i].Active);
@@ -34,6 +49,16 @@ namespace MalignEngine
                 }
 
                 ImGui.EndMainMenuBar();
+            }
+
+            if (!hideAllWindows)
+            {
+                foreach (BaseEditorWindowSystem window in windows)
+                {
+                    if (!window.Active) { continue; }
+
+                    window.DrawWindow(deltaTime);
+                }
             }
         }
     }

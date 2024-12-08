@@ -80,10 +80,8 @@ namespace MalignEngine
             }
         }
 
-        public override void OnDraw(float deltaTime)
+        public override void DrawWindow(float deltaTime)
         {
-            if (!Active) { return; }
-
             if (!ImGui.Begin("EntityDebugger", ImGuiWindowFlags.NoScrollbar)) { return; }
 
             if (ImGui.BeginTable("split", 2, ImGuiTableFlags.BordersOuter | ImGuiTableFlags.Resizable))

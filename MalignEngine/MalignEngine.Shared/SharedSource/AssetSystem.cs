@@ -76,5 +76,20 @@ namespace MalignEngine
 
             return handle;
         }
+
+        public List<AssetHandle<T>> GetOfType<T>() where T : IAsset
+        {
+            List<AssetHandle<T>> handles = new List<AssetHandle<T>>();
+
+            foreach (KeyValuePair<string, IAssetHandle> kvp in assetHandles)
+            {
+                if (kvp.Value is AssetHandle<T> handle)
+                {
+                    handles.Add(handle);
+                }
+            }
+
+            return handles;
+        }
     }
 }

@@ -40,7 +40,7 @@ namespace MalignEngine
             stopwatch.Start();
             physicsWorld.Step(deltaTime);
             stopwatch.Stop();
-            EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", stopwatch.ElapsedTicks);
+            EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
 
             var query = new QueryDescription().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
             World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>

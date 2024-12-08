@@ -3,7 +3,7 @@ namespace MalignEngine
     public abstract class BaseEditorWindowSystem : EntitySystem
     {
         public abstract string WindowName { get; }
-        public bool Active;
+        public bool Active = true;
 
         [Dependency]
         protected EditorSystem EditorSystem = default!;
@@ -15,5 +15,7 @@ namespace MalignEngine
         {
             EditorSystem.AddWindow(this);
         }
+
+        public virtual void DrawWindow(float delta) { }
     }
 }

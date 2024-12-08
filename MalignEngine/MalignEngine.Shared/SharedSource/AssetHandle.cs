@@ -27,7 +27,7 @@ namespace MalignEngine
 
                 if (result == null)
                 {
-                    throw new Exception($"Dummy asset returned was null");
+                    //throw new Exception($"Dummy asset returned was null");
                 }
 
                 DummyAsset = (T)result;

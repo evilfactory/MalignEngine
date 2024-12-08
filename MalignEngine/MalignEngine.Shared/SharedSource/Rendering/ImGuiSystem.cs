@@ -103,5 +103,10 @@ namespace MalignEngine
         {
             ImGui.Image((IntPtr)((GLTextureHandle)texture.handle).handle, size, uv0, uv1);
         }
+
+        public void Image(Texture2D texture, Vector2 size)
+        {
+            ImGui.Image((IntPtr)((GLTextureHandle)texture.handle).handle, size);
+        }
     }
 }

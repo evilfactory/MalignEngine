@@ -99,6 +99,11 @@ namespace MalignEngine
             gl.Uniform1(GetLocation(name), value);
         }
 
+        public void SetUniform(string name, Color color)
+        {
+            gl.Uniform4(GetLocation(name), new Vector4(color.R, color.G, color.B, color.A));
+        }
+
         public unsafe void SetUniform(string name, Vector2[] value)
         {
             float[] floatArray = new float[value.Length * 2];

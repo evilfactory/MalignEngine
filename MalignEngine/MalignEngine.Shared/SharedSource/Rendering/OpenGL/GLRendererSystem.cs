@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using static System.Net.Mime.MediaTypeNames;
 using System.Text;
 using System.IO;
+using Silk.NET.Maths;
 
 namespace MalignEngine
 {
@@ -45,7 +46,6 @@ namespace MalignEngine
 
         private uint indexCount = 0;
         private uint batchIndex = 0;
-        private int textureSlotIndex = -1;
 
         private Vertex[] vertices;
         private uint[] triangleIndices;
@@ -131,9 +131,9 @@ namespace MalignEngine
             drawing = true;
             drawingMaterial = material ?? basicMaterial;
             drawingMatrix = matrix;
+            textures = new IGLBindableTexture[MaxTextures];
 
             batchIndex = 0;
-            textureSlotIndex = -1;
 
             switch (blendingMode)
             {
@@ -169,7 +169,17 @@ namespace MalignEngine
             DrawTexture2D((IGLBindableTexture)texture.handle, position, size, origin, sourceRectangle, color, rotation, layerDepth);
         }
 
-        private void DrawTexture2D(IGLBindableTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        public override void DrawQuad(Texture2D texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
+        {
+            DrawQuad((IGLBindableTexture)texture.handle, topRight, bottomRight, bottomLeft, topLeft);
+        }
+
+        public override void DrawQuad(RenderTexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
+        {
+            DrawQuad((IGLBindableTexture)texture.handle, topRight, bottomRight, bottomLeft, topLeft);
+        }
+
+        private void DrawQuad(IGLBindableTexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
         {
             if (!drawing)
             {
@@ -193,9 +203,8 @@ namespace MalignEngine
 
                 if (textures[i] == null)
                 {
-                    textureSlotIndex++;
-                    textureSlot = textureSlotIndex;
-                    textures[textureSlotIndex] = texture;
+                    textures[i] = texture;
+                    textureSlot = i;
                     break;
                 }
 
@@ -206,66 +215,54 @@ namespace MalignEngine
                 }
             }
 
+            if (FlipY)
             {
-                Vector3 drawPosition = new Vector3(
-                    0.0f + size.X / 2f,
-                    0.0f + size.Y / 2f,
-                    0f
-                );
-
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-                drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
-
-                vertices[batchIndex] = new Vertex(drawPosition, new Vector2(1, 0), textureSlot, color);
-                batchIndex++;
+                topRight.TextureCoordinate.Y = 1f - topRight.TextureCoordinate.Y;
+                bottomRight.TextureCoordinate.Y = 1f - bottomRight.TextureCoordinate.Y;
+                bottomLeft.TextureCoordinate.Y = 1f - bottomLeft.TextureCoordinate.Y;
+                topLeft.TextureCoordinate.Y = 1f - topLeft.TextureCoordinate.Y;
             }
 
-            {
-                Vector3 drawPosition = new Vector3(
-                    0.0f + size.X / 2f,
-                    0.0f - size.Y / 2f,
-                    0f
-                );
+            vertices[batchIndex] = new Vertex(topRight.Position, new Vector2(topRight.TextureCoordinate.X, topRight.TextureCoordinate.Y), textureSlot, topRight.Color);
+            batchIndex++;
 
+            vertices[batchIndex] = new Vertex(bottomRight.Position, new Vector2(bottomRight.TextureCoordinate.X, bottomRight.TextureCoordinate.Y), textureSlot, bottomRight.Color);
+            batchIndex++;
 
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-                drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+            vertices[batchIndex] = new Vertex(bottomLeft.Position, new Vector2(bottomLeft.TextureCoordinate.X, bottomLeft.TextureCoordinate.Y), textureSlot, bottomLeft.Color);
+            batchIndex++;
 
-                vertices[batchIndex] = new Vertex(drawPosition, new Vector2(1, 1), textureSlot, color);
-                batchIndex++;
-            }
+            vertices[batchIndex] = new Vertex(topLeft.Position, new Vector2(topLeft.TextureCoordinate.X, topLeft.TextureCoordinate.Y), textureSlot, topLeft.Color);
+            batchIndex++;
 
-            {
-                Vector3 drawPosition = new Vector3(
-                    0.0f - size.X / 2f,
-                    0.0f - size.Y / 2f,
-                    0f
-                );
-
-
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-                drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
-
-                vertices[batchIndex] = new Vertex(drawPosition, new Vector2(0, 1), textureSlot, color);
-                batchIndex++;
-            }
-
-            {
-                Vector3 drawPosition = new Vector3(
-                    0.0f - size.X / 2f,
-                    0.0f + size.Y / 2f,
-                    0f
-                );
-
-
-                drawPosition = Vector3.Transform(drawPosition, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-                drawPosition = Vector3.Transform(drawPosition, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
-
-                vertices[batchIndex] = new Vertex(drawPosition, new Vector2(0, 0), textureSlot, color);
-                batchIndex++;
-            }
 
             indexCount += 6;
+        }
+
+        private void DrawTexture2D(IGLBindableTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        {
+            Vector3 topRightPos = new Vector3(0.0f + size.X / 2f, 0.0f + size.Y / 2f,0f);
+            topRightPos = Vector3.Transform(topRightPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
+            topRightPos = Vector3.Transform(topRightPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+
+            Vector3 bottomRightPos = new Vector3(0.0f + size.X / 2f, 0.0f - size.Y / 2f, 0f);
+            bottomRightPos = Vector3.Transform(bottomRightPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
+            bottomRightPos = Vector3.Transform(bottomRightPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+
+            Vector3 bottomLeftPos = new Vector3(0.0f - size.X / 2f, 0.0f - size.Y / 2f, 0f);
+            bottomLeftPos = Vector3.Transform(bottomLeftPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
+            bottomLeftPos = Vector3.Transform(bottomLeftPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+
+            Vector3 topLeftPos = new Vector3(0.0f - size.X / 2f, 0.0f + size.Y / 2f, 0f);
+            topLeftPos = Vector3.Transform(topLeftPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
+            topLeftPos = Vector3.Transform(topLeftPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+
+            DrawQuad(texture,
+                new VertexPositionColorTexture(topRightPos, color, new Vector2(1f, 1f)), // top right
+                new VertexPositionColorTexture(bottomRightPos, color, new Vector2(1f, 0f)), // bottom right
+                new VertexPositionColorTexture(bottomLeftPos, color, new Vector2(0f, 0f)), // bottom left
+                new VertexPositionColorTexture(topLeftPos, color, new Vector2(0f, 1f)) // top left
+            );
         }
 
         public override void End()
@@ -305,6 +302,10 @@ namespace MalignEngine
                 else if (propertyValue is float)
                 {
                     drawingShader.SetUniform(property.Key, (float)propertyValue);
+                }
+                else if (propertyValue is Color)
+                {
+                    drawingShader.SetUniform(property.Key, (Color)propertyValue);
                 }
                 else if (propertyValue is Matrix4x4)
                 {

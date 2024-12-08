@@ -49,7 +49,7 @@ namespace MalignEngine
 
         public Vector2 MousePosition
         {
-            get { return usedMouse.Position; }
+            get { return new Vector2(usedMouse.Position.X, usedMouse.Position.Y); }
         }
 
         public Vector2 LastMousePosition { get; private set; }

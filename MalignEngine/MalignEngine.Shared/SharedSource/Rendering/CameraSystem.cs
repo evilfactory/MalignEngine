@@ -1,5 +1,6 @@
 using Arch.Core;
 using Arch.Core.Extensions;
+using Silk.NET.SDL;
 using System.Numerics;
 
 namespace MalignEngine
@@ -15,8 +16,11 @@ namespace MalignEngine
 
         private Matrix4x4 matrix;
 
+        private RenderTexture guiRenderTarget;
+
         public override void OnInitialize()
         {
+            guiRenderTarget = new RenderTexture((uint)Window.Width, (uint)Window.Height);
         }
 
         public void OnWindowDraw(float delta)
@@ -41,7 +45,7 @@ namespace MalignEngine
                     camera.RenderTexture.Resize((uint)Window.Width, (uint)Window.Height);
                 }
 
-                camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, transform.Position.ToVector2());
+                camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, transform.Position.ToVector2(), false);
 
                 cameraEntities.Add(entity);
 
@@ -59,7 +63,9 @@ namespace MalignEngine
 
                 Renderer.SetRenderTarget(camera.RenderTexture, camera.RenderTexture.Width, camera.RenderTexture.Height);
                 Renderer.Clear(Color.LightSkyBlue);
+                Renderer.FlipY = true;
                 EventSystem.PublishEvent<IDraw>(e => e.OnDraw(delta));
+                Renderer.FlipY = false;
 
                 if (camera.PostProcessingSteps != null)
                 {
@@ -70,24 +76,29 @@ namespace MalignEngine
                 }
             }
 
-            Renderer.SetRenderTarget(null);
-            Renderer.Clear(Color.LightSkyBlue);
-
             if (mainCamera != Entity.Null)
             {
                 OrthographicCamera camera = mainCamera.Get<OrthographicCamera>();
 
+                guiRenderTarget.Resize((uint)Window.Width, (uint)Window.Height);
+                Renderer.SetRenderTarget(guiRenderTarget);
+                Renderer.Clear(Color.Transparent);
+                EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
+
+
+                Renderer.SetRenderTarget(null);
+                Renderer.Clear(Color.LightSkyBlue);
+
                 Renderer.SetMatrix(camera.Matrix);
 
-                Renderer.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, Window.Width, Window.Height, 0, 0.001f, 100f));
-                Renderer.DrawRenderTexture(camera.RenderTexture, new Vector2(Window.Width / 2f, Window.Height / 2f), new Vector2(Window.Width, Window.Height), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
+                Renderer.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f));
+                Renderer.DrawRenderTexture(camera.RenderTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
+                Renderer.DrawRenderTexture(guiRenderTarget, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
                 Renderer.End();
             }
-
-            EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
         }
 
-        public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position)
+        public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position, bool invertY)
         {
             float aspectRatio = width / height;
             var left = viewSize * -aspectRatio + position.X;
@@ -95,9 +106,14 @@ namespace MalignEngine
             var top = viewSize * -1.0f + position.Y;
             var bottom = viewSize * 1.0f + position.Y;
 
-            var orthographicMatrix = Matrix4x4.CreateOrthographicOffCenter(left, right, top, bottom, 0.001f, 100f);
-
-            return orthographicMatrix;
+            if (invertY)
+            {
+                return Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, 0.001f, 100f);
+            }
+            else
+            {
+                return Matrix4x4.CreateOrthographicOffCenter(left, right, top, bottom, 0.001f, 100f);
+            }
         }
 
         public Vector2 ScreenToWorld(ref OrthographicCamera camera, Vector2 position)

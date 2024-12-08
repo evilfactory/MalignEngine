@@ -1,5 +1,6 @@
 using Arch.Core;
 using Arch.Core.Extensions;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace MalignEngine
@@ -9,12 +10,19 @@ namespace MalignEngine
         [Dependency]
         protected RenderingSystem RenderingSystem = default!;
 
+        [Dependency(true)]
+        protected EditorPerformanceSystem EditorPerformanceSystem = default!;
+
+
         public override void OnInitialize()
         {
         }
 
         public override void OnDraw(float deltaTime)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             RenderingSystem.Begin();
             var query = new QueryDescription().WithAll<SpriteRenderer, WorldTransform>();
             World.Query(query, (Entity entity, ref WorldTransform transform, ref SpriteRenderer spriteRenderer) =>
@@ -25,6 +33,10 @@ namespace MalignEngine
                 RenderingSystem.DrawTexture2D(spriteRenderer.Sprite.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), spriteRenderer.Sprite.Origin, spriteRenderer.Sprite.Rect, spriteRenderer.Color, transform.ZAxis, depth);
             });
             RenderingSystem.End();
+
+            stopwatch.Stop();
+            EditorPerformanceSystem?.AddElapsedTicks("SpriteRenderingSystem", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
+
         }
     }
 
