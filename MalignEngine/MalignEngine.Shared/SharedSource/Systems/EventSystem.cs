@@ -1,6 +1,6 @@
 namespace MalignEngine
 {
-    public class EventSystem : BaseSystem
+    public class EventSystem : IService
     {
         private Dictionary<Type, List<object>> eventSubscribers = new();
 

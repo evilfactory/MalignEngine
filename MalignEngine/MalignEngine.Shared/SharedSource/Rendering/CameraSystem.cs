@@ -43,7 +43,7 @@ namespace MalignEngine
                     camera.RenderTexture.Resize((uint)Window.Width, (uint)Window.Height);
                 }
 
-                camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, transform.Position.ToVector2(), false);
+                camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, transform.Position.ToVector2());
 
                 cameraEntities.Add(entity);
 
@@ -91,7 +91,7 @@ namespace MalignEngine
             }
         }
 
-        public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position, bool invertY)
+        public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position)
         {
             float aspectRatio = width / height;
             var left = viewSize * -aspectRatio + position.X;
@@ -99,14 +99,7 @@ namespace MalignEngine
             var top = viewSize * -1.0f + position.Y;
             var bottom = viewSize * 1.0f + position.Y;
 
-            if (invertY)
-            {
-                return Matrix4x4.CreateOrthographicOffCenter(left, right, bottom, top, 0.001f, 100f);
-            }
-            else
-            {
-                return Matrix4x4.CreateOrthographicOffCenter(left, right, top, bottom, 0.001f, 100f);
-            }
+            return Matrix4x4.CreateOrthographicOffCenter(left, right, top, bottom, 0.001f, 100f);
         }
 
         public Vector2 ScreenToWorld(ref OrthographicCamera camera, Vector2 position)

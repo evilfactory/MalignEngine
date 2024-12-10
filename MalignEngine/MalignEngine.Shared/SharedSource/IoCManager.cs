@@ -26,14 +26,14 @@ namespace MalignEngine
 
         public static object Resolve(Type type)
         {
-            // Include types that inherit from type
-            return instances.Values.FirstOrDefault(x => x.GetType() == type || x.GetType().IsSubclassOf(type));
+            // Include types that inherit from type or implement the interface
+            return instances.Values.FirstOrDefault(x => x.GetType() == type || x.GetType().IsSubclassOf(type) || type.IsAssignableFrom(x.GetType()));
         }
 
         public static T Resolve<T>()
         {
-            // Include types that inherit from T
-            return (T)instances.Values.FirstOrDefault(x => x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T)));
+            // Include types that inherit from T or implement the interface
+            return (T)instances.Values.FirstOrDefault(x => x.GetType() == typeof(T) || x.GetType().IsSubclassOf(typeof(T)) || typeof(T).IsAssignableFrom(x.GetType()));
         }
 
         public static void InjectDependencies(object obj)

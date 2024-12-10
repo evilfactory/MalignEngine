@@ -33,6 +33,8 @@ namespace MalignEngine
         [Dependency]
         protected WindowSystem Window = default!;
 
+        protected ILogger Logger;
+
         internal GL openGL;
 
         private const uint MaxBatchCount = 5000;
@@ -64,6 +66,8 @@ namespace MalignEngine
 
         public override void OnInitialize()
         {
+            Logger = LoggerService.GetSawmill("rendering");
+
             openGL = GL.GetApi(Window.window);
 
             openGL.Enable(GLEnum.Blend);

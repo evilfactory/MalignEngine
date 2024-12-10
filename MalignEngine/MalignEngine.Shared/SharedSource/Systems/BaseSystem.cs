@@ -2,13 +2,12 @@ using Arch.Core;
 
 namespace MalignEngine
 {
-    public interface ISystem : IInit, IUpdate, IDraw
-    {
-    }
+    public interface IService { }
 
-    public abstract class BaseSystem : ISystem
+    public abstract class BaseSystem : IService, IInit, IUpdate, IDraw
     {
-        public bool Enabled { get; set; } = true;
+        [Dependency]
+        protected LoggerService LoggerService = default!;
 
         public virtual void OnInitialize() { }
         public virtual void OnUpdate(float deltaTime) { }

@@ -7,39 +7,43 @@ using System.Security.Cryptography;
 
 namespace MalignEngine
 {
-    public abstract class EntityEventArgs
+    public abstract class EntityEventArgs { }
+    public class EntityCreatedEvent : EntityEventArgs
     {
         public Entity Entity { get; private set; }
 
-        public EntityEventArgs(Entity entity)
+        public EntityCreatedEvent(Entity entity)
         {
             Entity = entity;
         }
     }
-    public class EntityCreatedEvent : EntityEventArgs
-    {
-        public EntityCreatedEvent(EntityReference entity) : base(entity)
-        {
-        }
-    }
     public class EntityDestroyedEvent : EntityEventArgs
     {
-        public EntityDestroyedEvent(EntityReference entity) : base(entity)
+        public Entity Entity { get; private set; }
+
+        public EntityDestroyedEvent(Entity entity)
         {
+            Entity = entity;
         }
     }
 
     public class ComponentAddedEvent : EntityEventArgs
     {
-        public ComponentAddedEvent(EntityReference entity) : base(entity)
+        public Entity Entity { get; private set; }
+
+        public ComponentAddedEvent(Entity entity)
         {
+            Entity = entity;
         }
     }
 
     public class ComponentRemovedEvent : EntityEventArgs
     {
-        public ComponentRemovedEvent(EntityReference entity) : base(entity)
+        public Entity Entity { get; private set; }
+
+        public ComponentRemovedEvent(Entity entity)
         {
+            Entity = entity;
         }
     }
 

@@ -1,3 +1,6 @@
 [submodule "MalignEngine/Libraries/Arch"]
 	path = MalignEngine/Libraries/Arch
 	url = https://github.com/genaray/Arch
+[submodule "MalignEngine/Libraries/netserializer"]
+	path = MalignEngine/Libraries/netserializer
+	url = https://github.com/space-wizards/netserializer

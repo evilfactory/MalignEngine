@@ -10,6 +10,8 @@ namespace MalignEngine
         [Dependency]
         protected WindowSystem Window = default!;
 
+        protected ILogger Logger;
+
         internal IInputContext input;
 
         private IMouse usedMouse;
@@ -24,6 +26,8 @@ namespace MalignEngine
 
         public override void OnInitialize()
         {
+            Logger = LoggerService.GetSawmill("input");
+
             input = Window.window.CreateInput();
 
             if (input.Keyboards.Count > 0)

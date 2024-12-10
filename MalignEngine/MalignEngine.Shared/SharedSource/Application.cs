@@ -2,23 +2,29 @@ using Arch.Core;
 
 namespace MalignEngine
 {
-    public class Application
+    public class Application : ILogHandler
     {
-        private readonly List<BaseSystem> systems;
+        private LoggerService logger;
+
+        private readonly List<IService> systems;
 
         public Application()
         {
-            systems = new List<BaseSystem>();
+            systems = new List<IService>();
+
+            logger = new LoggerService();
+            logger.Root.AddHandler(this);
+            AddSystem(logger);
 
             AddSystem(new EventSystem());
         }
 
-        public void AddSystem(BaseSystem system)
+        public void AddSystem(IService system)
         {
             systems.Add(system);
             IoCManager.Register(system);
 
-            Logger.LogVerbose($"Added system {system.GetType().Name}");
+            logger.LogVerbose($"Added system {system.GetType().Name}");
         }
 
         public void Initialize()
@@ -29,15 +35,15 @@ namespace MalignEngine
                 var dependencies = IoCManager.GetDependencies(system.GetType());
                 if (dependencies.Length > 0)
                 {
-                    Logger.LogVerbose($"System {system.GetType().Name} depends on:");
+                    logger.LogVerbose($"System {system.GetType().Name} depends on:");
                     foreach (var dependency in dependencies)
                     {
-                        Logger.LogVerbose($" - {dependency.Name}");
+                        logger.LogVerbose($" - {dependency.Name}");
                     }
                 }
                 else
                 {
-                    Logger.LogVerbose($"System {system.GetType().Name} depends on nothing.");
+                    logger.LogVerbose($"System {system.GetType().Name} depends on nothing.");
                 }
             }
 
@@ -50,8 +56,7 @@ namespace MalignEngine
                 }
                 catch (Exception e)
                 {
-                    system.Enabled = false;
-                    Logger.LogError($"Failed to inject dependencies to system {system.GetType().Name}: {e.Message}. Disabling system.");
+                    logger.LogError($"Failed to inject dependencies to system {system.GetType().Name}: {e.Message}.");
                 }
             }
         }
@@ -59,6 +64,34 @@ namespace MalignEngine
         {
             Initialize();
             IoCManager.Resolve<EventSystem>().PublishEvent<IApplicationRun>(e => e.OnApplicationRun());
+        }
+
+        public void HandleLog(Sawmill sawmill, LogEvent logEvent)
+        {
+            switch (logEvent.LogType)
+            {
+                case LogType.Verbose:
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine($"[VERBOSE] [{sawmill.Name}] {logEvent.Message}");
+                    break;
+
+                case LogType.Info:
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine($"[INFO] [{sawmill.Name}] {logEvent.Message}");
+                    break;
+
+                case LogType.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"[WARNING] [{sawmill.Name}] {logEvent.Message}");
+                    break;
+
+                case LogType.Error:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"[ERROR] [{sawmill.Name}] {logEvent.Message}");
+                    break;
+            }
+
+            Console.ForegroundColor = ConsoleColor.White;
         }
     }
 }
