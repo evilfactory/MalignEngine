@@ -16,9 +16,11 @@ namespace MalignEngine
         public Vector2 AbsoluteSize { get; set; }
         public Vector2 AbsoluteOffset { get; set; }
         public Vector2 RelativeSize { get; set; }
-        public Vector2 RelativePosition { get; set; }
         public Anchor Anchor { get; set; }
         public Pivot Pivot { get; set; }
+
+        public Vector2 MinSize { get; set; }
+        public Vector2 MaxSize { get; set; }
 
         public Vector2 TopLeft
         {
@@ -72,25 +74,37 @@ namespace MalignEngine
         {
             get
             {
+                Vector2 size = Vector2.Zero;
                 // If the parent is null, then its just the relative size
                 if (Parent == null)
                 {
-                    return AbsoluteSize;
+                    size = new Vector2(IoCManager.Resolve<WindowSystem>().Width, IoCManager.Resolve<WindowSystem>().Height);
                 }
                 else
                 {
-                    return new Vector2(Parent.ScaledSize.X * RelativeSize.X, Parent.ScaledSize.Y * RelativeSize.Y);
+                    size = new Vector2(Parent.ScaledSize.X * RelativeSize.X, Parent.ScaledSize.Y * RelativeSize.Y);
                 }
+
+                if (MinSize != Vector2.Zero)
+                {
+                    size = Vector2.Max(size, MinSize);
+                }
+
+                if (MaxSize != Vector2.Zero)
+                {
+                    size = Vector2.Min(size, MaxSize);
+                }
+
+                return size;
             }
         }
 
-        public RectTransform(RectTransform parent, Vector2 relativeSize, Vector2 relativePosition, Anchor anchor, Pivot pivot)
+        public RectTransform(RectTransform parent, Vector2 relativeSize, Anchor anchor, Pivot pivot)
         {
             Parent = parent;
             parent?.AddChild(this);
             Children = new List<RectTransform>();
             RelativeSize = relativeSize;
-            RelativePosition = relativePosition;
             Anchor = anchor;
             Pivot = pivot;
         }

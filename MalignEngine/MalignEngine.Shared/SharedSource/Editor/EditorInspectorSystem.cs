@@ -1,7 +1,6 @@
-using Arch.Core;
-using Arch.Core.Extensions;
 using ImGuiNET;
 using nkast.Aether.Physics2D.Dynamics;
+using System.Collections;
 using System.Numerics;
 using System.Reflection;
 
@@ -14,9 +13,9 @@ namespace MalignEngine
 
         public override string WindowName => "Inspector";
 
-        private void RecursiveEntityTree(EntityReference[] entities)
+        private void RecursiveEntityTree(EntityRef[] entities)
         {
-            foreach (Entity entity in entities)
+            foreach (EntityRef entity in entities)
             {
                 string name = "Unknown";
                 if (entity.TryGet(out NameComponent nameComponent))
@@ -28,7 +27,7 @@ namespace MalignEngine
                 {
                     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow;
 
-                    if (EditorSystem.SelectedEntity.Entity == entity)
+                    if (EditorSystem.SelectedEntity == entity)
                     {
                         flags |= ImGuiTreeNodeFlags.Selected;
                     }
@@ -37,7 +36,7 @@ namespace MalignEngine
                     {
                         if (ImGui.IsItemClicked())
                         {
-                            EditorSystem.SelectedEntity = entity.Reference();
+                            EditorSystem.SelectedEntity = entity;
                         }
 
                         RecursiveEntityTree(children.Childs.ToArray());
@@ -47,7 +46,7 @@ namespace MalignEngine
                     {
                         if (ImGui.IsItemClicked())
                         {
-                            EditorSystem.SelectedEntity = entity.Reference();
+                            EditorSystem.SelectedEntity = entity;
                         }
                     }
                 }
@@ -55,7 +54,7 @@ namespace MalignEngine
                 {
                     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.Leaf;
 
-                    if (EditorSystem.SelectedEntity.Entity == entity)
+                    if (EditorSystem.SelectedEntity == entity)
                     {
                         flags |= ImGuiTreeNodeFlags.Selected;
                     }
@@ -64,7 +63,7 @@ namespace MalignEngine
                     {
                         if (ImGui.IsItemClicked())
                         {
-                            EditorSystem.SelectedEntity = entity.Reference();
+                            EditorSystem.SelectedEntity = entity;
                         }
 
                         ImGui.TreePop();
@@ -73,7 +72,7 @@ namespace MalignEngine
                     {
                         if (ImGui.IsItemClicked())
                         {
-                            EditorSystem.SelectedEntity = entity.Reference();
+                            EditorSystem.SelectedEntity = entity;
                         }
                     }
                 }
@@ -95,7 +94,7 @@ namespace MalignEngine
 
                 if (ImGui.TreeNodeEx("Entities", ImGuiTreeNodeFlags.Selected))
                 {
-                    RecursiveEntityTree(ParentSystem.RootEntities.Select(e => e.Reference()).ToArray());
+                    RecursiveEntityTree(ParentSystem.RootEntities.ToArray());
                 }
 
                 ImGui.EndChild();
@@ -104,14 +103,24 @@ namespace MalignEngine
 
                 ImGui.BeginChild("scrolling2", new Vector2(0, 0), false);
 
-                if (EditorSystem.SelectedEntity != EntityReference.Null)
+                if (EntityManager.World.IsValid(EditorSystem.SelectedEntity))
                 {
-                    Entity entity = EditorSystem.SelectedEntity.Entity;
+                    EntityRef entity = EditorSystem.SelectedEntity;
+
+                    if (ImGui.Button("Delete"))
+                    {
+                        EntityManager.World.Destroy(entity);
+                        ImGui.EndChild();
+                        ImGui.EndTable();
+                        ImGui.End();
+
+                        return;
+                    }
 
                     ImGui.Text($"Entity Id: {entity.Id}");
-                    ImGui.Text($"Entity Version: {entity.Version()}");
+                    ImGui.Text($"Entity Version: {entity.Version}");
 
-                    object[] components = entity.GetAllComponents();
+                    object[] components = entity.GetComponents();
 
                     int i = 0;
                     foreach (object component in components)
@@ -145,7 +154,6 @@ namespace MalignEngine
                 }
 
                 ImGui.EndChild();
-
                 ImGui.EndTable();
             }
 
@@ -156,7 +164,7 @@ namespace MalignEngine
         {
             if (obj == null) { return "Null"; }
 
-            if (obj is Entity entity)
+            if (obj is EntityRef entity)
             {
                 if (entity.Has<NameComponent>())
                 {
@@ -168,10 +176,15 @@ namespace MalignEngine
                 }
             }
 
+            if (obj is Type type)
+            {
+                return type.Name;
+            }
+
             return obj.ToString();
         }
 
-        private static void DrawMember(Entity entity, MemberInfo member, object obj)
+        private static void DrawMember(EntityRef entity, MemberInfo member, object obj)
         {
             Type type = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
             Func<object, object> getValue = member is PropertyInfo ? ((PropertyInfo)member).GetValue : ((FieldInfo)member).GetValue;
@@ -250,6 +263,17 @@ namespace MalignEngine
                     setValue(obj, v);
                     entity.Set(obj);
                 }
+            }
+            else if (type.IsAssignableTo(typeof(IDictionary)))
+            {
+                ImGui.Text(member.Name);
+                ImGui.Indent();
+                IDictionary dict = (IDictionary)getValue(obj);
+                foreach (var key in dict.Keys)
+                {
+                    ImGui.Text($"{FormatObject(key)}: {FormatObject(dict[key])}");
+                }
+                ImGui.Unindent();
             }
             else
             {

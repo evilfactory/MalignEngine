@@ -4,12 +4,12 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class EditorSystem : BaseSystem
+    public class EditorSystem : BaseSystem, IDrawImGui
     {
         [Dependency]
         protected InputSystem InputSystem = default!;
 
-        public EntityReference SelectedEntity { get; set; } = EntityReference.Null;
+        public EntityRef SelectedEntity { get; set; } = default;
 
         private bool hideAllWindows = true;
 
@@ -28,7 +28,7 @@ namespace MalignEngine
             }
         }
 
-        public override void OnDraw(float deltaTime)
+        public void OnDrawImGui(float deltaTime)
         {
             uint dockspaceId = ImGui.GetID("MyDockSpace");
             ImGui.DockSpace(dockspaceId, new Vector2(0, 0), ImGuiDockNodeFlags.PassthruCentralNode);

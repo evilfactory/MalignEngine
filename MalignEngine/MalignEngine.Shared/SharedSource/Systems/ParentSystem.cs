@@ -1,53 +1,62 @@
-using Arch.Core;
-using Arch.Core.Extensions;
-
 namespace MalignEngine
 {
     public struct ParentOf : IComponent
     {
-        public EntityReference Parent;
+        public EntityRef Parent;
     }
 
     public struct Children : IComponent
     {
-        public HashSet<EntityReference> Childs;
+        public HashSet<EntityRef> Childs;
     }
 
     public class ParentSystem : EntitySystem
     {
         public override void OnInitialize()
         {
-            EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, ParentOf>(ParentAddedComponent);
-            EntityEventSystem.SubscribeLocalEvent<ComponentRemovedEvent, ParentOf>(ParentRemovedComponent);
+            EntityEventSystem.SubscribeEvent<ComponentAddedEvent, ParentOf>(ParentAddedComponent);
+            EntityEventSystem.SubscribeEvent<ComponentRemovedEvent, ParentOf>(ParentRemovedComponent);
+            EntityEventSystem.SubscribeEvent<EntityDestroyedEvent>(EntityDestroyed);
         }
 
-        public IEnumerable<Entity> RootEntities
+        public IEnumerable<EntityRef> RootEntities
         {
             get
             {
-                var query = new QueryDescription().WithNone<ParentOf>();
-                List<Entity> entities = new List<Entity>();
-                World.Query(query, (Entity entity) =>
+                var query = EntityManager.World.CreateQuery().WithNone<ParentOf>();
+                List<EntityRef> entities = new List<EntityRef>();
+                EntityManager.World.Query(query, (EntityRef entity) =>
                 {
                     entities.Add(entity);
                 });
                 return entities.ToArray();
             }
         }
-
-        private void ParentRemovedComponent(ComponentRemovedEvent removeEvent)
+        private void EntityDestroyed(EntityDestroyedEvent entity)
         {
-            Entity entity = removeEvent.Entity;
+            if (entity.Entity.Has<Children>())
+            {
+                // Destroy all children as well
+                ref Children children = ref entity.Entity.Get<Children>();
 
+                foreach (EntityRef child in children.Childs)
+                {
+                    child.Destroy();
+                }
+            }
+        }
+
+        private void ParentRemovedComponent(EntityRef entity, ComponentRemovedEvent removeEvent)
+        {
             if (entity.Has<Children>())
             {
                 ref Children children = ref entity.Get<Children>();
 
-                foreach (EntityReference child in children.Childs)
+                foreach (EntityRef child in children.Childs)
                 {
-                    if (child.Entity.Has<ParentOf>())
+                    if (child.Has<ParentOf>())
                     {
-                        child.Entity.Remove<ParentOf>();
+                        child.Remove<ParentOf>();
                     }
                 }
             }
@@ -56,26 +65,24 @@ namespace MalignEngine
             {
                 ref ParentOf parentOf = ref entity.Get<ParentOf>();
 
-                if (parentOf.Parent.Entity.Has<Children>())
+                if (parentOf.Parent.Has<Children>())
                 {
-                    ref Children children = ref parentOf.Parent.Entity.Get<Children>();
+                    ref Children children = ref parentOf.Parent.Get<Children>();
 
-                    children.Childs.Remove(entity.Reference());
+                    children.Childs.Remove(entity);
                 }
             }
         }
 
-        private void ParentAddedComponent(ComponentAddedEvent addedEvent)
+        private void ParentAddedComponent(EntityRef entity, ComponentAddedEvent addedEvent)
         {
-            Entity entity = addedEvent.Entity;
-
             ParentOf parentOf = entity.Get<ParentOf>();
 
-            ref Children children = ref parentOf.Parent.Entity.AddOrGet<Children>();
+            ref Children children = ref parentOf.Parent.AddOrGet<Children>();
 
-            if (children.Childs == null) { children.Childs = new HashSet<EntityReference>(); }
+            if (children.Childs == null) { children.Childs = new HashSet<EntityRef>(); }
 
-            children.Childs.Add(entity.Reference());
+            children.Childs.Add(entity);
         }
     }
 }

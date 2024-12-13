@@ -19,11 +19,17 @@ namespace MalignEngine
             Style = style;
             OnClick = onClick;
 
+            DefaultColor = style.ButtonDefaultColor;
+            HoverColor = style.ButtonHoverColor;
+            ClickColor = style.ButtonClickColor;
+
             currentColor = DefaultColor;
         }
 
         public override void Update()
         {
+            base.Update();
+
             if (InputSystem.MousePosition.X > RectTransform.TopLeft.X && InputSystem.MousePosition.X < RectTransform.TopLeft.X + RectTransform.ScaledSize.X &&
                 InputSystem.MousePosition.Y > RectTransform.TopLeft.Y && InputSystem.MousePosition.Y < RectTransform.TopLeft.Y + RectTransform.ScaledSize.Y)
             {
@@ -31,8 +37,12 @@ namespace MalignEngine
 
                 if (InputSystem.IsMouseButtonPressed(0))
                 {
-                    OnClick();
                     targetColor = ClickColor;
+                }
+                
+                if (InputSystem.IsMouseButtonHeld(0))
+                {
+                    OnClick();
                 }
             }
             else

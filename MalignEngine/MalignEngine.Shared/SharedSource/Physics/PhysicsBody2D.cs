@@ -22,7 +22,7 @@ namespace MalignEngine
         public FixtureData2D[] Fixtures;
     }
 
-    internal struct PhysicsSimId
+    internal struct PhysicsSimId : IComponent
     {
         public uint Id;
     }

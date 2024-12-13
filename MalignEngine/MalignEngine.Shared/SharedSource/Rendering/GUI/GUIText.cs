@@ -16,6 +16,13 @@ namespace MalignEngine
             Text = text;
         }
 
+        public GUIText(RectTransform transform, string text, int fontSize, Color color) : base(transform)
+        {
+            Color = color;
+            Text = text;
+            FontSize = fontSize;
+        }
+
         public GUIText(RectTransform transform, string text, GUIStyle style) : base(transform)
         {
             Style = style;

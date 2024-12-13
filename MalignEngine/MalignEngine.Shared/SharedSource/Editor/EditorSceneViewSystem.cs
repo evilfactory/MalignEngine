@@ -18,17 +18,22 @@ namespace MalignEngine
         [Dependency]
         protected CameraSystem CameraSystem = default!;
 
-        private Entity camera;
+        private EntityRef camera;
 
         public override void OnInitialize()
         {
             base.OnInitialize();
-
-            camera = World.Create(new OrthographicCamera { ViewSize = 6f, IsMain = false, RenderTexture = new RenderTexture(800, 600) }, new Transform(new Vector2(0, 0)));
         }
 
         public override void DrawWindow(float deltaTime)
         {
+            if (!camera.IsValid())
+            {
+                camera = EntityManager.World.CreateEntity();
+                camera.Add(new Transform());
+                camera.Add(new OrthographicCamera() { ViewSize = 6f, IsMain = false, ClearColor = Color.Black });
+            }
+
             ImGui.Begin("Scene View");
 
             if (ImGui.IsWindowHovered())
@@ -43,7 +48,7 @@ namespace MalignEngine
                 if (InputSystem.IsMouseButtonPressed(0))
                 {
                     var query = new QueryDescription().WithAll<Transform>();
-                    World.Query(in query, (Entity entity, ref Transform transform) =>
+                    EntityManager.World.Query(in query, (EntityRef entity, ref Transform transform) =>
                     {
                         Vector2 mousePosition = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), InputSystem.MousePosition - ImGui.GetWindowPos() - ImGui.GetWindowContentRegionMin());
 
@@ -55,7 +60,7 @@ namespace MalignEngine
                         {
                             if (mousePosition.Y > transform.Position.Y - transform.Scale.Y / 2 && mousePosition.Y < transform.Position.Y + transform.Scale.Y / 2)
                             {
-                                EditorSystem.SelectedEntity = entity.Reference();
+                                EditorSystem.SelectedEntity = entity;
                             }
                         }
                     });
@@ -69,9 +74,13 @@ namespace MalignEngine
             if (size.X < 1) { size.X = 1f; }
             if (size.Y < 1) { size.Y = 1f; }
 
-            camera.Get<OrthographicCamera>().RenderTexture.Resize((uint)size.X, (uint)size.Y);
+            RenderTexture renderTexture = camera.Get<OrthographicCamera>().RenderTexture;
 
-            ImGuiSystem.Image(camera.Get<OrthographicCamera>().RenderTexture, size, uv0: new Vector2(0, 1), uv1: new Vector2(1, 0));
+            if (renderTexture != null)
+            {
+                ImGuiSystem.Image(renderTexture, size, uv0: new Vector2(0, 1), uv1: new Vector2(1, 0));
+                renderTexture.Resize((uint)size.X, (uint)size.Y);
+            }
 
             ImGui.End();
         }

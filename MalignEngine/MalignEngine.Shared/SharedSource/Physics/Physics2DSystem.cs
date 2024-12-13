@@ -1,8 +1,5 @@
 using System.Numerics;
-using Arch.Core.Extensions;
-using Arch.Core;
 using nkast.Aether.Physics2D.Dynamics;
-using Arch.Buffer;
 using World = nkast.Aether.Physics2D.Dynamics.World;
 using AVector2 = nkast.Aether.Physics2D.Common.Vector2;
 using Vertices = nkast.Aether.Physics2D.Common.Vertices;
@@ -30,8 +27,8 @@ namespace MalignEngine
         {
             physicsWorld = new World(new AVector2(0, -9.81f));
 
-            EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
-            EntityEventSystem.SubscribeLocalEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
+            EntityEventSystem.SubscribeEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
+            EntityEventSystem.SubscribeEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
         }
 
         public override void OnUpdate(float deltaTime)
@@ -42,8 +39,8 @@ namespace MalignEngine
             stopwatch.Stop();
             EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
 
-            var query = new QueryDescription().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
-            World.Query(in query, (Entity entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
+            var query = EntityManager.World.CreateQuery().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
+            EntityManager.World.Query(in query, (EntityRef entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
             {
                 Body body = GetBody(physicsSimId);
 
@@ -55,37 +52,37 @@ namespace MalignEngine
             });
         }
 
-        public void ApplyForce(in Entity entity, Vector2 force)
+        public void ApplyForce(in EntityRef entity, Vector2 force)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
             simBody.ApplyForce(new AVector2(force.X, force.Y));
         }
 
-        public void ApplyImpulse(in Entity entity, Vector2 impulse)
+        public void ApplyImpulse(in EntityRef entity, Vector2 impulse)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
             simBody.ApplyLinearImpulse(new AVector2(impulse.X, impulse.Y));
         }
 
-        public void ApplyTorque(in Entity entity, float torque)
+        public void ApplyTorque(in EntityRef entity, float torque)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
             simBody.ApplyTorque(torque);
         }
 
-        public void SetLinearVelocity(in Entity entity, Vector2 velocity)
+        public void SetLinearVelocity(in EntityRef entity, Vector2 velocity)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
             simBody.LinearVelocity = new AVector2(velocity.X, velocity.Y);
         }
 
-        public void SetAngularVelocity(in Entity entity, float velocity)
+        public void SetAngularVelocity(in EntityRef entity, float velocity)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
             simBody.AngularVelocity = velocity;
         }
 
-        public void UpdateFixtures(in Entity entity)
+        public void UpdateFixtures(in EntityRef entity)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
 
@@ -123,9 +120,8 @@ namespace MalignEngine
             }
         }
 
-        private void PhysicsBodyAdded(ComponentAddedEvent args)
+        private void PhysicsBodyAdded(EntityRef entity, ComponentAddedEvent args)
         {
-            var entity = args.Entity;
             ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
 
             Vector2 startPosition = Vector2.Zero;
@@ -149,9 +145,8 @@ namespace MalignEngine
             UpdateFixtures(entity);
         }
 
-        private void PhysicsBodyRemoved(ComponentRemovedEvent args)
+        private void PhysicsBodyRemoved(EntityRef entity, ComponentRemovedEvent args)
         {
-            var entity = args.Entity;
             ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
 
             PhysicsSimId id = entity.Get<PhysicsSimId>();

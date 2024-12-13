@@ -14,7 +14,7 @@ namespace MalignEngine
         {
             RenderingSystem.Begin(blendingMode: BlendingMode.Additive);
             var query = new QueryDescription().WithAll<Light2D, WorldTransform>();
-            World.Query(query, (Entity entity, ref WorldTransform transform, ref Light2D light) =>
+            EntityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref Light2D light) =>
             {
                 RenderingSystem.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), new Vector2(0.5f, 0.5f), new Rectangle(), light.Color, transform.ZAxis, 0f);
             });
@@ -25,7 +25,7 @@ namespace MalignEngine
         {
             Color color = Color.Black;
             var query = new QueryDescription().WithAll<GlobalLight2D>();
-            World.Query(query, (Entity entity, ref GlobalLight2D light) =>
+            EntityManager.World.Query(query, (EntityRef entity, ref GlobalLight2D light) =>
             {
                 color = light.Color;
             });

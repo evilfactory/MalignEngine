@@ -8,9 +8,7 @@ namespace MalignEngine
     public abstract class EntitySystem : BaseSystem
     {
         [Dependency]
-        protected WorldSystem WorldSystem = default!;
-        [Dependency]
-        protected World World = default!;
+        protected EntityManagerService EntityManager = default!;
         [Dependency]
         protected EntityEventSystem EntityEventSystem = default!;
 

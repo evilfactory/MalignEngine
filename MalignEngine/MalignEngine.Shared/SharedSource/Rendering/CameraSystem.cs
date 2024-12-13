@@ -28,11 +28,11 @@ namespace MalignEngine
                 return;
             }
 
-            List<Entity> cameraEntities = new List<Entity>();
-            Entity mainCamera = Entity.Null;
+            List<EntityRef> cameraEntities = new List<EntityRef>();
+            EntityRef mainCamera = default;
 
             var query = new QueryDescription().WithAll<OrthographicCamera, Transform>();
-            World.Query(in query, (Entity entity, ref OrthographicCamera camera, ref Transform transform) =>
+            EntityManager.World.Query(in query, (EntityRef entity, ref OrthographicCamera camera, ref Transform transform) =>
             {
                 if (camera.RenderTexture == null)
                 {
@@ -60,7 +60,7 @@ namespace MalignEngine
                 Renderer.SetMatrix(camera.Matrix);
 
                 Renderer.SetRenderTarget(camera.RenderTexture, camera.RenderTexture.Width, camera.RenderTexture.Height);
-                Renderer.Clear(Color.LightSkyBlue);
+                Renderer.Clear(camera.ClearColor);
                 Renderer.FlipY = true;
                 EventSystem.PublishEvent<IDraw>(e => e.OnDraw(delta));
                 Renderer.FlipY = false;
@@ -74,21 +74,26 @@ namespace MalignEngine
                 }
             }
 
-            if (mainCamera != Entity.Null)
+            Renderer.SetRenderTarget(null);
+            if (mainCamera != EntityRef.Null)
             {
                 OrthographicCamera camera = mainCamera.Get<OrthographicCamera>();
-
-                Renderer.SetRenderTarget(null);
-                Renderer.Clear(Color.LightSkyBlue);
+                Renderer.Clear(camera.ClearColor);
 
                 Renderer.SetMatrix(camera.Matrix);
 
                 Renderer.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f));
                 Renderer.DrawRenderTexture(camera.RenderTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
                 Renderer.End();
-
-                EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
             }
+            else
+            {
+                Renderer.Clear(Color.Black);
+            }
+
+            EventSystem.PublishEvent<IPreDrawGUI>(e => e.OnPreDrawGUI(delta));
+            EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
+            EventSystem.PublishEvent<IPostDrawGUI>(e => e.OnPostDrawGUI(delta));
         }
 
         public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position)

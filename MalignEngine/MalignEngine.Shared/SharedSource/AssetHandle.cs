@@ -44,7 +44,17 @@ namespace MalignEngine
         public void LoadNow()
         {
             Type type = typeof(T);
-            object? result = type.GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { AssetPath });
+
+            object? result;
+
+            try
+            {
+                result = type.GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { AssetPath });
+            }
+            catch
+            {
+                throw;
+            }
 
             if (result == null)
             {

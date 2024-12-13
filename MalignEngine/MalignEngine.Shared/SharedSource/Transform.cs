@@ -18,24 +18,24 @@ namespace MalignEngine
         public override void OnInitialize()
         {
             // remove, stupid
-            EntityEventSystem.SubscribeLocalEvent<ComponentAddedEvent, Transform>(args =>
+            EntityEventSystem.SubscribeEvent<ComponentAddedEvent, Transform>((entity, args) =>
             {
-                if (!args.Entity.Has<WorldTransform>())
+                if (!entity.Has<WorldTransform>())
                 {
-                    args.Entity.Add(new WorldTransform());
+                    entity.Add(new WorldTransform());
                 }
             });
         }
 
         public void OnPostUpdate(float deltaTime)
         {
-            foreach (Entity entity in ParentSystem.RootEntities)
+            foreach (EntityRef entity in ParentSystem.RootEntities)
             {
                 UpdateTransformTree(entity);
             }
         }
 
-        public void UpdateTransformTree(Entity root)
+        public void UpdateTransformTree(EntityRef root)
         {
             if (root.Has<WorldTransform>() && root.TryGet(out Transform parentTransform))
             {
@@ -47,7 +47,7 @@ namespace MalignEngine
 
             if (root.TryGet(out Children children))
             {
-                foreach (Entity child in children.Childs)
+                foreach (EntityRef child in children.Childs)
                 {
                     // Update WorldPosition
                     if (root.TryGet(out WorldTransform parentWorldTransform) && child.TryGet(out Transform transform))

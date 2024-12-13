@@ -34,4 +34,12 @@ namespace MalignEngine
     {
         public void OnDrawGUI(float deltaTime);
     }
+    public interface IPreDrawGUI : IEvent
+    {
+        public void OnPreDrawGUI(float deltaTime);
+    }
+    public interface IPostDrawGUI : IEvent
+    {
+        public void OnPostDrawGUI(float deltaTime);
+    }
 }

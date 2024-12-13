@@ -25,7 +25,7 @@ namespace MalignEngine
 
             RenderingSystem.Begin();
             var query = new QueryDescription().WithAll<SpriteRenderer, WorldTransform>();
-            World.Query(query, (Entity entity, ref WorldTransform transform, ref SpriteRenderer spriteRenderer) =>
+            EntityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref SpriteRenderer spriteRenderer) =>
             {
                 float depth = 0;
                 if (entity.Has<Depth>()) { depth = entity.Get<Depth>().Value; }

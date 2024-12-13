@@ -4,7 +4,12 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class ImGuiSystem : BaseSystem, IDrawGUI
+    public interface IDrawImGui : IEvent
+    {
+        void OnDrawImGui(float deltaTime);
+    }
+
+    public class ImGuiSystem : BaseSystem, IPostDrawGUI
     {
         [Dependency]
         protected GLRenderingSystem RenderingSystem = default!;
@@ -12,6 +17,8 @@ namespace MalignEngine
         protected WindowSystem Window = default!;
         [Dependency]
         protected InputSystem Input = default!;
+        [Dependency]
+        protected EventSystem EventSystem = default!;
 
         private ImGuiController imGuiController;
 
@@ -83,13 +90,13 @@ namespace MalignEngine
             });
         }
 
-
         public override void OnDraw(float deltaTime)
         {
             imGuiController.Update(deltaTime);
+            EventSystem.PublishEvent<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
         }
 
-        public void OnDrawGUI(float deltaTime)
+        public void OnPostDrawGUI(float deltaTime)
         {
             imGuiController.Render();
         }

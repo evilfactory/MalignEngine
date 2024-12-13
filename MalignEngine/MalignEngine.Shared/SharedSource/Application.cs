@@ -1,4 +1,5 @@
 using Arch.Core;
+using System.Reflection;
 
 namespace MalignEngine
 {
@@ -25,6 +26,17 @@ namespace MalignEngine
             IoCManager.Register(system);
 
             logger.LogVerbose($"Added system {system.GetType().Name}");
+        }
+
+        public void AddAllSystems(Assembly assembly)
+        {
+            foreach (var type in assembly.GetTypes())
+            {
+                if (type.IsAssignableTo(typeof(IService)) && type.GetConstructor(Type.EmptyTypes) != null)
+                {
+                    AddSystem((IService)Activator.CreateInstance(type));
+                }
+            }
         }
 
         public void Initialize()
