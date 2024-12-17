@@ -11,6 +11,8 @@ public class MainMenu : EntitySystem, IDrawGUI
     protected WindowSystem WindowSystem = default!;
     [Dependency]
     protected RenderingSystem RenderingSystem = default!;
+    [Dependency]
+    protected AxisOne AxisOne = default!;
 
     private GUIFrame mainFrame;
 
@@ -21,7 +23,7 @@ public class MainMenu : EntitySystem, IDrawGUI
         new GUIText(new RectTransform(list.RectTransform, new Vector2(1f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), "Main Menu", 100, Color.White);
         var connectButton = new GUIButton(new RectTransform(list.RectTransform, new Vector2(0.5f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), () =>
         {
-
+            AxisOne.LoadGame();
         });
         connectButton.RectTransform.MinSize = new Vector2(400, 100);
         new GUIText(new RectTransform(connectButton.RectTransform, new Vector2(1f, 1f), Anchor.Center, Pivot.Center), "Connect Localhost", 50, Color.White);

@@ -4,7 +4,6 @@ using Silk.NET.Windowing;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
 using System.Text;
 using System.IO;
 using Silk.NET.Maths;
@@ -44,7 +43,7 @@ namespace MalignEngine
         private BufferObject<Vertex> vbo;
         private BufferObject<uint> ebo;
         private VertexArrayObject<Vertex, uint> vao;
-        private IGLBindableTexture[] textures;
+        private GLTextureHandle[] textures;
 
         private uint indexCount = 0;
         private uint batchIndex = 0;
@@ -82,7 +81,7 @@ namespace MalignEngine
                 openGL.DebugMessageCallback(GLDebugMessageCallback, null);
             }
 
-            textures = new IGLBindableTexture[MaxTextures];
+            textures = new GLTextureHandle[MaxTextures];
 
             triangleIndices = new uint[MaxIndexCount];
             uint offset = 0;
@@ -135,7 +134,7 @@ namespace MalignEngine
             drawing = true;
             drawingMaterial = material ?? basicMaterial;
             drawingMatrix = matrix;
-            textures = new IGLBindableTexture[MaxTextures];
+            textures = new GLTextureHandle[MaxTextures];
 
             batchIndex = 0;
 
@@ -162,28 +161,27 @@ namespace MalignEngine
             openGL.ClearStencil(0);
         }
 
-
-        public override void DrawRenderTexture(RenderTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)
         {
-            DrawTexture2D((GLRenderTextureHandle)texture.handle, position, size, origin, sourceRectangle, color, rotation, layerDepth);
+            DrawTexture2D((GLTextureHandle)texture.Handle, position, size, uv1, uv2, color, rotation, layerDepth);
         }
 
-        public override void DrawTexture2D(Texture2D texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Color color, float rotation, float layerDepth)
         {
-            DrawTexture2D((IGLBindableTexture)texture.handle, position, size, origin, sourceRectangle, color, rotation, layerDepth);
+            DrawTexture2D((GLTextureHandle)texture.Handle, position, size, Vector2.Zero, Vector2.One, color, rotation, layerDepth);
         }
 
-        public override void DrawQuad(Texture2D texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
+        public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, float layerDepth)
         {
-            DrawQuad((IGLBindableTexture)texture.handle, topRight, bottomRight, bottomLeft, topLeft);
+            DrawTexture2D(texture, position, size, Vector2.Zero, Vector2.One, Color.White, 0f, layerDepth);
         }
 
-        public override void DrawQuad(RenderTexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
+        public override void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
         {
-            DrawQuad((IGLBindableTexture)texture.handle, topRight, bottomRight, bottomLeft, topLeft);
+            DrawQuad((GLTextureHandle)texture.Handle, topRight, bottomRight, bottomLeft, topLeft);
         }
 
-        private void DrawQuad(IGLBindableTexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
+        private void DrawQuad(GLTextureHandle texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
         {
             if (!drawing)
             {
@@ -243,7 +241,7 @@ namespace MalignEngine
             indexCount += 6;
         }
 
-        private void DrawTexture2D(IGLBindableTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth)
+        private void DrawTexture2D(GLTextureHandle texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)
         {
             Vector3 topRightPos = new Vector3(0.0f + size.X / 2f, 0.0f + size.Y / 2f,0f);
             topRightPos = Vector3.Transform(topRightPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
@@ -262,10 +260,10 @@ namespace MalignEngine
             topLeftPos = Vector3.Transform(topLeftPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
 
             DrawQuad(texture,
-                new VertexPositionColorTexture(topRightPos, color, new Vector2(1f, 1f)), // top right
-                new VertexPositionColorTexture(bottomRightPos, color, new Vector2(1f, 0f)), // bottom right
-                new VertexPositionColorTexture(bottomLeftPos, color, new Vector2(0f, 0f)), // bottom left
-                new VertexPositionColorTexture(topLeftPos, color, new Vector2(0f, 1f)) // top left
+                new VertexPositionColorTexture(topRightPos, color, new Vector2(uv2.X, uv2.Y)), // top right 1f, 1f
+                new VertexPositionColorTexture(bottomRightPos, color, new Vector2(uv2.X, uv1.Y)), // bottom right 1f, 0f
+                new VertexPositionColorTexture(bottomLeftPos, color, new Vector2(uv1.X, uv1.Y)), // bottom left 0f, 0f
+                new VertexPositionColorTexture(topLeftPos, color, new Vector2(uv1.X, uv2.Y)) // top left 0f, 1f
             );
         }
 
@@ -315,15 +313,9 @@ namespace MalignEngine
                 {
                     drawingShader.SetUniform(property.Key, (Matrix4x4)propertyValue);
                 }
-                else if (propertyValue is Texture2D)
+                else if (propertyValue is ITexture)
                 {
-                    ((GLTextureHandle)((Texture2D)propertyValue).handle).Bind(TextureUnit.Texture0 + (int)textureIndex);
-                    drawingShader.SetUniform(property.Key, textureIndex);
-                    textureIndex++;
-                }
-                else if (propertyValue is RenderTexture)
-                {
-                    ((GLRenderTextureHandle)((RenderTexture)propertyValue).handle).Bind(TextureUnit.Texture0 + (int)textureIndex);
+                    ((GLTextureHandle)((ITexture)propertyValue).Handle).Bind(TextureUnit.Texture0 + (int)textureIndex);
                     drawingShader.SetUniform(property.Key, textureIndex);
                     textureIndex++;
                 }
@@ -346,14 +338,9 @@ namespace MalignEngine
             drawing = false;
         }
 
-        public override TextureHandle CreateTextureHandle(Texture2D texture)
+        public override TextureHandle CreateTextureHandle()
         {
-            return new GLTextureHandle(openGL, texture.Width, texture.Height);
-        }
-
-        public override RenderTextureHandle CreateRenderTextureHandle(RenderTexture texture)
-        {
-            return new GLRenderTextureHandle(openGL, texture.Width, texture.Height);
+            return new GLTextureHandle(openGL);
         }
 
         public override Shader LoadShader(Stream data)
@@ -375,7 +362,7 @@ namespace MalignEngine
             {
                 if (width == 0) { width = renderTexture.Width; }
                 if (height == 0) { height = renderTexture.Height; }
-                ((GLRenderTextureHandle)this.renderTexture.handle).Bind();
+                ((GLTextureHandle)this.renderTexture.Handle).BindAsRenderTarget();
                 openGL.Viewport(0, 0, width, height);
             }
             else

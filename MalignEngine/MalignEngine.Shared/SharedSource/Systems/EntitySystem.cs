@@ -12,7 +12,7 @@ namespace MalignEngine
         [Dependency]
         protected EntityEventSystem EntityEventSystem = default!;
 
-        public static bool Resolve<T>(in Entity entity, ref T comp)
+        public static bool Resolve<T>(in EntityRef entity, ref T comp) where T : IComponent
         {
             bool success = false;
             comp = entity.TryGetRef<T>(out success);

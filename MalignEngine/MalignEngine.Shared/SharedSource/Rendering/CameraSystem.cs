@@ -83,7 +83,7 @@ namespace MalignEngine
                 Renderer.SetMatrix(camera.Matrix);
 
                 Renderer.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f));
-                Renderer.DrawRenderTexture(camera.RenderTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
+                Renderer.DrawTexture2D(camera.RenderTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
                 Renderer.End();
             }
             else

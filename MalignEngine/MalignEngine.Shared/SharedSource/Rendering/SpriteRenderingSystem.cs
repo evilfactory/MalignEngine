@@ -30,7 +30,7 @@ namespace MalignEngine
                 float depth = 0;
                 if (entity.Has<Depth>()) { depth = entity.Get<Depth>().Value; }
 
-                RenderingSystem.DrawTexture2D(spriteRenderer.Sprite.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), spriteRenderer.Sprite.Origin, spriteRenderer.Sprite.Rect, spriteRenderer.Color, transform.ZAxis, depth);
+                RenderingSystem.DrawTexture2D(spriteRenderer.Sprite.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), spriteRenderer.Sprite.UV1, spriteRenderer.Sprite.UV2, spriteRenderer.Color, transform.ZAxis, depth);
             });
             RenderingSystem.End();
 

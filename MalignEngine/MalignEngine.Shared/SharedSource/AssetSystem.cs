@@ -67,10 +67,10 @@ namespace MalignEngine
             return handle;
         }
 
-        public AssetHandle<T> Add<T>(T asset) where T : IAsset
-        {
-            string assetPath = Guid.NewGuid().ToString();
+        public AssetHandle<T> Add<T>(T asset) where T : IAsset => Add(asset, Guid.NewGuid().ToString());
 
+        public AssetHandle<T> Add<T>(T asset, string assetPath) where T : IAsset
+        {
             AssetHandle<T> handle = new AssetHandle<T>(assetPath, asset);
             assetHandles.Add(assetPath, handle);
 

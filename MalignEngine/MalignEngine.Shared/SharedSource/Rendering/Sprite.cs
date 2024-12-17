@@ -9,12 +9,17 @@ namespace MalignEngine
         public Rectangle Rect { get; private set; }
         public Color Color { get; private set; }
 
+        public Vector2 UV1 { get; private set; }
+        public Vector2 UV2 { get; private set; }
+
         public Sprite(Texture2D texture)
         {
             Texture = texture;
-            Origin = new Vector2(texture.Width / 2, texture.Height / 2);
+            Origin = new Vector2(0.5f, 0.5f);
             Rect = new Rectangle(0, 0, (int)texture.Width, (int)texture.Height);
             Color = Color.White;
+
+            CalculateUVs();
         }
 
         public Sprite(Texture2D texture, Vector2 origin, Rectangle rect)
@@ -23,6 +28,8 @@ namespace MalignEngine
             Origin = origin;
             Rect = rect;
             Color = Color.White;
+
+            CalculateUVs();
         }
 
         public Sprite(Texture2D texture, Vector2 origin, Rectangle rect, Color color)
@@ -31,6 +38,14 @@ namespace MalignEngine
             Origin = origin;
             Rect = rect;
             Color = color;
+
+            CalculateUVs();
+        }
+
+        public void CalculateUVs()
+        {
+            UV1 = new Vector2((float)Rect.X / (float)Texture.Width, (float)Rect.Y / (float)Texture.Height);
+            UV2 = new Vector2((float)(Rect.X + Rect.Width) / (float)Texture.Width, (Rect.Y + Rect.Height) / (float)Texture.Height);
         }
 
         public override string ToString()

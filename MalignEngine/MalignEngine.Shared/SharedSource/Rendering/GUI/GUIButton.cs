@@ -55,7 +55,7 @@ namespace MalignEngine
 
         public override void Draw()
         {
-            RenderingSystem.DrawTexture2D(Style.FrameTexture, RectTransform.TopLeft + RectTransform.ScaledSize / 2f, RectTransform.ScaledSize, Vector2.Zero, new Rectangle(), currentColor, 0f, 0f);
+            RenderingSystem.DrawTexture2D(Style.FrameTexture, RectTransform.TopLeft + RectTransform.ScaledSize / 2f, RectTransform.ScaledSize, currentColor, 0f, 0f);
 
             base.Draw();
         }

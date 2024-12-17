@@ -1,6 +1,7 @@
 using Arch.Core;
 using Arch.Core.Extensions;
 using MalignEngine;
+using System.Net;
 
 namespace AxisOne;
 
@@ -15,7 +16,8 @@ public class AxisOne : BaseSystem
     [Dependency]
     protected SceneSystem SceneSystem = default!;
 
-    private Scene mainMenuScene;
+    [Dependency]
+    protected NetworkingSystem NetworkingSystem = default!;
 
     public override void OnInitialize()
     {
@@ -27,16 +29,38 @@ public class AxisOne : BaseSystem
             FrameTexture = Texture2D.White
         };
 
-        mainMenuScene = new Scene((create, world) =>
+        Scene mainmenu = AssetSystem.Add(new Scene((world) =>
         {
-            EntityRef camera = create();
+            EntityRef camera = world.CreateEntity();
             camera.Add(new Transform());
-            camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.Black});
+            camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.Black });
 
-            EntityRef mainMenu = create();
+            EntityRef mainMenu = world.CreateEntity();
             mainMenu.Add(new MainMenuComponent());
-        });
+            mainMenu.Add(new ParentOf() { Parent = camera });
 
-        SceneSystem.LoadScene(mainMenuScene);
+            return camera;
+        }));
+
+#if SERVER
+        NetworkingSystem.StartServer(7777);
+        LoadGame();
+#elif CLIENT
+        SceneSystem.LoadScene(mainmenu);
+#endif
+
+        Scene scene = AssetSystem.Load<Scene>("Content/Scenes/Player.xml");
+        EntityRef entity = SceneSystem.LoadScene(scene);
+
+        Scene sceneSaved = SceneSystem.SaveScene(entity);
+        sceneSaved.Save("Content/Scenes/PlayerSaved.xml");
+    }
+
+    public void LoadGame()
+    {
+#if CLIENT
+        NetworkingSystem.Connect(IPEndPoint.Parse("127.0.0.1:7777"));
+#endif
+        // SceneSystem.LoadScene(gameScene);
     }
 }

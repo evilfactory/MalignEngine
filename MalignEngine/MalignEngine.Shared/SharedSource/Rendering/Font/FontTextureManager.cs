@@ -22,7 +22,7 @@ namespace MalignEngine
         public void SetTextureData(object texture, System.Drawing.Rectangle bounds, byte[] data)
         {
             var t = (Texture2D)texture;
-            t.handle.SubmitData(bounds, data);
+            t.Handle.SubmitData(bounds, data);
         }
     }
 }

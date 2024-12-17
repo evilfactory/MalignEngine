@@ -1,8 +1,9 @@
 namespace MalignEngine
 {
+    [Serializable]
     public struct ParentOf : IComponent
     {
-        public EntityRef Parent;
+        [DataField("Parent", required: true)] public EntityRef Parent;
     }
 
     public struct Children : IComponent

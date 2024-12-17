@@ -9,7 +9,7 @@ namespace Sample
         {
             Application application = new Application();
 
-            application.AddSystem(new WorldSystem());
+            application.AddSystem(new EntityManagerService());
             application.AddSystem(new EntityEventSystem());
             application.AddSystem(new AssetSystem());
             application.AddSystem(new WindowSystem("Malign Engine", new Vector2(800, 600)));

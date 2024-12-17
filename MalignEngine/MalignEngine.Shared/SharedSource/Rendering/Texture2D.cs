@@ -7,7 +7,12 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class Texture2D : IAsset
+    public interface ITexture
+    {
+        public TextureHandle Handle { get; }
+    }
+
+    public class Texture2D : IAsset, ITexture
     {
         public static Texture2D White = new Texture2D(new Color[,] { { Color.White } }, 1, 1);
 
@@ -21,7 +26,7 @@ namespace MalignEngine
             }
         }
 
-        internal TextureHandle handle;
+        public TextureHandle Handle { get; private set; }
 
         private Color[,] textureData;
 
@@ -50,13 +55,14 @@ namespace MalignEngine
                     flattenData[y * Width + x] = textureData[x, y];
                 }
             }
-            handle.SubmitData(flattenData);
+            Handle.SubmitData(flattenData);
         }
 
         private void CreateHandle()
         {
             var rendering = IoCManager.Resolve<RenderingSystem>();
-            handle = rendering.CreateTextureHandle(this);
+            Handle = rendering.CreateTextureHandle();
+            Handle.Initialize(Width, Height, false);
         }
 
         public override string ToString()

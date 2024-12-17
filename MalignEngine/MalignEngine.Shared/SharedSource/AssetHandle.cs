@@ -13,7 +13,27 @@ namespace MalignEngine
 
         public bool IsLoading { get; private set; }
         public string AssetPath { get; private set; }
-        public T? Asset { get; private set; }
+        private T asset;
+        public T? Asset
+        {
+            get
+            {
+                if (asset == null && DummyAsset != null)
+                {
+                    return DummyAsset;
+                }
+                else if (asset == null)
+                {
+                    LoadNow();
+                }
+
+                return asset;
+            }
+            private set
+            {
+                asset = value;
+            }
+        }
 
         public AssetHandle(string assetPath)
         {
@@ -65,6 +85,6 @@ namespace MalignEngine
             IsLoading = false;
         }
 
-        public static implicit operator T(AssetHandle<T> d) => d.Asset ?? DummyAsset;
+        public static implicit operator T(AssetHandle<T> d) => d.Asset;
     }
 }

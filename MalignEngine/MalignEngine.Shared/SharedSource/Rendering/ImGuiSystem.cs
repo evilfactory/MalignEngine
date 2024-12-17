@@ -101,19 +101,14 @@ namespace MalignEngine
             imGuiController.Render();
         }
 
-        public void Image(RenderTexture texture, Vector2 size, Vector2 uv0, Vector2 uv1)
+        public void Image(ITexture texture, Vector2 size, Vector2 uv0, Vector2 uv1)
         {
-            ImGui.Image((IntPtr)((GLRenderTextureHandle)texture.handle).textureHandle, size, uv0, uv1);
+            ImGui.Image((IntPtr)((GLTextureHandle)texture.Handle).textureHandle, size, uv0, uv1);
         }
 
-        public void Image(Texture2D texture, Vector2 size, Vector2 uv0, Vector2 uv1)
+        public void Image(ITexture texture, Vector2 size)
         {
-            ImGui.Image((IntPtr)((GLTextureHandle)texture.handle).handle, size, uv0, uv1);
-        }
-
-        public void Image(Texture2D texture, Vector2 size)
-        {
-            ImGui.Image((IntPtr)((GLTextureHandle)texture.handle).handle, size);
+            ImGui.Image((IntPtr)((GLTextureHandle)texture.Handle).textureHandle, size);
         }
     }
 }

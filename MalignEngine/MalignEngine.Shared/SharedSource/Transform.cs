@@ -62,18 +62,21 @@ namespace MalignEngine
         }
     }
 
+    [Serializable]
     public struct Transform : IComponent
     {
-        public Vector3 Position;
-        public Quaternion Rotation;
-        public Vector3 Scale;
+        [DataField("Position")] public Vector3 Position;
+        [DataField("Rotation", save: false)] public Quaternion Rotation;
+        [DataField("Scale")] public Vector3 Scale;
 
+        [DataField("EulerAngles", save: true)] 
         public Vector3 EulerAngles
         {
             get => MathHelper.ToEulerAngles(Rotation);
             set => Rotation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
         }
 
+        [DataField("ZAxis", save: false)]
         public float ZAxis
         {
             get => EulerAngles.Z;

@@ -1,3 +1,4 @@
+using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
 
@@ -24,7 +25,7 @@ public enum ComponentLifeStage
     Deleted,
 }
 
-public struct EntityMetaData
+public class EntityMetaData : IComponent
 {
     public EntityLifeStage LifeStage;
     public Dictionary<Type, ComponentLifeStage> ComponentLifeStages;
@@ -111,7 +112,7 @@ public class WorldRef
     public EntityRef CreateEntity()
     {
         EntityRef entity = new EntityRef(this, world.Create());
-        ref EntityMetaData metadata = ref world.AddOrGet<EntityMetaData>(entity.Entity);
+        EntityMetaData metadata = world.AddOrGet<EntityMetaData>(entity.Entity, new EntityMetaData());
         metadata.LifeStage = EntityLifeStage.Created;
         metadata.ComponentLifeStages = new Dictionary<Type, ComponentLifeStage>();
 
@@ -139,14 +140,26 @@ public class WorldRef
 
     public void AddComponent<T>(EntityRef entity, in T component) where T : IComponent
     {
-        ref EntityMetaData metadata = ref world.Get<EntityMetaData>(entity.Entity);
+        EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
 
         metadata.ComponentLifeStages[typeof(T)] = ComponentLifeStage.Adding;
         world.Add(entity.Entity, component);
         entityEventSystem.RaiseEvent<ComponentAddedEvent, T>(entity, new ComponentAddedEvent());
         metadata.ComponentLifeStages[typeof(T)] = ComponentLifeStage.Added;
 
-        logger.LogVerbose($"Component added: {typeof(T).Name}");
+        logger.LogVerbose($"{typeof(T).Name} added. (Entity = {entity.Id})");
+    }
+
+    public void AddComponent(EntityRef entity, in IComponent component)
+    {
+        EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
+
+        metadata.ComponentLifeStages[component.GetType()] = ComponentLifeStage.Adding;
+        world.Add(entity.Entity, (object)component);
+        entityEventSystem.RaiseEvent(entity, component, new ComponentAddedEvent());
+        metadata.ComponentLifeStages[component.GetType()] = ComponentLifeStage.Added;
+
+        logger.LogVerbose($"{component.GetType().Name} added. (Entity = {entity.Id})");
     }
 
     public ref T AddOrGetComponent<T>(EntityRef entity) where T : IComponent, new()
@@ -166,7 +179,7 @@ public class WorldRef
 
     public void RemoveComponent(EntityRef entity, Type type)
     {
-        logger.LogVerbose($"Component marked for removal: {type.Name}");
+        logger.LogVerbose($"{type.Name} marked for removal. (Entity = {entity.Id})");
 
         ref EntityMetaData metadata = ref world.Get<EntityMetaData>(entity.Entity);
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopping;
@@ -186,12 +199,22 @@ public class WorldRef
 
     public ref T GetComponent<T>(EntityRef entity) where T : IComponent
     {
+        if (!HasComponent<T>(entity))
+        {
+            throw new InvalidOperationException($"Entity {entity.Id} does not have component {typeof(T).Name}");
+        }
+
         return ref world.Get<T>(entity.Entity);
     }
 
     public bool TryGetComponent<T>(EntityRef entity, out T component) where T : IComponent
     {
         return world.TryGet(entity.Entity, out component);
+    }
+
+    public ref T TryGetRefComponent<T>(EntityRef entity, out bool exists) where T : IComponent
+    {
+        return ref world.TryGetRef<T>(entity.Entity, out exists);
     }
 
     public bool HasComponent<T>(EntityRef entity) where T : IComponent
@@ -284,7 +307,14 @@ public class WorldRef
     {
         QueryDescription query = new QueryDescription().WithAll<EntityMetaData>();
 
+        List<Entity> entitiesToProcess = new List<Entity>();
+
         world.Query(query, (Entity entity) =>
+        {
+            entitiesToProcess.Add(entity);
+        });
+
+        foreach (Entity entity in entitiesToProcess)
         {
             ref EntityMetaData metadata = ref world.Get<EntityMetaData>(entity);
 
@@ -319,24 +349,24 @@ public class WorldRef
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Initializing;
                         entityEventSystem.RaiseEvent(new EntityRef(this, entity), new ComponentInitEvent());
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Initialized;
-                        logger.LogVerbose($"Component initialized: {component.Name}");
+                        logger.LogVerbose($"{component.Name} initialized. (Entity = {entity.Id})");
                         break;
                     case ComponentLifeStage.Initialized:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Starting;
                         entityEventSystem.RaiseEvent(new EntityRef(this, entity), new ComponentStartEvent());
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Running;
-                        logger.LogVerbose($"Component running: {component.Name}");
+                        logger.LogVerbose($"{component.Name} running. (Entity = {entity.Id})");
                         break;
                     case ComponentLifeStage.Stopped:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Removing;
                         entityEventSystem.RaiseEvent(new EntityRef(this, entity), new ComponentRemovedEvent());
                         world.Remove(entity, component);
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Deleted;
-                        logger.LogVerbose($"Component deleted: {component.Name}");
+                        logger.LogVerbose($"{component.Name} deleted. (Entity = {entity.Id})");
                         break;
                 }
             }
-        });
+        }
     }
 }
 
@@ -365,6 +395,11 @@ public struct EntityRef
     }
 
     public void Add<T>(in T component) where T : IComponent
+    {
+        worldRef.AddComponent(this, component);
+    }
+
+    public void Add(IComponent component)
     {
         worldRef.AddComponent(this, component);
     }
@@ -402,6 +437,11 @@ public struct EntityRef
     public bool TryGet<T>(out T component) where T : IComponent
     {
         return worldRef.TryGetComponent(this, out component);
+    }
+
+    public ref T TryGetRef<T>(out bool exists) where T : IComponent
+    {
+        return ref worldRef.TryGetRefComponent<T>(this, out exists);
     }
 
     public object[] GetComponents()

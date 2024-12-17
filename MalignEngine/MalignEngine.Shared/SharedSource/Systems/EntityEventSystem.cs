@@ -75,5 +75,16 @@ namespace MalignEngine
                 }
             }
         }
+
+        public void RaiseEvent<TEvent>(EntityRef entity, IComponent component, TEvent args) where TEvent : EntityEventArgs
+        {
+            foreach (var subscription in eventSubscriptions)
+            {
+                if (subscription.Handler is Action<EntityRef, TEvent> handler && subscription.ComponentType == component.GetType())
+                {
+                    handler(entity, args);
+                }
+            }
+        }
     }
 }

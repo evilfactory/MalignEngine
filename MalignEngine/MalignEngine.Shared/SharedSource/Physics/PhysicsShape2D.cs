@@ -20,15 +20,19 @@ namespace MalignEngine
         public ShapeType Type => ShapeType.Polygon;
         public Vector2[] Vertices { get; private set; }
         public float Radius => throw new NotImplementedException();
+        public Vector2 Offset = Vector2.Zero;
 
-        public RectangleShape2D(float width, float height)
+        public RectangleShape2D(float width, float height) : this(width, height, Vector2.Zero) { }
+        public RectangleShape2D(float width, float height, Vector2 offset)
         {
+            Offset = offset;
+
             Vertices = new Vector2[]
             {
-                new Vector2(-width / 2, -height / 2),
-                new Vector2(width / 2, -height / 2),
-                new Vector2(width / 2, height / 2),
-                new Vector2(-width / 2, height / 2)
+                new Vector2(-width / 2, -height / 2) + offset,
+                new Vector2(width / 2, -height / 2) + offset,
+                new Vector2(width / 2, height / 2) + offset,
+                new Vector2(-width / 2, height / 2) + offset
             };
         }
     }

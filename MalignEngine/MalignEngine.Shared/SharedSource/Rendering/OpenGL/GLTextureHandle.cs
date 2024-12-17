@@ -1,36 +1,39 @@
 using CommunityToolkit.HighPerformance;
+using FontStashSharp.Interfaces;
 using Silk.NET.OpenGL;
 using System.IO;
 
 namespace MalignEngine
 {
-    public interface IGLBindableTexture
+    public class GLTextureHandle : TextureHandle
     {
-        public void Bind(TextureUnit textureSlot = TextureUnit.Texture0);
-    }
-
-    public class GLTextureHandle : TextureHandle, IGLBindableTexture
-    {
+        private bool isRenderTarget;
         private GL gl;
-        internal uint handle;
+        internal uint frameBufferHandle;
+        internal uint depthBufferHandle;
+        internal uint textureHandle;
 
-        public GLTextureHandle(GL gl, uint width, uint height) : base(width, height)
+        public GLTextureHandle(GL gl)
         {
             unsafe
             {
                 this.gl = gl;
-                handle = gl.GenTexture();
+            }
+        }
 
-                Bind();
-                gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, Width, Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
+        public override void Initialize(uint width, uint height, bool renderTarget = false)
+        {
+            isRenderTarget = renderTarget;
+            unsafe
+            {
+                textureHandle = gl.GenTexture();
+                if (renderTarget)
+                {
+                    frameBufferHandle = gl.GenFramebuffer();
+                    depthBufferHandle = gl.GenRenderbuffer();
+                }
 
-                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.Repeat);
-                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.Repeat);
-
-                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
-                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
-
-                gl.GenerateMipmap(TextureTarget.Texture2D);
+                Resize(width, height);
             }
         }
 
@@ -71,7 +74,52 @@ namespace MalignEngine
         public void Bind(TextureUnit textureSlot = TextureUnit.Texture0)
         {
             gl.ActiveTexture(textureSlot);
-            gl.BindTexture(TextureTarget.Texture2D, handle);
+            gl.BindTexture(TextureTarget.Texture2D, textureHandle);
+        }
+
+        public void BindAsRenderTarget()
+        {
+            gl.BindTexture(TextureTarget.Texture2D, textureHandle);
+            gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferHandle);
+            gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBufferHandle);
+        }
+
+        public override void Resize(uint width, uint height)
+        {
+            Width = width;
+            Height = height;
+
+            unsafe
+            {
+                Bind();
+                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
+                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.Repeat);
+                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.Repeat);
+
+                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)GLEnum.Nearest);
+                gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)GLEnum.Nearest);
+
+                if (isRenderTarget)
+                {
+                    gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferHandle);
+                    gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBufferHandle);
+
+                    gl.RenderbufferStorage(GLEnum.Renderbuffer, GLEnum.DepthComponent, width, height);
+                    gl.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.DepthAttachment, GLEnum.Renderbuffer, depthBufferHandle);
+
+                    gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, textureHandle, 0);
+
+                    gl.DrawBuffers(1, new GLEnum[] { GLEnum.ColorAttachment0 });
+
+                    // Reset the framebuffer binding
+                    gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+                }
+                else
+                {
+                    gl.GenerateMipmap(TextureTarget.Texture2D);
+                }
+            }
         }
     }
 }

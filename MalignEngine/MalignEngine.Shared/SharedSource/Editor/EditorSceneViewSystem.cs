@@ -53,7 +53,7 @@ namespace MalignEngine
                         Vector2 mousePosition = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), InputSystem.MousePosition - ImGui.GetWindowPos() - ImGui.GetWindowContentRegionMin());
 
                         RenderingSystem.Begin();
-                        RenderingSystem.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Vector2.Zero, new Rectangle(), Color.Red, 0f, 15);
+                        RenderingSystem.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Color.Red, 0f, 15);
                         RenderingSystem.End();
 
                         if (mousePosition.X > transform.Position.X - transform.Scale.X / 2 && mousePosition.X < transform.Position.X + transform.Scale.X / 2)

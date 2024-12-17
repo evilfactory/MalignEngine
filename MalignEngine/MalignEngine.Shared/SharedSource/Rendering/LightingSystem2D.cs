@@ -16,7 +16,7 @@ namespace MalignEngine
             var query = new QueryDescription().WithAll<Light2D, WorldTransform>();
             EntityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref Light2D light) =>
             {
-                RenderingSystem.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), new Vector2(0.5f, 0.5f), new Rectangle(), light.Color, transform.ZAxis, 0f);
+                RenderingSystem.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), light.Color, transform.ZAxis, 0f);
             });
             RenderingSystem.End();
         }
@@ -75,7 +75,7 @@ namespace MalignEngine
 
             RenderingSystem.SetRenderTarget(source);
             RenderingSystem.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f), lightingMaterial);
-            RenderingSystem.DrawRenderTexture(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Vector2.Zero, new Rectangle(0, 0, 800, 600), Color.White, 0f, 0f);
+            RenderingSystem.DrawTexture2D(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
             RenderingSystem.End();
         }
     }

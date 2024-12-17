@@ -52,13 +52,11 @@ namespace MalignEngine
         public abstract void Begin(Matrix4x4 matrix, Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend);
         public abstract void Begin(Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend);
         public abstract void End();
-        public abstract void DrawRenderTexture(RenderTexture texture, Vector2 position, Vector2 size, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth);
-        public abstract void DrawTexture2D(Texture2D texture, Vector2 position, Vector2 scale, Vector2 origin, Rectangle sourceRectangle, Color color, float rotation, float layerDepth);
-        public abstract void DrawQuad(Texture2D texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
-        public abstract void DrawQuad(RenderTexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
-        public abstract TextureHandle CreateTextureHandle(Texture2D texture);
-        public abstract RenderTextureHandle CreateRenderTextureHandle(RenderTexture renderTexture);
-
+        public abstract void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth);
+        public abstract void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Color color, float rotation, float layerDepth);
+        public abstract void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, float layerDepth);
+        public abstract void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
+        public abstract TextureHandle CreateTextureHandle();
         public abstract Shader LoadShader(Stream data);
         public abstract void SetMatrix(Matrix4x4 matrix);
         public abstract void SetRenderTarget(RenderTexture renderTexture, uint width = 0, uint height = 0);

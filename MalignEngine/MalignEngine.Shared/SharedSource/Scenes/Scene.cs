@@ -1,18 +1,35 @@
 using Arch.Core;
+using System.Reflection;
+using System.Xml.Linq;
 
 namespace MalignEngine;
 
 public class Scene : IAsset
 {
-    private Action<Func<EntityRef>, WorldRef> loadAction;
+    public XElement SceneData { get; private set; }
 
-    public Scene(Action<Func<EntityRef>, WorldRef> loadAction)
+    internal Func<WorldRef, EntityRef>? customLoadAction { get; private set; }
+
+    public Scene(Func<WorldRef, EntityRef> customLoadAction)
     {
-        this.loadAction = loadAction;
+        this.customLoadAction = customLoadAction;
     }
 
-    public void Load(Func<EntityRef> createEntityFunc, WorldRef world)
+    public Scene(XElement sceneData)
     {
-        loadAction(createEntityFunc, world);
+        SceneData = sceneData;
+    }
+
+    public void Save(string assetPath)
+    {
+        SceneData.Save(assetPath);
+    }
+
+    public static IAsset Load(string assetPath)
+    {
+        string fileText = File.ReadAllText(assetPath);
+
+        // Load as XML
+        return new Scene(XElement.Parse(fileText));
     }
 }

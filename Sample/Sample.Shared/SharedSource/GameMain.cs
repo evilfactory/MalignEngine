@@ -5,8 +5,6 @@ using Arch.Core.Extensions;
 
 class GameMain : BaseSystem, IDrawGUI
 {
-    private SystemGroup systemGroup;
-
     [Dependency]
     protected AssetSystem AssetSystem = default!;
     [Dependency]
@@ -17,11 +15,13 @@ class GameMain : BaseSystem, IDrawGUI
     protected RenderingSystem RenderingSystem = default!;
     [Dependency]
     protected CameraSystem CameraSystem = default!;
+    [Dependency]
+    protected EntityManagerService EntityManager = default!;
 
     private InputSystem inputSystem;
 
-    private Entity playerEnt;
-    private Entity camera;
+    private EntityRef playerEnt;
+    private EntityRef camera;
 
     Sprite player;
     Sprite white;
@@ -41,24 +41,24 @@ class GameMain : BaseSystem, IDrawGUI
             NormalFont = AssetSystem.Load<Font>("Content/Roboto-Regular.ttf")
         };
 
-        frame = new GUIFrame(new RectTransform(null, new Vector2(1, 1), new Vector2(), Anchor.Center, Pivot.Center), new Color(1f, 0f, 0f, 0.25f));
+        frame = new GUIFrame(new RectTransform(null, new Vector2(1, 1), Anchor.Center, Pivot.Center), new Color(1f, 0f, 0f, 0.25f));
         frame.RectTransform.AbsoluteSize = new Vector2(WindowSystem.Width, WindowSystem.Height);
 
-        var blueFrame = new GUIFrame(new RectTransform(frame.RectTransform, new Vector2(0.25f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Blue);
+        var blueFrame = new GUIFrame(new RectTransform(frame.RectTransform, new Vector2(0.25f, 0.5f), Anchor.TopCenter, Pivot.TopCenter), Color.Blue);
         blueFrame.RectTransform.AbsoluteOffset = new Vector2(0, 0);
-        var blueGuiList = new GUIList(new RectTransform(blueFrame.RectTransform, Vector2.One, Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), 10f);
-        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Pink);
-        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
-        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
-        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
-        var button = new GUIButton(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), () => { Logger.LogInfo("funny"); });
+        var blueGuiList = new GUIList(new RectTransform(blueFrame.RectTransform, Vector2.One, Anchor.TopCenter, Pivot.TopCenter), 10f);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), Color.Pink);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
+        new GUIFrame(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), Color.Salmon);
+        var button = new GUIButton(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Anchor.TopCenter, Pivot.TopCenter), () => { });
         button.DefaultColor = Color.Black;
         button.HoverColor = Color.Gray;
         button.ClickColor = Color.BlueViolet;
-        new GUIText(new RectTransform(button.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.Center, Pivot.Center), "Button", Color.SeaGreen);
-        new GUIText(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Vector2.Zero, Anchor.TopCenter, Pivot.TopCenter), "Funny", Color.SeaGreen);
+        new GUIText(new RectTransform(button.RectTransform, new Vector2(0.8f, 0.5f), Anchor.Center, Pivot.Center), "Button", Color.SeaGreen);
+        new GUIText(new RectTransform(blueGuiList.RectTransform, new Vector2(0.8f, 0.5f), Anchor.TopCenter, Pivot.TopCenter), "Funny", Color.SeaGreen);
 
-        new GUIFrame(new RectTransform(frame.RectTransform, new Vector2(1f, 0.1f), Vector2.Zero, Anchor.BottomCenter, Pivot.Center), Color.Blue);
+        new GUIFrame(new RectTransform(frame.RectTransform, new Vector2(1f, 0.1f), Anchor.BottomCenter, Pivot.Center), Color.Blue);
 
         inputSystem = IoCManager.Resolve<InputSystem>();
 
@@ -66,25 +66,33 @@ class GameMain : BaseSystem, IDrawGUI
         white = new Sprite(Texture2D.White);
         fuck = new Sprite(AssetSystem.Load<Texture2D>("Content/Textures/luatrauma.png"));
 
-        var worldSystem = IoCManager.Resolve<WorldSystem>();
+        camera = EntityManager.World.CreateEntity();
+        camera.Add(new GlobalLight2D() { Color = Color.White });
+        camera.Add(new Transform());
+        camera.Add(new OrthographicCamera() { ViewSize = 3f, IsMain = true, PostProcessingSteps = new PostProcessBaseSystem[] { IoCManager.Resolve<LightingPostProcessingSystem2D>() } });
 
-        camera = worldSystem.World.Create(new GlobalLight2D() { Color = Color.White }, new Transform(new Vector2(0, 0)), new OrthographicCamera() { ViewSize = 3f, IsMain = true, PostProcessingSteps = new PostProcessBaseSystem[] { IoCManager.Resolve<LightingPostProcessingSystem2D>() } });
-
-        playerEnt = worldSystem.World.Create(new Transform(new Vector2(0, 5)), new Depth(0f), new SpriteRenderer() { Sprite = player, Color = Color.White });
+        playerEnt = EntityManager.World.CreateEntity();
+        playerEnt.Add(new Transform(new Vector2(0, 5)));
+        playerEnt.Add(new Depth(0f));
+        playerEnt.Add(new SpriteRenderer() { Sprite = player, Color = Color.White });
         playerEnt.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50, Fixtures = new FixtureData2D[] { new FixtureData2D(new CircleShape2D(1f), 1, 0, 0) } });
 
-        Entity light = worldSystem.World.Create(
-            new Transform(new Vector2(0, 0), 0f, new Vector2(3f, 3f)), 
-            new Light2D() { Texture = AssetSystem.Load<Texture2D>("Content/Textures/lightcone.png"), Color = Color.White },
-            new ParentOf() { Parent = playerEnt.Reference() });
+        EntityRef light = EntityManager.World.CreateEntity();
+        light.Add(new Transform(new Vector2(0, 0), 0f, new Vector2(3f, 3f)));
+        light.Add(new Light2D() { Texture = AssetSystem.Load<Texture2D>("Content/Textures/lightcone.png"), Color = Color.White });
+        light.Add(new ParentOf() { Parent = playerEnt });
 
-        Entity entity2 = worldSystem.World.Create(new Transform(new Vector2(0, -3f), 0f, new Vector2(10000, 1)), new SpriteRenderer() { Sprite = white, Color = Color.White });
+        EntityRef entity2 = EntityManager.World.CreateEntity();
+        entity2.Add(new Transform(new Vector2(0, -3f), 0f, new Vector2(10000, 1)));
+        entity2.Add(new SpriteRenderer() { Sprite = white, Color = Color.White });
         entity2.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static, Mass = 50, Fixtures = new FixtureData2D[] 
         {
             new FixtureData2D(new RectangleShape2D(10000, 1), 1, 1, 1)
         } });
 
-        Entity entity3 = worldSystem.World.Create(new Transform(new Vector2(0, -2f)), new Light2D { Texture = AssetSystem.Load<Texture2D>("Content/Textures/lightcone.png") });
+        EntityRef entity3 = EntityManager.World.CreateEntity();
+        entity3.Add(new Transform(new Vector2(0, -2f)));
+        entity3.Add(new Light2D { Texture = AssetSystem.Load<Texture2D>("Content/Textures/lightcone.png") });
     }
 
     public override void OnUpdate(float deltaTime)
@@ -112,11 +120,12 @@ class GameMain : BaseSystem, IDrawGUI
 
         if (inputSystem.IsKeyDown(Key.Space))
         {
-            var worldSystem = IoCManager.Resolve<WorldSystem>();
-
             Vector2 position = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
-            Entity entity = worldSystem.World.Create(new Transform(position), new Depth(0f), new SpriteRenderer() { Sprite = player, Color = Color.White });
+            EntityRef entity = EntityManager.World.CreateEntity();
+            entity.Add(new Transform(position));
+            entity.Add(new Depth(0f));
+            entity.Add(new SpriteRenderer() { Sprite = player, Color = Color.White });
             entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50, Fixtures = new FixtureData2D[] { new FixtureData2D(new CircleShape2D(1f), 1, 0, 0) } });
         }
 
