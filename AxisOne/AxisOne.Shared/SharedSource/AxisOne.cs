@@ -11,13 +11,15 @@ public class AxisOne : BaseSystem
     protected AssetSystem AssetSystem = default!;
 
     [Dependency]
-    protected LoggerService LoggerService = default!;
-
-    [Dependency]
     protected SceneSystem SceneSystem = default!;
 
     [Dependency]
     protected NetworkingSystem NetworkingSystem = default!;
+
+    private EntityRef currentScene;
+
+    private Scene mainmenu;
+    private Scene gamescene;
 
     public override void OnInitialize()
     {
@@ -29,7 +31,9 @@ public class AxisOne : BaseSystem
             FrameTexture = Texture2D.White
         };
 
-        Scene mainmenu = AssetSystem.Add(new Scene((world) =>
+        AssetSystem.LoadFolder("Content");
+
+        mainmenu = new Scene((world) =>
         {
             EntityRef camera = world.CreateEntity();
             camera.Add(new Transform());
@@ -40,27 +44,34 @@ public class AxisOne : BaseSystem
             mainMenu.Add(new ParentOf() { Parent = camera });
 
             return camera;
-        }));
+        });
+
+        gamescene = new Scene((world) =>
+        {
+            EntityRef camera = world.CreateEntity();
+            camera.Add(new Transform());
+            camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.LightSkyBlue });
+
+
+            return camera;
+        });
 
 #if SERVER
         NetworkingSystem.StartServer(7777);
         LoadGame();
 #elif CLIENT
-        SceneSystem.LoadScene(mainmenu);
+        currentScene = SceneSystem.LoadScene(mainmenu);
 #endif
-
-        Scene scene = AssetSystem.Load<Scene>("Content/Scenes/Player.xml");
-        EntityRef entity = SceneSystem.LoadScene(scene);
-
-        Scene sceneSaved = SceneSystem.SaveScene(entity);
-        sceneSaved.Save("Content/Scenes/PlayerSaved.xml");
     }
 
     public void LoadGame()
     {
 #if CLIENT
-        NetworkingSystem.Connect(IPEndPoint.Parse("127.0.0.1:7777"));
+        //NetworkingSystem.Connect(IPEndPoint.Parse("127.0.0.1:7777"));
 #endif
-        // SceneSystem.LoadScene(gameScene);
+        currentScene.Destroy();
+        SceneSystem.LoadScene(gamescene);
+
+        EntityRef entity = SceneSystem.LoadScene(AssetSystem.GetOfType<Scene>().Where(x => x.Asset.SceneId == "player").First());
     }
 }

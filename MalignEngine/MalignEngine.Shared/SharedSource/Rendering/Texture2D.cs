@@ -27,6 +27,7 @@ namespace MalignEngine
         }
 
         public TextureHandle Handle { get; private set; }
+        public string AssetPath { get; set; }
 
         private Color[,] textureData;
 
@@ -92,7 +93,7 @@ namespace MalignEngine
                 });
 
                 Texture2D texture = new Texture2D(textureData, (uint)img.Width, (uint)img.Height);
-
+                texture.AssetPath = assetPath;
                 return texture;
             }
         }

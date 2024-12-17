@@ -123,9 +123,14 @@ public class WorldRef
 
     public void Destroy(EntityRef entity)
     {
+        if (!IsValid(entity))
+        {
+            throw new ArgumentException($"Tried to destroy invalid entity {entity}");
+        }
+
         logger.LogVerbose($"Entity marked for destruction: {entity.Id}");
 
-        ref EntityMetaData metadata = ref world.Get<EntityMetaData>(entity.Entity);
+        EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
         metadata.LifeStage = EntityLifeStage.Terminating;
 
         // Remove all components
@@ -181,7 +186,7 @@ public class WorldRef
     {
         logger.LogVerbose($"{type.Name} marked for removal. (Entity = {entity.Id})");
 
-        ref EntityMetaData metadata = ref world.Get<EntityMetaData>(entity.Entity);
+        EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopping;
         entityEventSystem.RaiseEvent(new EntityRef(this, entity.Entity), new ComponentStopEvent());
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopped;
@@ -316,7 +321,7 @@ public class WorldRef
 
         foreach (Entity entity in entitiesToProcess)
         {
-            ref EntityMetaData metadata = ref world.Get<EntityMetaData>(entity);
+            EntityMetaData metadata = world.Get<EntityMetaData>(entity);
 
             switch (metadata.LifeStage)
             {

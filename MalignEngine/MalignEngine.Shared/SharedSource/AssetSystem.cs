@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace MalignEngine
 {
@@ -40,6 +41,36 @@ namespace MalignEngine
                     {
                         break;
                     }
+                }
+            }
+        }
+
+        public void LoadFolder(string folderPath)
+        {
+            // Find all files and files in subdirectories
+            string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
+
+            foreach (string file in files)
+            {
+                string ext = Path.GetExtension(file);
+
+                switch (ext)
+                {
+                    case ".png":
+                    case ".jpg":
+                    case ".jpeg":
+                        Load<Texture2D>(file);
+                        break;
+                    case ".xml":
+                        // Figure out what this is first (check root element)
+                        XElement xml = XElement.Load(file);
+                        string rootElement = xml.Name.LocalName;
+
+                        if (rootElement == "Scene")
+                        {
+                            Load<Scene>(file);
+                        }
+                        break;
                 }
             }
         }

@@ -14,7 +14,7 @@ namespace MalignEngine
         public bool IsLoading { get; private set; }
         public string AssetPath { get; private set; }
         private T asset;
-        public T? Asset
+        public T Asset
         {
             get
             {

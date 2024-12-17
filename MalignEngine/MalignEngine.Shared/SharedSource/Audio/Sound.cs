@@ -6,10 +6,11 @@ namespace MalignEngine
 {
     public class Sound : IAsset, IDisposable
     {
+        public string AssetPath { get; set; }
+
         internal uint buffer;
 
         private AudioSystem audioSystem;
-
 
         private unsafe Sound(string path)
         {
@@ -131,6 +132,7 @@ namespace MalignEngine
             unsafe
             {
                 Sound sound = new Sound(assetPath);
+                sound.AssetPath = assetPath;
                 return sound;
             }
         }

@@ -7,7 +7,6 @@ namespace MalignEngine
         public Texture2D Texture { get; private set; }
         public Vector2 Origin { get; private set; }
         public Rectangle Rect { get; private set; }
-        public Color Color { get; private set; }
 
         public Vector2 UV1 { get; private set; }
         public Vector2 UV2 { get; private set; }
@@ -17,7 +16,6 @@ namespace MalignEngine
             Texture = texture;
             Origin = new Vector2(0.5f, 0.5f);
             Rect = new Rectangle(0, 0, (int)texture.Width, (int)texture.Height);
-            Color = Color.White;
 
             CalculateUVs();
         }
@@ -27,17 +25,6 @@ namespace MalignEngine
             Texture = texture;
             Origin = origin;
             Rect = rect;
-            Color = Color.White;
-
-            CalculateUVs();
-        }
-
-        public Sprite(Texture2D texture, Vector2 origin, Rectangle rect, Color color)
-        {
-            Texture = texture;
-            Origin = origin;
-            Rect = rect;
-            Color = color;
 
             CalculateUVs();
         }

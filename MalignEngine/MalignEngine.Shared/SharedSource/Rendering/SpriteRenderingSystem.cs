@@ -2,9 +2,41 @@ using Arch.Core;
 using Arch.Core.Extensions;
 using System.Diagnostics;
 using System.Numerics;
+using System.Xml.Linq;
 
 namespace MalignEngine
 {
+    public class SpriteSerializer : ICustomXmlSerializer
+    {
+        public object? Deserialize(string dataFieldName, XElement element, Dictionary<int, EntityRef> idRemap)
+        {
+            XElement spriteElement = element.Element(dataFieldName);
+            if (spriteElement == null) { return null; }
+
+            string? texturePath = spriteElement.Attribute("Texture")?.Value;
+
+            if (texturePath == null) { return null; }
+
+            return new Sprite(IoCManager.Resolve<AssetSystem>().Load<Texture2D>(texturePath));
+        }
+
+        public void Serialize(object value, string dataFieldName, XElement element)
+        {
+            Sprite sprite = (Sprite)value;
+
+            XElement spriteElement = new XElement(dataFieldName);
+            spriteElement.Add(new XAttribute("Texture", sprite.Texture.AssetPath));
+
+            element.Add(spriteElement);
+        }
+
+        public bool SupportsType(Type type)
+        {
+            return typeof(Sprite) == type;
+        }
+    }
+
+
     public class SpriteRenderingSystem : EntitySystem
     {
         [Dependency]
@@ -40,10 +72,11 @@ namespace MalignEngine
         }
     }
 
+    [Serializable]
     public struct SpriteRenderer : IComponent
     {
-        public Sprite Sprite;
-        public Color Color;
+        [DataField("Sprite")] public Sprite Sprite;
+        [DataField("Color")] public Color Color;
     }
 
     public struct Depth : IComponent

@@ -4,6 +4,7 @@ namespace MalignEngine
     {
         public Shader Shader { get; set; }
         public bool UseTextureBatching { get; set; } = true;
+        public string AssetPath { get; set; }
 
         private Dictionary<string, object> properties = new Dictionary<string, object>();
 

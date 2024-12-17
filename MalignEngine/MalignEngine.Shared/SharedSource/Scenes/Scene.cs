@@ -6,6 +6,8 @@ namespace MalignEngine;
 
 public class Scene : IAsset
 {
+    public string AssetPath { get; set; }
+    public string? SceneId { get; private set; }
     public XElement SceneData { get; private set; }
 
     internal Func<WorldRef, EntityRef>? customLoadAction { get; private set; }
@@ -17,6 +19,7 @@ public class Scene : IAsset
 
     public Scene(XElement sceneData)
     {
+        SceneId = sceneData.Attribute("identifer")?.Value;
         SceneData = sceneData;
     }
 
@@ -29,7 +32,8 @@ public class Scene : IAsset
     {
         string fileText = File.ReadAllText(assetPath);
 
-        // Load as XML
-        return new Scene(XElement.Parse(fileText));
+        Scene scene = new Scene(XElement.Parse(fileText));
+        scene.AssetPath = assetPath;
+        return scene;
     }
 }

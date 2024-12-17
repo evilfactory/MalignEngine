@@ -5,9 +5,11 @@ namespace MalignEngine
 {
     public class Font : IAsset
     {
+        public string AssetPath { get; set; }
+
         internal FontStashSharp.FontSystem fontSystem = new FontStashSharp.FontSystem();
 
-        public Font(string path)
+        protected Font(string path)
         {
             fontSystem.AddFont(File.ReadAllBytes(path));
         }
@@ -19,7 +21,9 @@ namespace MalignEngine
 
         public static IAsset Load(string assetPath)
         {
-            return new Font(assetPath);
+            Font font = new Font(assetPath);
+            font.AssetPath = assetPath;
+            return font;
         }
     }
 }
