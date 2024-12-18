@@ -2,7 +2,7 @@
 <Scene identifier="MetalTile">
     <Entity Id="1">
         <SpriteRenderer>
-            <Sprite texture="" />
+            <Sprite texture="Content/Textures/player.png" />
         </SpriteRenderer>
     </Entity>
 </Scene>

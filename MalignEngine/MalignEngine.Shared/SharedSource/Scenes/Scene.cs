@@ -19,7 +19,7 @@ public class Scene : IAsset
 
     public Scene(XElement sceneData)
     {
-        SceneId = sceneData.Attribute("identifer")?.Value;
+        SceneId = sceneData.Attribute("Identifier")?.Value;
         SceneData = sceneData;
     }
 

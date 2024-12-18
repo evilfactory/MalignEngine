@@ -29,10 +29,9 @@ namespace MalignEngine
 
         private void OnClientConnected(NetworkConnection connection)
         {
-            SendNetMessage(new ClientDataNetMessage() { ClientId = connection.Id });
-
             Connections.Add(connection);
 
+            SendNetMessage(new ClientDataNetMessage() { ClientId = connection.Id }, connection);
             EventSystem.PublishEvent<IEventClientConnected>(x => x.OnClientConnected(connection));
         }
 

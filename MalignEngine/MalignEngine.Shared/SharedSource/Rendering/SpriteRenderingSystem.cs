@@ -77,6 +77,11 @@ namespace MalignEngine
     {
         [DataField("Sprite")] public Sprite Sprite;
         [DataField("Color")] public Color Color;
+
+        public SpriteRenderer()
+        {
+            Color = Color.White;
+        }
     }
 
     public struct Depth : IComponent

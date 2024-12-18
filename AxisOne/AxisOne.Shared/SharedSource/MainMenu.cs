@@ -1,10 +1,13 @@
 using MalignEngine;
+using System.Net;
 using System.Numerics;
 
 namespace AxisOne;
 
+[Serializable]
 public struct MainMenuComponent : IComponent { }
 
+#if CLIENT
 public class MainMenu : EntitySystem, IDrawGUI
 {
     [Dependency]
@@ -12,7 +15,7 @@ public class MainMenu : EntitySystem, IDrawGUI
     [Dependency]
     protected RenderingSystem RenderingSystem = default!;
     [Dependency]
-    protected AxisOne AxisOne = default!;
+    protected NetworkingSystem NetworkingSystem = default!;
 
     private GUIFrame mainFrame;
 
@@ -23,7 +26,7 @@ public class MainMenu : EntitySystem, IDrawGUI
         new GUIText(new RectTransform(list.RectTransform, new Vector2(1f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), "Main Menu", 100, Color.White);
         var connectButton = new GUIButton(new RectTransform(list.RectTransform, new Vector2(0.5f, 0.1f), Anchor.TopCenter, Pivot.TopCenter), () =>
         {
-            AxisOne.LoadGame();
+            NetworkingSystem.Connect(IPEndPoint.Parse("127.0.0.1:7777"));
         });
         connectButton.RectTransform.MinSize = new Vector2(400, 100);
         new GUIText(new RectTransform(connectButton.RectTransform, new Vector2(1f, 1f), Anchor.Center, Pivot.Center), "Connect Localhost", 50, Color.White);
@@ -47,3 +50,5 @@ public class MainMenu : EntitySystem, IDrawGUI
         mainFrame.Update();
     }
 }
+
+#endif

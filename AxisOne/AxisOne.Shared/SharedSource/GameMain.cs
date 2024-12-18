@@ -40,6 +40,7 @@ class GameMain
         application.AddSystem(new EditorSceneViewSystem());
         application.AddSystem(new EditorAssetViewer());
         application.AddSystem(new EditorConsole());
+        application.AddSystem(new EditorNetworking());
 
         application.Run();
     }

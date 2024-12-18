@@ -81,7 +81,7 @@ namespace MalignEngine
             netReceives.Add(typeof(T).Name, new MessageData() { Type = typeof(T), Callback = (NetMessage message) => callback?.Invoke((T)message) });
         }
 
-        public void SendNetMessage<T>(T message) where T : NetMessage
+        public void SendNetMessage<T>(T message, NetworkConnection target = null) where T : NetMessage
         {
             if (!netReceives.TryGetValue(message.MsgName, out MessageData messageData))
             {
@@ -93,9 +93,16 @@ namespace MalignEngine
             message.Serialize(writeMessage);
 
 #if SERVER
-            foreach (NetworkConnection connection in Connections)
+            if (target == null)
             {
-                transport.SendToClient(writeMessage, connection);
+                foreach (NetworkConnection connection in Connections)
+                {
+                    transport.SendToClient(writeMessage, connection);
+                }
+            }
+            else
+            {
+                transport.SendToClient(writeMessage, target);
             }
 #elif CLIENT
             transport.SendToServer(writeMessage);

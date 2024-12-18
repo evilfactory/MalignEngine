@@ -27,6 +27,13 @@ namespace MalignEngine
             }
         }
 
+        private static bool IsSupportedType(Type type)
+        {
+            return type == typeof(int) || type == typeof(float) || type == typeof(string) || type == typeof(bool) ||
+                   type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4) || type == typeof(Color) ||
+                   type == typeof(EntityRef) || type == typeof(Quaternion);
+        }
+
         public static void SerializeObject(object obj, XElement element)
         {
             foreach (MemberInfo member in element.GetType().GetMembers())
@@ -89,6 +96,31 @@ namespace MalignEngine
                 DataFieldAttribute? dataField = member.GetCustomAttribute<DataFieldAttribute>();
                 if (dataField == null) { continue; }
 
+                Type memberType = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
+                Action<object, object> setValue = member is PropertyInfo ? ((PropertyInfo)member).SetValue : ((FieldInfo)member).SetValue;
+
+
+                if (!IsSupportedType(memberType))
+                {
+                    bool handled = false;
+                    foreach (ICustomXmlSerializer serializer in serializers)
+                    {
+                        if (serializer.SupportsType(memberType))
+                        {
+                            setValue(obj, serializer.Deserialize(dataField.Name, element, idRemap));
+                            handled = true;
+                            break;
+                        }
+                    }
+
+                    if (!handled)
+                    {
+                        throw new Exception($"Unknown type {memberType}");
+                    }
+
+                    continue;
+                }
+
                 string name = element.Attribute(dataField.Name)?.Value;
                 if (name == null)
                 {
@@ -96,9 +128,6 @@ namespace MalignEngine
                 }
 
                 string value = element.Attribute(dataField.Name)?.Value;
-
-                Type memberType = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
-                Action<object, object> setValue = member is PropertyInfo ? ((PropertyInfo)member).SetValue : ((FieldInfo)member).SetValue;
 
                 if (memberType == typeof(int))
                 {
@@ -139,24 +168,6 @@ namespace MalignEngine
                 else if (memberType == typeof(EntityRef))
                 {
                     setValue(obj, idRemap[int.Parse(value)]);
-                }
-                else
-                {
-                    bool handled = false;
-                    foreach (ICustomXmlSerializer serializer in serializers)
-                    {
-                        if (serializer.SupportsType(memberType))
-                        {
-                            setValue(obj, serializer.Deserialize(dataField.Name, element, idRemap));
-                            handled = true;
-                            break;
-                        }
-                    }
-
-                    if (!handled)
-                    {
-                        throw new Exception($"Unknown type {memberType}");
-                    }
                 }
             }
         }

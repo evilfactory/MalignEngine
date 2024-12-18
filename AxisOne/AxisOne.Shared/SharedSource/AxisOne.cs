@@ -50,15 +50,14 @@ public class AxisOne : BaseSystem
         {
             EntityRef camera = world.CreateEntity();
             camera.Add(new Transform());
-            camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.LightSkyBlue });
-
+            camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.LightSkyBlue, ViewSize = 10f });
 
             return camera;
         });
 
 #if SERVER
         NetworkingSystem.StartServer(7777);
-        LoadGame();
+        SceneSystem.LoadScene(gamescene);
 #elif CLIENT
         currentScene = SceneSystem.LoadScene(mainmenu);
 #endif
@@ -66,12 +65,7 @@ public class AxisOne : BaseSystem
 
     public void LoadGame()
     {
-#if CLIENT
-        //NetworkingSystem.Connect(IPEndPoint.Parse("127.0.0.1:7777"));
-#endif
         currentScene.Destroy();
         SceneSystem.LoadScene(gamescene);
-
-        EntityRef entity = SceneSystem.LoadScene(AssetSystem.GetOfType<Scene>().Where(x => x.Asset.SceneId == "player").First());
     }
 }
