@@ -71,7 +71,7 @@ namespace MalignEngine
             return $"Texture2D: ({Width}x{Height})";
         }
 
-        public static IAsset Load(string assetPath)
+        public static Texture2D Load(string assetPath)
         {
             using (var img = Image.Load<Rgba32>(assetPath))
             {

@@ -70,6 +70,10 @@ namespace MalignEngine
                         {
                             Load<Scene>(file);
                         }
+                        else if (rootElement == "TileList")
+                        {
+                            Load<TileList>(file);
+                        }
                         break;
                 }
             }

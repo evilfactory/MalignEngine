@@ -131,14 +131,8 @@ namespace MalignEngine
         private byte currentId = 0;
         private byte CreateId()
         {
-            byte id = 1;
-
-            while (connections.ContainsKey(id))
-            {
-                id++;
-            }
-
-            return id;
+            currentId++;
+            return currentId;
         }
     }
 }

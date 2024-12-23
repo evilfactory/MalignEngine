@@ -27,5 +27,20 @@ namespace MalignEngine
         {
             return Id.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return $"Connection: {Id}";
+        }
+
+        public static bool operator ==(NetworkConnection a, NetworkConnection b)
+        {
+            return a?.Id == b?.Id;
+        }
+
+        public static bool operator !=(NetworkConnection a, NetworkConnection b)
+        {
+            return a?.Id != b?.Id;
+        }
     }
 }

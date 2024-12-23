@@ -6,7 +6,7 @@ namespace MalignEngine;
 
 public struct SceneComponent : IComponent
 {
-    public AssetHandle<Scene> Scene;
+    public string SceneId;
 }
 
 public class SceneSystem : EntitySystem
@@ -152,6 +152,8 @@ public class SceneSystem : EntitySystem
                 root = entity;
             }
         }
+
+        root.Add(new SceneComponent() { SceneId = scene.SceneId });
 
         return root;
     }

@@ -17,28 +17,22 @@ public class TileSystem : EntitySystem
         return entity;
     }
 
-    public EntityRef CreateTile(EntityRef tileMap, int x, int y, TileMapComponent tileMapComponent = default)
+    public EntityRef SetTile(EntityRef tileMap, Scene scene, int x, int y, TileMapComponent tileMapComponent = default)
     {
         Resolve(tileMap, ref tileMapComponent);
 
-        EntityRef entity = EntityManager.World.CreateEntity();
-        entity.Add(new TileComponent { X = x, Y = y });
-        entity.Add(new Transform(new Vector2(x, y)));
-        entity.Add(new ParentOf() { Parent = tileMap });
-        tileMapComponent.tiles.Add(new Vector2D<int>(x, y), entity);
-        tileMapComponent.ColliderNeedsUpdate = true;
+        if (HasTile(tileMap, x, y, tileMapComponent))
+        {
+            RemoveTile(tileMap, x, y, tileMapComponent);
+        }
 
-        return entity;
-    }
-
-    public EntityRef AddTile(EntityRef tileMap, Scene scene, int x, int y, TileMapComponent tileMapComponent = default)
-    {
         EntityRef tile = SceneSystem.LoadScene(scene);
         tile.Add(new ParentOf() { Parent = tileMap });
         tile.Add(new Transform(new Vector2(x, y)));
         tile.Add(new TileComponent { X = x, Y = y });
         tileMapComponent.tiles.Add(new Vector2D<int>(x, y), tile);
         tileMapComponent.ColliderNeedsUpdate = true;
+
         return tile;
     }
 

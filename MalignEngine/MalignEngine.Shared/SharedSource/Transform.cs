@@ -50,10 +50,17 @@ namespace MalignEngine
                 foreach (EntityRef child in children.Childs)
                 {
                     // Update WorldPosition
-                    if (root.TryGet(out WorldTransform parentWorldTransform) && child.TryGet(out Transform transform))
+                    if (child.TryGet(out Transform transform))
                     {
-                        // put WorldTransform which is the world position/rotation relative to the root entity
-                        child.Set(new WorldTransform(transform.Position + parentWorldTransform.Position, transform.Rotation, transform.Scale));
+                        if (root.TryGet(out WorldTransform parentWorldTransform))
+                        {
+                            // put WorldTransform which is the world position/rotation relative to the root entity
+                            child.Set(new WorldTransform(transform.Position + parentWorldTransform.Position, transform.Rotation, transform.Scale));
+                        }
+                        else
+                        {
+                            child.Set(new WorldTransform(transform));
+                        }
                     }
 
                     UpdateTransformTree(child);

@@ -5,11 +5,20 @@ namespace AxisOne;
 
 public class AxisOneServer : EntitySystem, IEventClientConnected
 {
+    [Dependency]
+    protected NetworkingSystem NetworkingSystem = default!;
+    [Dependency]
+    protected SceneSystem SceneSystem = default!;
+    [Dependency]
+    protected AssetSystem AssetSystem = default!;
+
     public void OnClientConnected(NetworkConnection connection)
     {
-        EntityRef player = EntityManager.World.CreateEntity();
-        player.Add(new PlayerMovementComponent { Speed = 5.0f });
-        player.Add(new Transform { Position = new Vector3(0, 0, 0) });
-        player.Add(new SpriteRenderer { Sprite = new Sprite(Texture2D.White), Color = Color.Red });
+        Scene playerScene = AssetSystem.GetOfType<Scene>().Where(x => x.Asset.SceneId == "player").First();
+
+        EntityRef player = SceneSystem.LoadScene(playerScene);
+        player.Add(new ControllableComponent());
+
+        NetworkingSystem.SpawnEntity(player);
     }
 }

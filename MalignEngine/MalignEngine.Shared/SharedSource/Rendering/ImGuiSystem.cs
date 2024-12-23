@@ -30,6 +30,7 @@ namespace MalignEngine
                 //io.Fonts.AddFontFromFileTTF("Content/fonts/Ruda-Regular.ttf", 18f);
                 io.ConfigFlags |= ImGuiNET.ImGuiConfigFlags.ViewportsEnable;
                 io.ConfigFlags |= ImGuiNET.ImGuiConfigFlags.DockingEnable;
+                io.ConfigWindowsMoveFromTitleBarOnly = true;
 
                 io.DeltaTime = 1f / 120f;
 
@@ -92,12 +93,12 @@ namespace MalignEngine
 
         public override void OnDraw(float deltaTime)
         {
-            imGuiController.Update(deltaTime);
-            EventSystem.PublishEvent<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
         }
 
         public void OnPostDrawGUI(float deltaTime)
         {
+            imGuiController.Update(deltaTime);
+            EventSystem.PublishEvent<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
             imGuiController.Render();
         }
 
@@ -109,6 +110,11 @@ namespace MalignEngine
         public void Image(ITexture texture, Vector2 size)
         {
             ImGui.Image((IntPtr)((GLTextureHandle)texture.Handle).textureHandle, size);
+        }
+
+        public bool ImageButton(string id, ITexture texture, Vector2 size)
+        {
+            return ImGui.ImageButton(id, (IntPtr)((GLTextureHandle)texture.Handle).textureHandle, size);
         }
     }
 }

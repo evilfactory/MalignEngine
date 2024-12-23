@@ -9,6 +9,9 @@ namespace MalignEngine
     {
         public override string WindowName => "Scene View";
 
+        public Vector2 WorldMousePosition { get; private set; }
+        public bool IsWindowHovered { get; private set; }
+
         [Dependency]
         protected RenderingSystem RenderingSystem = default!;
         [Dependency]
@@ -25,6 +28,35 @@ namespace MalignEngine
             base.OnInitialize();
         }
 
+        public override void OnUpdate(float deltaTime)
+        {
+            if (!IsWindowHovered) { return; }
+
+            if (InputSystem.IsMouseButtonPressed(1))
+            {
+                Vector2 delta = InputSystem.MouseDelta * deltaTime;
+                delta.X = -delta.X;
+                camera.Get<Transform>().Position += delta.ToVector3() * camera.Get<OrthographicCamera>().ViewSize * 0.25f;
+            }
+
+            if (InputSystem.IsMouseButtonPressed(0))
+            {
+                var query = new QueryDescription().WithAll<Transform>();
+                EntityManager.World.Query(in query, (EntityRef entity, ref Transform transform) =>
+                {
+                    if (WorldMousePosition.X > transform.Position.X - transform.Scale.X / 2 && WorldMousePosition.X < transform.Position.X + transform.Scale.X / 2)
+                    {
+                        if (WorldMousePosition.Y > transform.Position.Y - transform.Scale.Y / 2 && WorldMousePosition.Y < transform.Position.Y + transform.Scale.Y / 2)
+                        {
+                            EditorSystem.SelectedEntity = entity;
+                        }
+                    }
+                });
+            }
+
+            camera.Get<OrthographicCamera>().ViewSize -= InputSystem.MouseScroll * deltaTime * 50f;
+        }
+
         public override void DrawWindow(float deltaTime)
         {
             if (!camera.IsValid())
@@ -38,35 +70,21 @@ namespace MalignEngine
 
             if (ImGui.IsWindowHovered())
             {
-                if (InputSystem.IsMouseButtonPressed(1))
-                {
-                    Vector2 delta = InputSystem.MouseDelta * deltaTime;
-                    delta.X = -delta.X;
-                    camera.Get<Transform>().Position += delta.ToVector3();
-                }
+                IsWindowHovered = true;
+                Vector2 mousePosition = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), InputSystem.MousePosition - ImGui.GetWindowPos() - ImGui.GetWindowContentRegionMin());
+
+                WorldMousePosition = mousePosition;
 
                 if (InputSystem.IsMouseButtonPressed(0))
                 {
-                    var query = new QueryDescription().WithAll<Transform>();
-                    EntityManager.World.Query(in query, (EntityRef entity, ref Transform transform) =>
-                    {
-                        Vector2 mousePosition = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), InputSystem.MousePosition - ImGui.GetWindowPos() - ImGui.GetWindowContentRegionMin());
-
-                        RenderingSystem.Begin();
-                        RenderingSystem.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Color.Red, 0f, 15);
-                        RenderingSystem.End();
-
-                        if (mousePosition.X > transform.Position.X - transform.Scale.X / 2 && mousePosition.X < transform.Position.X + transform.Scale.X / 2)
-                        {
-                            if (mousePosition.Y > transform.Position.Y - transform.Scale.Y / 2 && mousePosition.Y < transform.Position.Y + transform.Scale.Y / 2)
-                            {
-                                EditorSystem.SelectedEntity = entity;
-                            }
-                        }
-                    });
+                    RenderingSystem.Begin();
+                    RenderingSystem.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Color.Red, 0f, 15);
+                    RenderingSystem.End();
                 }
-
-                camera.Get<OrthographicCamera>().ViewSize -= InputSystem.MouseScroll * deltaTime * 10f;
+            }
+            else
+            {
+                IsWindowHovered = false;
             }
 
             Vector2 size = ImGui.GetWindowSize() - new Vector2(20f, 40f);

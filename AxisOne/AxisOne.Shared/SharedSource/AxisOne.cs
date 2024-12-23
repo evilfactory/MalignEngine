@@ -52,6 +52,10 @@ public class AxisOne : BaseSystem
             camera.Add(new Transform());
             camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.LightSkyBlue, ViewSize = 10f });
 
+            EntityRef tilemap = world.CreateEntity();
+            tilemap.Add(new TileMapComponent());
+            tilemap.Add(new NameComponent("TileMap"));
+
             return camera;
         });
 

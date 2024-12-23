@@ -30,6 +30,7 @@ class GameMain
         application.AddSystem(new FontSystem());
         application.AddSystem(new SceneSystem());
         application.AddSystem(new NetworkingSystem());
+        application.AddSystem(new TileSystem());
 
         application.AddAllSystems(Assembly.GetExecutingAssembly());
 
@@ -41,6 +42,7 @@ class GameMain
         application.AddSystem(new EditorAssetViewer());
         application.AddSystem(new EditorConsole());
         application.AddSystem(new EditorNetworking());
+        application.AddSystem(new EditorTile());
 
         application.Run();
     }

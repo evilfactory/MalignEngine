@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileList Identifier="metaltile">
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+    <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />
+</TileList>
