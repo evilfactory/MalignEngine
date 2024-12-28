@@ -14,8 +14,6 @@ namespace MalignEngine
         [Dependency]
         protected RenderingSystem Renderer = default!;
 
-        private Matrix4x4 matrix;
-
         public override void OnInitialize()
         {
 

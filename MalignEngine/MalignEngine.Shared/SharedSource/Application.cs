@@ -40,7 +40,7 @@ namespace MalignEngine
         }
 
         public void Initialize()
-        {
+        {            
             // Log all system dependencies
             foreach (var system in systems)
             {
@@ -84,7 +84,7 @@ namespace MalignEngine
             {
                 case LogType.Verbose:
                     Console.ForegroundColor = ConsoleColor.Magenta;
-                    Console.WriteLine($"[VERBOSE] [{sawmill.Name}] {logEvent.Message}");
+                    Console.WriteLine($"[VERB] [{sawmill.Name}] {logEvent.Message}");
                     break;
 
                 case LogType.Info:
@@ -94,12 +94,12 @@ namespace MalignEngine
 
                 case LogType.Warning:
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine($"[WARNING] [{sawmill.Name}] {logEvent.Message}");
+                    Console.WriteLine($"[WARN] [{sawmill.Name}] {logEvent.Message}");
                     break;
 
                 case LogType.Error:
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"[ERROR] [{sawmill.Name}] {logEvent.Message}");
+                    Console.WriteLine($"[ERRO] [{sawmill.Name}] {logEvent.Message}");
                     break;
             }
 

@@ -71,7 +71,7 @@ namespace MalignEngine
 
             openGL.Enable(GLEnum.Blend);
             openGL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-            //openGL.Enable(GLEnum.DepthTest);
+            openGL.Enable(GLEnum.DepthTest);
             openGL.Enable(GLEnum.StencilTest);
 
             openGL.Enable(GLEnum.DebugOutput);

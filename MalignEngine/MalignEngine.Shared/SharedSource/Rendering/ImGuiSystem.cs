@@ -116,5 +116,10 @@ namespace MalignEngine
         {
             return ImGui.ImageButton(id, (IntPtr)((GLTextureHandle)texture.Handle).textureHandle, size);
         }
+
+        public bool ImageButton(string id, ITexture texture, Vector2 size, Vector2 uv1, Vector2 uv2)
+        {
+            return ImGui.ImageButton(id, (IntPtr)((GLTextureHandle)texture.Handle).textureHandle, size, uv1, uv2);
+        }
     }
 }

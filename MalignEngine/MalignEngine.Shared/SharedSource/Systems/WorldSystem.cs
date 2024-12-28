@@ -83,7 +83,7 @@ public sealed class EntityManagerService : IService, IInit, IPostUpdate
 
     public void OnInitialize()
     {
-        Logger = LoggerService.GetSawmill("EntityManager");
+        Logger = LoggerService.GetSawmill("ents");
 
         world = new WorldRef(Logger, EntityEventSystem);
         IoCManager.Register(world);

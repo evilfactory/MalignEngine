@@ -16,6 +16,9 @@ public class AxisOne : BaseSystem
     [Dependency]
     protected NetworkingSystem NetworkingSystem = default!;
 
+    [Dependency]
+    protected TileSystem TileSystem = default!;
+
     private EntityRef currentScene;
 
     private Scene mainmenu;
@@ -52,8 +55,7 @@ public class AxisOne : BaseSystem
             camera.Add(new Transform());
             camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.LightSkyBlue, ViewSize = 10f });
 
-            EntityRef tilemap = world.CreateEntity();
-            tilemap.Add(new TileMapComponent());
+            EntityRef tilemap = TileSystem.CreateTileMap(new TileLayer[] { new TileLayer("Floor", 0, false), new TileLayer("Wall", 1, true) });
             tilemap.Add(new NameComponent("TileMap"));
 
             return camera;

@@ -73,7 +73,6 @@ class GameMain : BaseSystem, IDrawGUI
 
         playerEnt = EntityManager.World.CreateEntity();
         playerEnt.Add(new Transform(new Vector2(0, 5)));
-        playerEnt.Add(new Depth(0f));
         playerEnt.Add(new SpriteRenderer() { Sprite = player, Color = Color.White });
         playerEnt.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50, Fixtures = new FixtureData2D[] { new FixtureData2D(new CircleShape2D(1f), 1, 0, 0) } });
 
@@ -124,7 +123,6 @@ class GameMain : BaseSystem, IDrawGUI
 
             EntityRef entity = EntityManager.World.CreateEntity();
             entity.Add(new Transform(position));
-            entity.Add(new Depth(0f));
             entity.Add(new SpriteRenderer() { Sprite = player, Color = Color.White });
             entity.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic, Mass = 50, Fixtures = new FixtureData2D[] { new FixtureData2D(new CircleShape2D(1f), 1, 0, 0) } });
         }

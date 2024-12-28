@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Scene Identifier="metaltile">
-    <Entity Id="1">
-        <SpriteRenderer>
-            <Sprite Texture="Content/Textures/player.png" />
-        </SpriteRenderer>
-    </Entity>
-</Scene>
