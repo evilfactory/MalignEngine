@@ -7,6 +7,9 @@
         <RootNamespace>MalignEngine</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
         <EnablePreviewFeatures>true</EnablePreviewFeatures>
     </PropertyGroup>
 

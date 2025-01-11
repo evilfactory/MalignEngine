@@ -154,7 +154,7 @@ namespace MalignEngine
         [Dependency]
         protected EntityManagerService EntityManager = default!;
         [Dependency]
-        protected AssetSystem AssetSystem = default!;
+        protected AssetService AssetSystem = default!;
         [Dependency]
         protected SceneSystem SceneSystem = default!;
 

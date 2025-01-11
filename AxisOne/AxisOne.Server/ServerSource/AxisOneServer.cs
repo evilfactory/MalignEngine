@@ -10,13 +10,13 @@ public class AxisOneServer : EntitySystem, IEventClientConnected
     [Dependency]
     protected SceneSystem SceneSystem = default!;
     [Dependency]
-    protected AssetSystem AssetSystem = default!;
+    protected AssetService AssetService = default!;
 
     public void OnClientConnected(NetworkConnection connection)
     {
-        Scene playerScene = AssetSystem.GetOfType<Scene>().Where(x => x.Asset.SceneId == "player").First();
+        Scene playerScene = AssetService.GetFromId<Scene>("player");
 
-        EntityRef player = SceneSystem.LoadScene(playerScene);
+        EntityRef player = SceneSystem.Instantiate(playerScene);
         player.Add(new ControllableComponent());
 
         NetworkingSystem.SpawnEntity(player);

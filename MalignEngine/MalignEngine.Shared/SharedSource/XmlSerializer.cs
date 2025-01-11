@@ -4,25 +4,39 @@ using System.Xml.Linq;
 
 namespace MalignEngine
 {
-    public interface ICustomXmlSerializer
+    public interface ICustomTypeXmlSerializer
     {
         bool SupportsType(Type type);
         void Serialize(object value, string dataFieldName, XElement element);
-        object? Deserialize(string dataFieldName, XElement element, Dictionary<int, EntityRef> idRemap);
+        object? Deserialize(string dataFieldName, XElement element, EntityIdRemap? idRemap = null);
+    }
+
+    public interface ICustomObjectXmlSerializer
+    {
+        bool SupportsType(object obj);
+        void Serialize(object obj, XElement element);
+        void Deserialize(object obj, XElement element, EntityIdRemap? idRemap = null);
     }
 
     public static class XmlSerializer
     {
-        private static List<ICustomXmlSerializer> serializers = new List<ICustomXmlSerializer>();
+        private static List<ICustomTypeXmlSerializer> serializers = new List<ICustomTypeXmlSerializer>();
+        private static List<ICustomObjectXmlSerializer> objectSerializers = new List<ICustomObjectXmlSerializer>();
+
 
         static XmlSerializer()
         {
             // Get serializers from ALL assemblies
             foreach (Type type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()))
             {
-                if (type.GetInterfaces().Contains(typeof(ICustomXmlSerializer)))
+                if (type.GetInterfaces().Contains(typeof(ICustomTypeXmlSerializer)))
                 {
-                    serializers.Add((ICustomXmlSerializer)Activator.CreateInstance(type));
+                    serializers.Add((ICustomTypeXmlSerializer)Activator.CreateInstance(type));
+                }
+
+                if (type.GetInterfaces().Contains(typeof(ICustomObjectXmlSerializer)))
+                {
+                    objectSerializers.Add((ICustomObjectXmlSerializer)Activator.CreateInstance(type));
                 }
             }
         }
@@ -36,42 +50,52 @@ namespace MalignEngine
 
         public static void SerializeObject(object obj, XElement element)
         {
-            foreach (MemberInfo member in element.GetType().GetMembers())
+            // check if any serializer supports serializing this object as a whole
+            foreach (ICustomObjectXmlSerializer serializer in objectSerializers)
+            {
+                if (serializer.SupportsType(obj))
+                {
+                    serializer.Serialize(obj, element);
+                    return;
+                }
+            }
+
+            foreach (MemberInfo member in obj.GetType().GetMembers())
             {
                 DataFieldAttribute? dataField = member.GetCustomAttribute<DataFieldAttribute>();
                 if (dataField == null || !dataField.Save) { continue; }
 
                 Type memberType = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
-                object value = member is PropertyInfo ? ((PropertyInfo)member).GetValue(element) : ((FieldInfo)member).GetValue(element);
+                object value = member is PropertyInfo ? ((PropertyInfo)member).GetValue(obj) : ((FieldInfo)member).GetValue(obj);
 
                 if (memberType == typeof(int) || memberType == typeof(float) || memberType == typeof(string) || memberType == typeof(bool))
                 {
-                    element.Add(new XAttribute(dataField.Name, value));
+                    element.SetAttributeValue(dataField.Name, value);
                 }
                 else if (memberType == typeof(Vector2))
                 {
-                    element.Add(new XAttribute(dataField.Name, $"{((Vector2)value).X},{((Vector2)value).Y}"));
+                    element.SetAttributeVector2(dataField.Name, (Vector2)value);
                 }
                 else if (memberType == typeof(Vector3))
                 {
-                    element.Add(new XAttribute(dataField.Name, $"{((Vector3)value).X},{((Vector3)value).Y},{((Vector3)value).Z}"));
+                    element.SetAttributeVector3(dataField.Name, (Vector3)value);
                 }
                 else if (memberType == typeof(Vector4))
                 {
-                    element.Add(new XAttribute(dataField.Name, $"{((Vector4)value).X},{((Vector4)value).Y},{((Vector4)value).Z},{((Vector4)value).W}"));
+                    element.SetAttributeVector4(dataField.Name, (Vector4)value);
                 }
                 else if (memberType == typeof(Color))
                 {
-                    element.Add(new XAttribute(dataField.Name, $"{((Color)value).R},{((Color)value).G},{((Color)value).B},{((Color)value).A}"));
+                    element.SetAttributeColor(dataField.Name, (Color)value);
                 }
                 else if (memberType == typeof(EntityRef))
                 {
-                    element.Add(new XAttribute(dataField.Name, ((EntityRef)value).Id));
+                    element.SetAttributeInt(dataField.Name, ((EntityRef)value).Id);
                 }
                 else
                 {
                     bool handled = false;
-                    foreach (ICustomXmlSerializer serializer in serializers)
+                    foreach (ICustomTypeXmlSerializer serializer in serializers)
                     {
                         if (serializer.SupportsType(memberType))
                         {
@@ -89,8 +113,18 @@ namespace MalignEngine
             }
         }
 
-        public static void DeserializeObject(in object obj, XElement element, Dictionary<int, EntityRef> idRemap)
+        public static void DeserializeObject(in object obj, XElement element, EntityIdRemap? idRemap = null)
         {
+            // check if any serializer supports deserializing this object as a whole
+            foreach (ICustomObjectXmlSerializer serializer in objectSerializers)
+            {
+                if (serializer.SupportsType(obj))
+                {
+                    serializer.Deserialize(obj, element, idRemap);
+                    return;
+                }
+            }
+
             foreach (MemberInfo member in obj.GetType().GetMembers())
             {
                 DataFieldAttribute? dataField = member.GetCustomAttribute<DataFieldAttribute>();
@@ -103,7 +137,7 @@ namespace MalignEngine
                 if (!IsSupportedType(memberType))
                 {
                     bool handled = false;
-                    foreach (ICustomXmlSerializer serializer in serializers)
+                    foreach (ICustomTypeXmlSerializer serializer in serializers)
                     {
                         if (serializer.SupportsType(memberType))
                         {
@@ -121,53 +155,49 @@ namespace MalignEngine
                     continue;
                 }
 
-                string name = element.Attribute(dataField.Name)?.Value;
-                if (name == null)
-                {
-                    continue;
-                }
+                XAttribute? attribute = element.Attribute(dataField.Name);
 
-                string value = element.Attribute(dataField.Name)?.Value;
+                if (attribute == null) { continue; }
 
                 if (memberType == typeof(int))
                 {
-                    setValue(obj, int.Parse(value));
+                    setValue(obj, element.GetAttributeInt(dataField.Name));
                 }
                 else if (memberType == typeof(float))
                 {
-                    setValue(obj, float.Parse(value));
+                    setValue(obj, element.GetAttributeFloat(dataField.Name));
                 }
                 else if (memberType == typeof(string))
                 {
-                    setValue(obj, value);
+                    setValue(obj, element.GetAttributeString(dataField.Name));
                 }
                 else if (memberType == typeof(bool))
                 {
-                    setValue(obj, bool.Parse(value));
+                    setValue(obj, element.GetAttributeBool(dataField.Name));
                 }
                 else if (memberType == typeof(Vector2))
                 {
-                    string[] parts = value.Split(',');
-                    setValue(obj, new Vector2(float.Parse(parts[0]), float.Parse(parts[1])));
+                    setValue(obj, element.GetAttributeVector2(dataField.Name));
                 }
                 else if (memberType == typeof(Vector3))
                 {
-                    string[] parts = value.Split(',');
-                    setValue(obj, new Vector3(float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2])));
+                    setValue(obj, element.GetAttributeVector3(dataField.Name));
                 }
                 else if (memberType == typeof(Vector4))
                 {
-                    string[] parts = value.Split(',');
-                    setValue(obj, new Vector4(float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3])));
+                    setValue(obj, element.GetAttributeVector4(dataField.Name));
                 }
                 else if (memberType == typeof(Color))
                 {
-                    string[] parts = value.Split(',');
-                    setValue(obj, new Color(float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2]), float.Parse(parts[3])));
+                    setValue(obj, element.GetAttributeColor(dataField.Name));
                 }
                 else if (memberType == typeof(EntityRef))
                 {
-                    setValue(obj, idRemap[int.Parse(value)]);
+                    if (idRemap == null)
+                    {
+                        throw new Exception("EntityRef encountered but no idRemap provided");
+                    }
+                    setValue(obj, idRemap.GetEntity(element.GetAttributeInt(dataField.Name)));
                 }
             }
         }

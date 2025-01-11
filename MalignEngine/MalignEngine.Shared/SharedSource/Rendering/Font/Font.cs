@@ -3,15 +3,12 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class Font : IAsset
+    public class Font : IFileLoadableAsset<Font>
     {
-        public string AssetPath { get; set; }
-
         internal FontStashSharp.FontSystem fontSystem = new FontStashSharp.FontSystem();
 
-        protected Font(string path)
+        public Font()
         {
-            fontSystem.AddFont(File.ReadAllBytes(path));
         }
 
         public Vector2 MeasureText(string text, int size)
@@ -19,11 +16,11 @@ namespace MalignEngine
             return fontSystem.GetFont(size).MeasureString(text);
         }
 
-        public static IAsset Load(string assetPath)
+        public Font LoadFromPath(AssetPath assetPath)
         {
-            Font font = new Font(assetPath);
-            font.AssetPath = assetPath;
-            return font;
+            fontSystem.AddFont(File.ReadAllBytes(assetPath));
+
+            return this;
         }
     }
 }

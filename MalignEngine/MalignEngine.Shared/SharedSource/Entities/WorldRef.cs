@@ -1,108 +1,17 @@
-using Arch.Buffer;
 using Arch.Core;
-using Arch.Core.Extensions;
 
 namespace MalignEngine;
 
-public enum EntityLifeStage
-{
-    Created,
-    Terminating,
-    Deleted,
-}
-
-public enum ComponentLifeStage
-{
-    Adding,
-    Added,
-    Initializing,
-    Initialized,
-    Starting,
-    Running,
-    Stopping,
-    Stopped,
-    Removing,
-    Deleted,
-}
-
-public class EntityMetaData : IComponent
-{
-    public EntityLifeStage LifeStage;
-    public Dictionary<Type, ComponentLifeStage> ComponentLifeStages;
-}
-
-public class EntityCreatedEvent : EntityEventArgs
-{
-    public EntityRef Entity;
-
-    public EntityCreatedEvent(EntityRef entity)
-    {
-        Entity = entity;
-    }
-}
-public class EntityDestroyedEvent : EntityEventArgs
-{
-    public EntityRef Entity;
-
-    public EntityDestroyedEvent(EntityRef entity)
-    {
-        Entity = entity;
-    }
-}
-
-public class ComponentAddedEvent : EntityEventArgs { }
-public class ComponentInitEvent : EntityEventArgs { }
-public class ComponentStartEvent : EntityEventArgs { }
-public class ComponentStopEvent : EntityEventArgs { }
-public class ComponentRemovedEvent : EntityEventArgs { }
-public class ComponentDeletedEvent : EntityEventArgs { }
-
-public delegate void ForEachWithEntity(EntityRef entity);
-public delegate void ForEachWithEntity<T0>(EntityRef entity, ref T0 t0Component);
-public delegate void ForEachWithEntity<T0, T1>(EntityRef entity, ref T0 t0Component, ref T1 t1Component);
-public delegate void ForEachWithEntity<T0, T1, T2>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component);
-public delegate void ForEachWithEntity<T0, T1, T2, T3>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component, ref T3 t3Component);
-public delegate void ForEachWithEntity<T0, T1, T2, T3, T4>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component, ref T3 t3Component, ref T4 t4Component);
-
-public sealed class EntityManagerService : IService, IInit, IPostUpdate
-{
-    [Dependency]
-    private EntityEventSystem EntityEventSystem = default!;
-
-    [Dependency]
-    private ILoggerService LoggerService = default!;
-
-    private ILogger Logger;
-
-    public WorldRef World
-    {
-        get => world;
-    }
-
-    private WorldRef world = default!;
-
-    public void OnInitialize()
-    {
-        Logger = LoggerService.GetSawmill("ents");
-
-        world = new WorldRef(Logger, EntityEventSystem);
-        IoCManager.Register(world);
-    }
-
-    public void OnPostUpdate(float deltaTime)
-    {
-        World.Update();
-    }
-}
+// TODO: Get rid of Logger and EntityEventSystem dependencies
 
 public class WorldRef
 {
     internal World world;
 
-    private ILogger logger;
-    private EntityEventSystem entityEventSystem;
+    private ILogger? logger;
+    private EntityEventSystem? entityEventSystem;
 
-    public WorldRef(ILogger logger, EntityEventSystem eventSystem)
+    public WorldRef(ILogger? logger = null, EntityEventSystem? eventSystem = null)
     {
         this.logger = logger;
         world = World.Create();
@@ -116,8 +25,8 @@ public class WorldRef
         metadata.LifeStage = EntityLifeStage.Created;
         metadata.ComponentLifeStages = new Dictionary<Type, ComponentLifeStage>();
 
-        entityEventSystem.RaiseEvent(new EntityCreatedEvent(entity));
-        logger.LogVerbose($"Entity created: {entity.Id}");
+        entityEventSystem?.RaiseEvent(new EntityCreatedEvent(entity));
+        logger?.LogVerbose($"Entity created: {entity.Id}");
         return entity;
     }
 
@@ -128,7 +37,7 @@ public class WorldRef
             throw new ArgumentException($"Tried to destroy invalid entity {entity}");
         }
 
-        logger.LogVerbose($"Entity marked for destruction: {entity.Id}");
+        logger?.LogVerbose($"Entity marked for destruction: {entity.Id}");
 
         EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
         metadata.LifeStage = EntityLifeStage.Terminating;
@@ -140,7 +49,7 @@ public class WorldRef
             RemoveComponent(entity, component.GetType());
         }
 
-        entityEventSystem.RaiseEvent(new EntityDestroyedEvent(entity));
+        entityEventSystem?.RaiseEvent(new EntityDestroyedEvent(entity));
     }
 
     public void AddComponent<T>(EntityRef entity, in T component) where T : IComponent
@@ -148,11 +57,11 @@ public class WorldRef
         EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
 
         metadata.ComponentLifeStages[typeof(T)] = ComponentLifeStage.Adding;
-        world.Add(entity.Entity, component);
-        entityEventSystem.RaiseEvent<ComponentAddedEvent, T>(entity, new ComponentAddedEvent());
+        world?.Add(entity.Entity, component);
+        entityEventSystem?.RaiseEvent<ComponentAddedEvent, T>(entity, new ComponentAddedEvent());
         metadata.ComponentLifeStages[typeof(T)] = ComponentLifeStage.Added;
 
-        logger.LogVerbose($"{typeof(T).Name} added. (Entity = {entity.Id})");
+        logger?.LogVerbose($"{typeof(T).Name} added. (Entity = {entity.Id})");
     }
 
     public void AddComponent(EntityRef entity, in IComponent component)
@@ -161,10 +70,10 @@ public class WorldRef
 
         metadata.ComponentLifeStages[component.GetType()] = ComponentLifeStage.Adding;
         world.Add(entity.Entity, (object)component);
-        entityEventSystem.RaiseEvent(entity, component, new ComponentAddedEvent());
+        entityEventSystem?.RaiseEvent(entity, component, new ComponentAddedEvent());
         metadata.ComponentLifeStages[component.GetType()] = ComponentLifeStage.Added;
 
-        logger.LogVerbose($"{component.GetType().Name} added. (Entity = {entity.Id})");
+        logger?.LogVerbose($"{component.GetType().Name} added. (Entity = {entity.Id})");
     }
 
     public ref T AddOrGetComponent<T>(EntityRef entity) where T : IComponent, new()
@@ -184,11 +93,11 @@ public class WorldRef
 
     public void RemoveComponent(EntityRef entity, Type type)
     {
-        logger.LogVerbose($"{type.Name} marked for removal. (Entity = {entity.Id})");
+        logger?.LogVerbose($"{type.Name} marked for removal. (Entity = {entity.Id})");
 
         EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopping;
-        entityEventSystem.RaiseEvent(new EntityRef(this, entity.Entity), new ComponentStopEvent());
+        entityEventSystem?.RaiseEvent(new EntityRef(this, entity.Entity), new ComponentStopEvent());
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopped;
     }
 
@@ -227,15 +136,38 @@ public class WorldRef
         return world.Has<T>(entity.Entity);
     }
 
-    public object[] GetComponents(EntityRef entity)
+    public IComponent[] GetComponents(EntityRef entity)
     {
-        return world.GetAllComponents(entity.Entity);
+        object[] objs = world.GetAllComponents(entity.Entity);
+        IComponent[] components = new IComponent[objs.Length];
+
+        for (int i = 0; i < objs.Length; i++)
+        {
+            components[i] = (IComponent)objs[i];
+        }
+
+        return components;
     }
 
     public QueryDescription CreateQuery()
     {
         QueryDescription query = new QueryDescription();
+
         return query;
+    }
+
+    public EntityRef[] AllEntities()
+    {
+        List<EntityRef> entities = new List<EntityRef>();
+
+        QueryDescription query = new QueryDescription().WithAll<EntityMetaData>();
+
+        world.Query(query, entity =>
+        {
+            entities.Add(new EntityRef(this, entity));
+        });
+
+        return entities.ToArray();
     }
 
     public void Query(in QueryDescription query, ForEachWithEntity action)
@@ -314,10 +246,7 @@ public class WorldRef
 
         List<Entity> entitiesToProcess = new List<Entity>();
 
-        world.Query(query, (Entity entity) =>
-        {
-            entitiesToProcess.Add(entity);
-        });
+        world.Query(query, entity => entitiesToProcess.Add(entity));
 
         foreach (Entity entity in entitiesToProcess)
         {
@@ -341,7 +270,7 @@ public class WorldRef
                     {
                         metadata.LifeStage = EntityLifeStage.Deleted;
                         world.Destroy(entity);
-                        logger.LogVerbose($"Entity destroyed: {entity.Id}");
+                        logger?.LogVerbose($"Entity destroyed: {entity.Id}");
                     }
                     break;
             }
@@ -352,138 +281,25 @@ public class WorldRef
                 {
                     case ComponentLifeStage.Added:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Initializing;
-                        entityEventSystem.RaiseEvent(new EntityRef(this, entity), new ComponentInitEvent());
+                        entityEventSystem?.RaiseEvent(new EntityRef(this, entity), new ComponentInitEvent());
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Initialized;
-                        logger.LogVerbose($"{component.Name} initialized. (Entity = {entity.Id})");
+                        logger?.LogVerbose($"{component.Name} initialized. (Entity = {entity.Id})");
                         break;
                     case ComponentLifeStage.Initialized:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Starting;
-                        entityEventSystem.RaiseEvent(new EntityRef(this, entity), new ComponentStartEvent());
+                        entityEventSystem?.RaiseEvent(new EntityRef(this, entity), new ComponentStartEvent());
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Running;
-                        logger.LogVerbose($"{component.Name} running. (Entity = {entity.Id})");
+                        logger?.LogVerbose($"{component.Name} running. (Entity = {entity.Id})");
                         break;
                     case ComponentLifeStage.Stopped:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Removing;
-                        entityEventSystem.RaiseEvent(new EntityRef(this, entity), new ComponentRemovedEvent());
+                        entityEventSystem?.RaiseEvent(new EntityRef(this, entity), new ComponentRemovedEvent());
                         world.Remove(entity, component);
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Deleted;
-                        logger.LogVerbose($"{component.Name} deleted. (Entity = {entity.Id})");
+                        logger?.LogVerbose($"{component.Name} deleted. (Entity = {entity.Id})");
                         break;
                 }
             }
         }
-    }
-}
-
-public struct EntityRef
-{
-    public readonly static EntityRef Null = default;
-
-    public int Id => Entity.Entity.Id;
-    public int Version => Entity.Version;
-
-    internal EntityReference Entity;
-    internal bool Valid = false;
-
-    private WorldRef worldRef;
-
-    internal EntityRef(WorldRef world, Entity entity)
-    {
-        worldRef = world;
-        Entity = entity.Reference();
-        Valid = true;
-    }
-
-    public void Destroy()
-    {
-        worldRef.Destroy(this);
-    }
-
-    public void Add<T>(in T component) where T : IComponent
-    {
-        worldRef.AddComponent(this, component);
-    }
-
-    public void Add(IComponent component)
-    {
-        worldRef.AddComponent(this, component);
-    }
-
-    public ref T AddOrGet<T>() where T : IComponent, new()
-    {
-        return ref worldRef.AddOrGetComponent<T>(this);
-    }
-
-    public void Remove<T>() where T : IComponent
-    {
-        worldRef.RemoveComponent<T>(this);
-    }
-
-    public void Set<T>(in T component) where T : IComponent
-    {
-        worldRef.SetComponent(this, component);
-    }
-
-    public void Set(object component)
-    {
-        worldRef.SetComponent(this, component);
-    }
-
-    public bool Has<T>() where T : IComponent
-    {
-        return worldRef.HasComponent<T>(this);
-    }
-
-    public ref T Get<T>() where T : IComponent
-    {
-        return ref worldRef.GetComponent<T>(this);
-    }
-
-    public bool TryGet<T>(out T component) where T : IComponent
-    {
-        return worldRef.TryGetComponent(this, out component);
-    }
-
-    public ref T TryGetRef<T>(out bool exists) where T : IComponent
-    {
-        return ref worldRef.TryGetRefComponent<T>(this, out exists);
-    }
-
-    public object[] GetComponents()
-    {
-        return worldRef.GetComponents(this);
-    }
-
-    public bool IsValid()
-    {
-        return Valid && worldRef.IsValid(this);
-    }
-
-    public bool Equals(EntityReference other)
-    {
-        return Entity.Equals(other.Entity);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is EntityRef other && Entity.Equals(other.Entity);
-    }
-
-    public override int GetHashCode()
-    {
-        unchecked
-        {
-            return Entity.GetHashCode();
-        }
-    }
-
-    public static bool operator ==(EntityRef left, EntityRef right)
-    {
-        return left.Entity.Equals(right.Entity);
-    }
-
-    public static bool operator !=(EntityRef left, EntityRef right)
-    {
-        return !left.Entity.Equals(right.Entity);
     }
 }

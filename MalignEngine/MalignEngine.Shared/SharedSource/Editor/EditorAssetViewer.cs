@@ -6,7 +6,7 @@ namespace MalignEngine
     public class EditorAssetViewer : BaseEditorWindowSystem
     {
         [Dependency]
-        protected AssetSystem AssetSystem = default!;
+        protected AssetService AssetSystem = default!;
 
         private object selectedAsset;
 

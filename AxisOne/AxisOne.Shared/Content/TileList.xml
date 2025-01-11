@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TileList Identifier="metaltile">
+<TileList>
     <Tile Scene="metalwall" Icon="Content/Textures/tiles.png" Rectangle="128,0,32,32" />
     <Tile Scene="metalfloor" Icon="Content/Textures/Tiles.png" Rectangle="64,64,32,32" />
     <Tile Scene="metaltile" Icon="Content/Textures/luatrauma.png" />

@@ -31,9 +31,9 @@ public class TileSystem : EntitySystem
     [Dependency]
     private SceneSystem SceneSystem = default!;
 
-    public EntityRef CreateTileMap(TileLayer[] layers)
+    public EntityRef CreateTileMap(WorldRef world, TileLayer[] layers)
     {
-        EntityRef entity = EntityManager.World.CreateEntity();
+        EntityRef entity = world.CreateEntity();
 
         Dictionary<string, TileLayer> layerData = new Dictionary<string, TileLayer>();
         foreach (TileLayer layer in layers) 
@@ -49,7 +49,7 @@ public class TileSystem : EntitySystem
     {
         Resolve(tileMap, ref tileMapComponent);
 
-        EntityRef tile = SceneSystem.LoadScene(scene);
+        EntityRef tile = SceneSystem.Instantiate(scene);
         tile.Add(new ParentOf() { Parent = tileMap });
         tile.Add(new Transform(new Vector2(x, y)));
         tile.Add(new TileComponent { X = x, Y = y });

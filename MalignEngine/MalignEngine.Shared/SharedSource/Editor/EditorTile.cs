@@ -7,7 +7,7 @@ namespace MalignEngine;
 public class EditorTile : BaseEditorWindowSystem
 {
     [Dependency]
-    protected AssetSystem AssetSystem = default!;
+    protected AssetService AssetService = default!;
     [Dependency]
     protected EditorSceneViewSystem EditorSceneViewSystem = default!;
     [Dependency]
@@ -18,11 +18,15 @@ public class EditorTile : BaseEditorWindowSystem
     protected TileSystem TileSystem = default!;
     [Dependency]
     protected InputSystem InputSystem = default!;
+    [Dependency]
+    protected SceneSystem SceneSystem = default!;
 
     public override string WindowName => "Tile Editor";
 
     private EntityRef selectedTileMap;
     private TileData selectedTileData;
+
+    private string fileName = "Content/tilemap.xml";
 
     private string GetTileName(EntityRef tilemap)
     {
@@ -36,7 +40,7 @@ public class EditorTile : BaseEditorWindowSystem
 
     public override void DrawWindow(float delta)
     {
-        AssetHandle<TileList>[] tilelists = AssetSystem.GetOfType<TileList>().ToArray();
+        AssetHandle<TileList>[] tilelists = AssetService.GetOfType<TileList>().ToArray();
 
         ImGui.Begin(WindowName, ImGuiWindowFlags.NoScrollbar);
 
@@ -61,6 +65,25 @@ public class EditorTile : BaseEditorWindowSystem
 
             ImGui.EndCombo();
         }
+
+        if (ImGui.Button("Save"))
+        {
+            //Scene scene = SceneSystem.SaveScene(selectedTileMap);
+            //scene.Save(fileName);
+        }
+
+        ImGui.SameLine();
+
+        if (ImGui.Button("Load"))
+        {
+            //Scene scene = Scene.Load(fileName);
+            //EntityRef tilemap = SceneSystem.LoadScene(scene);
+            //selectedTileMap = tilemap;
+        }
+
+        ImGui.SameLine();
+
+        ImGui.InputText("File Name", ref fileName, 100);
 
         TileList selectedTileList = tilelists[0];
 
@@ -99,7 +122,7 @@ public class EditorTile : BaseEditorWindowSystem
 
             if (lastPlacePosition != new Vector2D<int>(xTilePosition, yTilePosition) || lastPlacedTile != selectedTileData)
             {
-                TileSystem.SetTile(selectedTileMap, AssetSystem.GetOfType<Scene>().Where(x => x.Asset.SceneId == selectedTileData.SceneId).First(), xTilePosition, yTilePosition);
+                TileSystem.SetTile(selectedTileMap, AssetService.GetFromId<Scene>(selectedTileData.SceneId), xTilePosition, yTilePosition);
                 lastPlacePosition = new Vector2D<int>(xTilePosition, yTilePosition);
                 lastPlacedTile = selectedTileData;
             }

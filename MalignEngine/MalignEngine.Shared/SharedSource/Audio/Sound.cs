@@ -1,22 +1,29 @@
 ﻿using Silk.NET.OpenAL;
 using System.Buffers.Binary;
+using System.Reflection;
 using System.Text;
 
 namespace MalignEngine
 {
-    public class Sound : IAsset, IDisposable
+    public class Sound : IFileLoadableAsset<Sound>, IDisposable
     {
-        public string AssetPath { get; set; }
-
         internal uint buffer;
 
         private AudioSystem audioSystem;
 
-        private unsafe Sound(string path)
+        public Sound()
         {
             audioSystem = IoCManager.Resolve<AudioSystem>();
+        }
 
-            ReadOnlySpan<byte> file = File.ReadAllBytes(path);
+        public void Dispose()
+        {
+            audioSystem.al.DeleteBuffer(buffer);
+        }
+
+        public Sound LoadFromPath(AssetPath assetPath)
+        {
+            ReadOnlySpan<byte> file = File.ReadAllBytes(assetPath);
 
             int index = 0;
             if (file[index++] != 'R' || file[index++] != 'I' || file[index++] != 'F' || file[index++] != 'F')
@@ -107,8 +114,11 @@ namespace MalignEngine
                     var data = file.Slice(44, size);
                     index += size;
 
-                    fixed (byte* pData = data)
-                        audioSystem.al.BufferData(buffer, format, pData, size, sampleRate);
+                    unsafe
+                    {
+                        fixed (byte* pData = data)
+                            audioSystem.al.BufferData(buffer, format, pData, size, sampleRate);
+                    }
                 }
                 else if (identifier == "JUNK")
                 {
@@ -125,22 +135,8 @@ namespace MalignEngine
                     index += size;
                 }
             }
-        }
 
-        public static IAsset Load(string assetPath)
-        {
-            unsafe
-            {
-                Sound sound = new Sound(assetPath);
-                sound.AssetPath = assetPath;
-                return sound;
-            }
-        }
-
-
-        public void Dispose()
-        {
-            audioSystem.al.DeleteBuffer(buffer);
+            return this;
         }
     }
 }

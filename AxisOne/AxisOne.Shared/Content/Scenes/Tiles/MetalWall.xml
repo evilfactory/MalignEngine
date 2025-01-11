@@ -5,5 +5,8 @@
         <SpriteRenderer>
             <Sprite Texture="Content/Textures/Tiles.png" Rectangle="128,0,32,32" />
         </SpriteRenderer>
+        <TileConnector>
+            
+        </TileConnector>
     </Entity>
 </Scene>

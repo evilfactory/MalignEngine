@@ -7,7 +7,7 @@ public class DataFieldAttribute : DataFieldBaseAttribute
 
     public readonly bool Required;
 
-    public DataFieldAttribute(string name, bool readOnly = false, bool save = true, bool required = false, Type? customTypeSerializer = null) : base(readOnly, save, customTypeSerializer)
+    public DataFieldAttribute(string name, bool readOnly = false, bool save = false, bool required = false, Type? customTypeSerializer = null) : base(readOnly, save, customTypeSerializer)
     {
         Name = name;
         Required = required;

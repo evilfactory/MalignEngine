@@ -1,39 +1,71 @@
 using Arch.Core;
+using nkast.Aether.Physics2D.Dynamics;
 using System.Reflection;
 using System.Xml.Linq;
 
 namespace MalignEngine;
 
-public class Scene : IAsset
+/// <summary>
+/// A scene holds a list of entities that can be used to create copies of the scene.
+/// </summary>
+public class Scene : XmlAsset<Scene>, IAssetWithId
 {
-    public string AssetPath { get; set; }
-    public string? SceneId { get; private set; }
-    public XElement SceneData { get; private set; }
+    public string? AssetId { get; private set; }
+    public EntityRef Root { get; private set; }
+    public WorldRef SceneWorld { get; private set; }
 
-    internal Func<WorldRef, EntityRef>? customLoadAction { get; private set; }
-
-    public Scene(Func<WorldRef, EntityRef> customLoadAction)
+    public Scene()
     {
-        this.customLoadAction = customLoadAction;
+        SceneWorld = new WorldRef();
+
+        Root = SceneWorld.CreateEntity();
     }
 
-    public Scene(XElement sceneData)
+    public override void Load(XElement element)
     {
-        SceneId = sceneData.Attribute("Identifier")?.Value;
-        SceneData = sceneData;
+        // Destroy all entities
+        foreach (var entity in SceneWorld.AllEntities())
+        {
+            SceneWorld.Destroy(entity);
+        }
+
+        AssetId = element.Attribute("Id")?.Value ?? null;
+
+        EntityIdRemap remap = new EntityIdRemap();
+
+        List<(EntityRef, XElement)> entities = new List<(EntityRef, XElement)>();
+
+        // Create all entities first
+        foreach (var entityElement in element.Elements())
+        {
+            EntityRef entity = SceneWorld.CreateEntity();
+            remap.AddEntity(int.Parse(entityElement.Attribute("Id")?.Value), entity);
+            entities.Add((entity, entityElement));
+        }
+
+        // Then deserialize them
+        foreach (var (entity, entityElement) in entities)
+        {
+            EntitySerializer.DeserializeEntity(entity, entityElement, remap);
+        }
+
+        // The first entity is the root
+        Root = entities[0].Item1;
     }
 
-    public void Save(string assetPath)
+    public override void Save(XElement element)
     {
-        SceneData.Save(assetPath);
+        // Go through all entities in the scene and serialize them
+
+        element.SetAttributeValue("Id", AssetId);
+
+        foreach (var entity in SceneWorld.AllEntities())
+        {
+            XElement entityElement = new XElement("Entity");
+            entityElement.SetAttributeValue("Id", entity.Id.ToString());
+
+            EntitySerializer.SerializeEntity(entity, entityElement);
+        }
     }
 
-    public static IAsset Load(string assetPath)
-    {
-        string fileText = File.ReadAllText(assetPath);
-
-        Scene scene = new Scene(XElement.Parse(fileText));
-        scene.AssetPath = assetPath;
-        return scene;
-    }
 }

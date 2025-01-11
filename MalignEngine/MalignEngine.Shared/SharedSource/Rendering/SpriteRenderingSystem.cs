@@ -6,51 +6,6 @@ using System.Xml.Linq;
 
 namespace MalignEngine
 {
-    public class SpriteSerializer : ICustomXmlSerializer
-    {
-        public object? Deserialize(string dataFieldName, XElement element, Dictionary<int, EntityRef> idRemap)
-        {
-            XElement spriteElement = element.Element(dataFieldName);
-            if (spriteElement == null) { return null; }
-
-            string? texturePath = spriteElement.Attribute("Texture")?.Value;
-
-            Rectangle? rectangle = null;
-            if (spriteElement.Attribute("Rectangle") != null)
-            {
-                string[] rect = spriteElement.Attribute("Rectangle")?.Value.Split(',');
-                rectangle = new Rectangle(int.Parse(rect[0]), int.Parse(rect[1]), int.Parse(rect[2]), int.Parse(rect[3]));
-            }
-
-            if (texturePath == null) { return null; }
-
-            if (rectangle != null)
-            {
-                return new Sprite(IoCManager.Resolve<AssetSystem>().Load<Texture2D>(texturePath), new Vector2(0.5f, 0.5f), rectangle.Value);
-            }
-            else
-            {
-                return new Sprite(IoCManager.Resolve<AssetSystem>().Load<Texture2D>(texturePath));
-            }
-        }
-
-        public void Serialize(object value, string dataFieldName, XElement element)
-        {
-            Sprite sprite = (Sprite)value;
-
-            XElement spriteElement = new XElement(dataFieldName);
-            spriteElement.Add(new XAttribute("Texture", sprite.Texture.AssetPath));
-
-            element.Add(spriteElement);
-        }
-
-        public bool SupportsType(Type type)
-        {
-            return typeof(Sprite) == type;
-        }
-    }
-
-
     public class SpriteRenderingSystem : EntitySystem
     {
         [Dependency]

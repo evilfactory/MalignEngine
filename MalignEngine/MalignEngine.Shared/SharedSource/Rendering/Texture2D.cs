@@ -12,7 +12,7 @@ namespace MalignEngine
         public TextureHandle Handle { get; }
     }
 
-    public class Texture2D : IAsset, ITexture
+    public class Texture2D : IFileLoadableAsset<Texture2D>, ITexture
     {
         public static Texture2D White = new Texture2D(new Color[,] { { Color.White } }, 1, 1);
 
@@ -27,9 +27,16 @@ namespace MalignEngine
         }
 
         public TextureHandle Handle { get; private set; }
-        public string AssetPath { get; set; }
 
         private Color[,] textureData;
+
+        public Texture2D()
+        {
+            Width = 1;
+            Height = 1;
+
+            CreateHandle();
+        }
 
         public Texture2D(uint width, uint height)
         {
@@ -71,10 +78,14 @@ namespace MalignEngine
             return $"Texture2D: ({Width}x{Height})";
         }
 
-        public static Texture2D Load(string assetPath)
+        public Texture2D LoadFromPath(AssetPath assetPath)
         {
             using (var img = Image.Load<Rgba32>(assetPath))
             {
+                Width = (uint)img.Width;
+                Height = (uint)img.Height;
+                Handle.Resize(Width, Height);
+
                 img.Mutate(x => x.AutoOrient());
 
                 Color[,] textureData = new Color[img.Width, img.Height];
@@ -92,13 +103,22 @@ namespace MalignEngine
                     }
                 });
 
-                Texture2D texture = new Texture2D(textureData, (uint)img.Width, (uint)img.Height);
-                texture.AssetPath = assetPath;
-                return texture;
+                // flatten the 2D array into a 1D array
+                Color[] flattenData = new Color[Width * Height];
+                for (int y = 0; y < Height; y++)
+                {
+                    for (int x = 0; x < Width; x++)
+                    {
+                        flattenData[y * Width + x] = textureData[x, y];
+                    }
+                }
+                Handle.SubmitData(flattenData);
             }
+
+            return this;
         }
 
-        public static IAsset CreateDummyAsset()
+        public static Texture2D CreateDummyAsset()
         {
             return White;
         }

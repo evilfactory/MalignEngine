@@ -1,8 +1,29 @@
 using System.Numerics;
+using System.Xml.Linq;
 
 namespace MalignEngine
 {
-    public class Sprite
+    public class SpriteSerializer : ICustomTypeXmlSerializer
+    {
+        public object? Deserialize(string dataFieldName, XElement element, EntityIdRemap? idRemap = null)
+        {
+            return IoCManager.Resolve<AssetService>().GetFromId<Sprite>(element.GetAttributeString(dataFieldName));
+        }
+
+        public void Serialize(object value, string dataFieldName, XElement element)
+        {
+            Sprite sprite = (Sprite)value;
+
+            element.SetAttributeString(dataFieldName, sprite.AssetId);
+        }
+
+        public bool SupportsType(Type type)
+        {
+            return typeof(Sprite) == type;
+        }
+    }
+
+    public class Sprite : XmlAsset<Sprite>, IAssetWithId
     {
         public Texture2D Texture { get; private set; }
         public Vector2 Origin { get; private set; }
@@ -10,6 +31,10 @@ namespace MalignEngine
 
         public Vector2 UV1 { get; private set; }
         public Vector2 UV2 { get; private set; }
+
+        public string AssetId { get; private set; }
+
+        public Sprite() { }
 
         public Sprite(Texture2D texture)
         {
@@ -38,6 +63,27 @@ namespace MalignEngine
         public override string ToString()
         {
             return $"Sprite: ({Texture.Width}x{Texture.Height})";
+        }
+
+        public override void Load(XElement element)
+        {
+            AssetId = element.GetAttributeString("AssetId");
+
+            string texturePath = element.GetAttributeString("Texture");
+
+            if (texturePath == null) { throw new Exception("No Texture attribute found"); }
+
+            Texture = IoCManager.Resolve<AssetService>().FromFile<Texture2D>(texturePath);
+
+            Rect = element.GetAttributeRectangle("Rectangle", new Rectangle(0, 0, (int)Texture.Width, (int)Texture.Height));
+            Origin = element.GetAttributeVector2("Origin", Origin);
+
+            CalculateUVs();
+        }
+
+        public override void Save(XElement element)
+        {
+            throw new Exception("Not implemented");
         }
     }
 }

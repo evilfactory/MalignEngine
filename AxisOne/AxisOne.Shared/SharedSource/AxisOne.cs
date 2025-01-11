@@ -1,6 +1,7 @@
 using Arch.Core;
 using Arch.Core.Extensions;
 using MalignEngine;
+using nkast.Aether.Physics2D.Dynamics;
 using System.Net;
 
 namespace AxisOne;
@@ -8,7 +9,7 @@ namespace AxisOne;
 public class AxisOne : BaseSystem
 {
     [Dependency]
-    protected AssetSystem AssetSystem = default!;
+    protected AssetService AssetService = default!;
 
     [Dependency]
     protected SceneSystem SceneSystem = default!;
@@ -30,48 +31,46 @@ public class AxisOne : BaseSystem
 
         GUIStyle.Default = new GUIStyle()
         {
-            NormalFont = AssetSystem.Load<Font>("Content/Roboto-Regular.ttf"),
+            NormalFont = AssetService.FromFile<Font>("Content/Roboto-Regular.ttf"),
             FrameTexture = Texture2D.White
         };
 
-        AssetSystem.LoadFolder("Content");
+        AssetService.LoadFolder("Content");
 
-        mainmenu = new Scene((world) =>
         {
-            EntityRef camera = world.CreateEntity();
+            mainmenu = new Scene();
+
+            EntityRef camera = mainmenu.Root;
             camera.Add(new Transform());
             camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.Black });
 
-            EntityRef mainMenu = world.CreateEntity();
+            EntityRef mainMenu = mainmenu.SceneWorld.CreateEntity();
             mainMenu.Add(new MainMenuComponent());
             mainMenu.Add(new ParentOf() { Parent = camera });
+        }
 
-            return camera;
-        });
-
-        gamescene = new Scene((world) =>
         {
-            EntityRef camera = world.CreateEntity();
+            gamescene = new Scene();
+
+            EntityRef camera = gamescene.Root;
             camera.Add(new Transform());
             camera.Add(new OrthographicCamera() { IsMain = true, ClearColor = Color.LightSkyBlue, ViewSize = 10f });
 
-            EntityRef tilemap = TileSystem.CreateTileMap(new TileLayer[] { new TileLayer("Floor", 0, false), new TileLayer("Wall", 1, true) });
+            EntityRef tilemap = TileSystem.CreateTileMap(gamescene.SceneWorld, new TileLayer[] { new TileLayer("Floor", 0, false), new TileLayer("Wall", 1, true) });
             tilemap.Add(new NameComponent("TileMap"));
-
-            return camera;
-        });
+        }
 
 #if SERVER
         NetworkingSystem.StartServer(7777);
-        SceneSystem.LoadScene(gamescene);
+        SceneSystem.Instantiate(gamescene);
 #elif CLIENT
-        currentScene = SceneSystem.LoadScene(mainmenu);
+        currentScene = SceneSystem.Instantiate(mainmenu);
 #endif
     }
 
     public void LoadGame()
     {
         currentScene.Destroy();
-        SceneSystem.LoadScene(gamescene);
+        SceneSystem.Instantiate(gamescene);
     }
 }

@@ -6,7 +6,7 @@ using Arch.Core.Extensions;
 class GameMain : BaseSystem, IDrawGUI
 {
     [Dependency]
-    protected AssetSystem AssetSystem = default!;
+    protected AssetService AssetSystem = default!;
     [Dependency]
     protected WindowSystem WindowSystem = default!;
     [Dependency]

@@ -11,7 +11,7 @@ namespace Sample
 
             application.AddSystem(new EntityManagerService());
             application.AddSystem(new EntityEventSystem());
-            application.AddSystem(new AssetSystem());
+            application.AddSystem(new AssetService());
             application.AddSystem(new WindowSystem("Malign Engine", new Vector2(800, 600)));
             application.AddSystem(new GLRenderingSystem());
             application.AddSystem(new InputSystem());

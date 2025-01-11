@@ -1,0 +1,44 @@
+using MalignEngine;
+using System.Numerics;
+using System.Reflection;
+
+class GameMain
+{
+    public GameMain()
+    {
+        Application application = new Application();
+
+        application.AddSystem(new EntityEventSystem());
+        application.AddSystem(new EntityManagerService());
+        application.AddSystem(new AssetService());
+        application.AddSystem(new WindowSystem("Snake Game", new Vector2(800, 600)));
+        application.AddSystem(new GLRenderingSystem());
+        application.AddSystem(new InputSystem());
+        application.AddSystem(new CameraSystem());
+        application.AddSystem(new ParentSystem());
+        application.AddSystem(new TransformSystem());
+        application.AddSystem(new PhysicsSystem2D());
+        application.AddSystem(new SpriteRenderingSystem());
+        application.AddSystem(new LightingSystem2D());
+        application.AddSystem(new LightingPostProcessingSystem2D());
+        application.AddSystem(new AudioSystem());
+        application.AddSystem(new FontSystem());
+        application.AddSystem(new SceneSystem());
+        application.AddSystem(new NetworkingSystem());
+        application.AddSystem(new TileSystem());
+
+        application.AddAllSystems(Assembly.GetExecutingAssembly());
+
+        application.AddSystem(new ImGuiSystem());
+        application.AddSystem(new EditorSystem());
+        application.AddSystem(new EditorInspectorSystem());
+        application.AddSystem(new EditorPerformanceSystem());
+        application.AddSystem(new EditorSceneViewSystem());
+        application.AddSystem(new EditorAssetViewer());
+        application.AddSystem(new EditorConsole());
+        application.AddSystem(new EditorNetworking());
+        application.AddSystem(new EditorTile());
+
+        application.Run();
+    }
+}
