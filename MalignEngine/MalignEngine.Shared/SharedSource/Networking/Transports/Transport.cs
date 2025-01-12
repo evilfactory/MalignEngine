@@ -8,14 +8,11 @@ namespace MalignEngine
 
     public abstract partial class Transport
     {
-        protected ILogger Logger;
+        public ILogger Logger { get; set; }
 
         public Action<IReadMessage> OnMessageReceived;
 
-        public Transport(ILogger logger)
-        {
-            Logger = logger;
-        }
+        public Transport() { }
 
         public abstract void Update();
     }

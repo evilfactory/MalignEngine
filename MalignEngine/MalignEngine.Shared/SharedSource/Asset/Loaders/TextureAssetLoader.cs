@@ -17,6 +17,8 @@ public class TextureAssetLoader : AssetFileLoader
 {
     public TextureAssetLoader(AssetPath assetPath) : base(assetPath) { }
 
+    public override Type AssetType => typeof(Texture2D);
+
     public override IAsset Load()
     {
         Texture2D texture = new Texture2D();

@@ -41,10 +41,11 @@ namespace MalignEngine
             var fields = obj.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
             foreach (var field in fields)
             {
-                if (field.GetCustomAttribute<Dependency>() != null)
+                Dependency dep = field.GetCustomAttribute<Dependency>();
+                if (dep != null)
                 {
                     object value = Resolve(field.FieldType);
-                    if (value == null)
+                    if (value == null && !dep.Optional)
                     {
                         throw new Exception($"Failed to resolve dependency of type {field.FieldType}");
                     }

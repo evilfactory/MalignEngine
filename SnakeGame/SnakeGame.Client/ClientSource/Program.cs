@@ -1,13 +1,12 @@
 ﻿using MalignEngine;
 using System.Numerics;
 
-namespace Sample
+namespace SnakeGame;
+
+internal class Program
 {
-    internal class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            new GameMain();
-        }
+        new GameMain();
     }
 }

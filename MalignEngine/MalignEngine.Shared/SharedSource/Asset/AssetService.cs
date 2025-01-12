@@ -138,14 +138,11 @@ namespace MalignEngine
         public AssetHandle<T> GetFromId<T>(string identifier) where T : class, IFileLoadableAsset<T>, IAssetWithId, new()
         {
             // Go through all assets that implement IAssetWithId and check if the id matches
-            foreach (KeyValuePair<AssetPath, AssetHandle> kvp in assetHandles)
+            foreach ((AssetPath assetPath, AssetHandle handle) in assetHandles)
             {
-                if (kvp.Value is AssetHandle<T> handle)
+                if (handle.AssetType == typeof(T) && ((IAssetWithId)handle.Asset).AssetId == identifier)
                 {
-                    if (handle.Asset.AssetId == identifier)
-                    {
-                        return handle;
-                    }
+                    return handle.Upgrade<T>();
                 }
             }
 
@@ -156,11 +153,11 @@ namespace MalignEngine
         {
             List<AssetHandle<T>> handles = new List<AssetHandle<T>>();
 
-            foreach (KeyValuePair<AssetPath, AssetHandle> kvp in assetHandles)
+            foreach ((AssetPath assetPath, AssetHandle handle) in assetHandles)
             {
-                if (kvp.Value is AssetHandle<T> handle)
+                if (handle.AssetType == typeof(T))
                 {
-                    handles.Add(handle);
+                    handles.Add(handle.Upgrade<T>());
                 }
             }
 

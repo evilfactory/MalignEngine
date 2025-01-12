@@ -6,7 +6,7 @@ using Arch.Core.Extensions;
 class GameMain : BaseSystem, IDrawGUI
 {
     [Dependency]
-    protected AssetService AssetSystem = default!;
+    protected AssetService AssetService = default!;
     [Dependency]
     protected WindowSystem WindowSystem = default!;
     [Dependency]
@@ -38,7 +38,7 @@ class GameMain : BaseSystem, IDrawGUI
         GUIStyle.Default = new GUIStyle()
         {
             FrameTexture = Texture2D.White,
-            NormalFont = AssetSystem.Load<Font>("Content/Roboto-Regular.ttf")
+            NormalFont = AssetService.FromFile<Font>("Content/Roboto-Regular.ttf")
         };
 
         frame = new GUIFrame(new RectTransform(null, new Vector2(1, 1), Anchor.Center, Pivot.Center), new Color(1f, 0f, 0f, 0.25f));
@@ -62,9 +62,9 @@ class GameMain : BaseSystem, IDrawGUI
 
         inputSystem = IoCManager.Resolve<InputSystem>();
 
-        player = new Sprite(AssetSystem.Load<Texture2D>("Content/Textures/player.png"));
+        player = new Sprite(AssetService.FromFile<Texture2D>("Content/Textures/player.png"));
         white = new Sprite(Texture2D.White);
-        fuck = new Sprite(AssetSystem.Load<Texture2D>("Content/Textures/luatrauma.png"));
+        fuck = new Sprite(AssetService.FromFile<Texture2D>("Content/Textures/luatrauma.png"));
 
         camera = EntityManager.World.CreateEntity();
         camera.Add(new GlobalLight2D() { Color = Color.White });
@@ -78,7 +78,7 @@ class GameMain : BaseSystem, IDrawGUI
 
         EntityRef light = EntityManager.World.CreateEntity();
         light.Add(new Transform(new Vector2(0, 0), 0f, new Vector2(3f, 3f)));
-        light.Add(new Light2D() { Texture = AssetSystem.Load<Texture2D>("Content/Textures/lightcone.png"), Color = Color.White });
+        light.Add(new Light2D() { Texture = AssetService.FromFile<Texture2D>("Content/Textures/lightcone.png"), Color = Color.White });
         light.Add(new ParentOf() { Parent = playerEnt });
 
         EntityRef entity2 = EntityManager.World.CreateEntity();
@@ -91,7 +91,7 @@ class GameMain : BaseSystem, IDrawGUI
 
         EntityRef entity3 = EntityManager.World.CreateEntity();
         entity3.Add(new Transform(new Vector2(0, -2f)));
-        entity3.Add(new Light2D { Texture = AssetSystem.Load<Texture2D>("Content/Textures/lightcone.png") });
+        entity3.Add(new Light2D { Texture = AssetService.FromFile<Texture2D>("Content/Textures/lightcone.png") });
     }
 
     public override void OnUpdate(float deltaTime)
@@ -132,11 +132,11 @@ class GameMain : BaseSystem, IDrawGUI
 
     public override void OnDraw(float deltaTime)
     {
-        //Vector2 position = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
+        Vector2 position = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
-        //RenderingSystem.Begin();
-        //FontSystem.DrawFont(AssetSystem.Load<Font>("Content/Roboto-Regular.ttf"), 100, "Hello World", position, Color.Red, 0f, default, new Vector2(0.01f, -0.01f));
-        //RenderingSystem.End();
+        RenderingSystem.Begin();
+        FontSystem.DrawFont(AssetService.FromFile<Font>("Content/Roboto-Regular.ttf"), 100, "Hello World", position, Color.Red, 0f, default, new Vector2(0.01f, -0.01f));
+        RenderingSystem.End();
     }
 
     public void OnDrawGUI(float deltaTime)
@@ -147,15 +147,15 @@ class GameMain : BaseSystem, IDrawGUI
 
         RenderingSystem.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, WindowSystem.Width, WindowSystem.Height, 0f, 0.001f, 100f));
 
-        FontSystem.DrawFont(AssetSystem.Load<Font>("Content/Roboto-Regular.ttf"), 100, "funny", position, Color.Red, 0f, default, new Vector2(1f, 1f));
+        FontSystem.DrawFont(AssetService.FromFile<Font>("Content/Roboto-Regular.ttf"), 100, "funny", position, Color.Red, 0f, default, new Vector2(1f, 1f));
 
         frame.Draw();
-        //RenderingSystem.DrawQuad(Texture2D.White,
-        //    new VertexPositionColorTexture(new Vector3(50, 50, 0), Color.Blue, new Vector2(1f, 1f)), // top right
-        //    new VertexPositionColorTexture(new Vector3(50, 0, 0), Color.Green, new Vector2(1f, 0f)), // bottom right
-        //    new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.Pink, new Vector2(0f, 0f)), // bottom left
-        //    new VertexPositionColorTexture(new Vector3(0, 50, 0), Color.Red, new Vector2(0f, 1f)) // top left
-        //);
+        RenderingSystem.DrawQuad(Texture2D.White,
+            new VertexPositionColorTexture(new Vector3(500, 500, 0), Color.Blue, new Vector2(1f, 1f)), // top right
+            new VertexPositionColorTexture(new Vector3(500, 0, 0), Color.Green, new Vector2(1f, 0f)), // bottom right
+            new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.Pink, new Vector2(0f, 0f)), // bottom left
+            new VertexPositionColorTexture(new Vector3(0, 500, 0), Color.Red, new Vector2(0f, 1f)) // top left
+        );
         //RenderingSystem.DrawQuad(player.Texture,
         //    new VertexPositionColorTexture(new Vector3(10, 10, 0), Color.Blue, new Vector2(1f, 1f)), // top right
         //    new VertexPositionColorTexture(new Vector3(10, 5, 0), Color.Green, new Vector2(1f, 0f)), // bottom right

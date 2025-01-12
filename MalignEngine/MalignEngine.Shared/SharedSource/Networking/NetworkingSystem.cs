@@ -147,6 +147,17 @@ namespace MalignEngine
             public Action<NetMessage>? Callback;
         }
 
+        private Transport transport;
+        public Transport Transport
+        {
+            get => transport;
+            set
+            {
+                transport.Logger = Logger;
+                transport = value;
+            }
+        }
+
         [Dependency]
         protected EventSystem EventSystem = default!;
         [Dependency]
@@ -160,7 +171,6 @@ namespace MalignEngine
 
         protected ILogger Logger;
 
-        private Transport transport;
         private NetSerializer.Serializer serializer;
 
         private Dictionary<string, MessageData> netReceives;
@@ -172,7 +182,7 @@ namespace MalignEngine
 
             netReceives = new Dictionary<string, MessageData>();
             entities = new Dictionary<uint, EntityRef>();
-            transport = new LidgrenTransport(Logger);
+            transport = new LidgrenTransport();
 
             serializer = new NetSerializer.Serializer(new List<Type>() { typeof(INetSerializable) });
 

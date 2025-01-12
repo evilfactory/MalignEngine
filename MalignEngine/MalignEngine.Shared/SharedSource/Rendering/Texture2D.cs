@@ -63,12 +63,15 @@ namespace MalignEngine
                     flattenData[y * Width + x] = textureData[x, y];
                 }
             }
-            Handle.SubmitData(flattenData);
+            Handle?.SubmitData(flattenData);
         }
 
         private void CreateHandle()
         {
             var rendering = IoCManager.Resolve<RenderingSystem>();
+
+            if (rendering == null) { return; }
+
             Handle = rendering.CreateTextureHandle();
             Handle.Initialize(Width, Height, false);
         }
@@ -84,7 +87,7 @@ namespace MalignEngine
             {
                 Width = (uint)img.Width;
                 Height = (uint)img.Height;
-                Handle.Resize(Width, Height);
+                Handle?.Resize(Width, Height);
 
                 img.Mutate(x => x.AutoOrient());
 
@@ -112,7 +115,7 @@ namespace MalignEngine
                         flattenData[y * Width + x] = textureData[x, y];
                     }
                 }
-                Handle.SubmitData(flattenData);
+                Handle?.SubmitData(flattenData);
             }
 
             return this;

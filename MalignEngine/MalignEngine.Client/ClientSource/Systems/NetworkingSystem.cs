@@ -51,7 +51,7 @@ namespace MalignEngine
 
         private void ClientNetEntitySpawnReceived(NetEntitySpawnNetMessage entitySpawn)
         {
-            EntityRef entity = SceneSystem.LoadScene(AssetSystem.GetOfType<Scene>().Where(x => x.Asset.SceneId == entitySpawn.SceneId).First());
+            EntityRef entity = SceneSystem.Instantiate(AssetSystem.GetFromId<Scene>(entitySpawn.SceneId));
             entity.Add(new NetId() { Id = entitySpawn.EntityId });
             entities.Add(entitySpawn.EntityId, entity);
         }

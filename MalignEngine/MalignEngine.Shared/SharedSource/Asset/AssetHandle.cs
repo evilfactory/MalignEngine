@@ -31,6 +31,16 @@ namespace MalignEngine
             }
         }
 
+        public Type AssetType
+        {
+            get
+            {
+                if (IsLoading) { return loader.AssetType; }
+
+                return Asset.GetType();
+            }
+        }
+
         private IAssetFileLoader loader;
 
         public AssetHandle(AssetPath assetPath, IAssetFileLoader loader)
@@ -61,6 +71,11 @@ namespace MalignEngine
         /// <returns>Upgraded handle</returns>
         public AssetHandle<T> Upgrade<T>() where T : class, IAsset
         {
+            if (!AssetType.IsAssignableTo(typeof(T)))
+            {
+                throw new InvalidCastException($"Cannot cast {AssetType} to {typeof(T)}");
+            }
+
             return new AssetHandle<T>(this);
         }
     }

@@ -17,6 +17,8 @@ public class FontAssetLoader : AssetFileLoader
 {
     public FontAssetLoader(AssetPath assetPath) : base(assetPath) { }
 
+    public override Type AssetType => typeof(Font);
+
     public override IAsset Load()
     {
         Font font = new Font();

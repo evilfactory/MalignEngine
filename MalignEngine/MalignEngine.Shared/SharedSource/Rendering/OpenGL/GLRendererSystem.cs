@@ -74,6 +74,8 @@ namespace MalignEngine
             openGL.Enable(GLEnum.DepthTest);
             openGL.Enable(GLEnum.StencilTest);
 
+            openGL.DepthFunc(GLEnum.Lequal);
+
             openGL.Enable(GLEnum.DebugOutput);
             openGL.Enable(GLEnum.DebugOutputSynchronous);
             unsafe
@@ -158,7 +160,6 @@ namespace MalignEngine
         {
             openGL.ClearColor(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B));
             openGL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
-            openGL.ClearStencil(0);
         }
 
         public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)

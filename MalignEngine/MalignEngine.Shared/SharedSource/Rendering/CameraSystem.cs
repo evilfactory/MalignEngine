@@ -16,7 +16,6 @@ namespace MalignEngine
 
         public override void OnInitialize()
         {
-
         }
 
         public void OnWindowDraw(float delta)

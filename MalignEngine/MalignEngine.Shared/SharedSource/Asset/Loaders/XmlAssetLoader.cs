@@ -59,18 +59,20 @@ public class XmlAssetLoaderFactory : IAssetFileLoaderFactory
 
 public class XmlAssetLoader : AssetFileLoader
 {
-    private Type type;
+    private Type assetType;
+    public override Type AssetType => assetType;
+
     private XElement elementToLoad;
 
     public XmlAssetLoader(AssetPath assetPath, Type type, XElement element) : base(assetPath)
     {
         elementToLoad = element;
-        this.type = type;
+        assetType = type;
     }
 
     public override IAsset Load()
     {
-        XmlAsset asset = (XmlAsset)Activator.CreateInstance(type);
+        XmlAsset asset = (XmlAsset)Activator.CreateInstance(assetType);
 
         asset.Load(elementToLoad);
 
