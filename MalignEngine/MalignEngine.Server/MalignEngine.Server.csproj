@@ -9,10 +9,6 @@
         <LangVersion>latest</LangVersion>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <EnablePreviewFeatures>true</EnablePreviewFeatures>
-    </PropertyGroup>
-
     <ItemGroup>
         <Content Remove="..\MalignEngine.Shared\**\*.cs" />
         <Content Remove="..\MalignEngine.Shared\**\*.props" />
