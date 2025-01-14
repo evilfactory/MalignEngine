@@ -72,7 +72,7 @@ namespace MalignEngine
 
                         if (status == NetConnectionStatus.Disconnected)
                         {
-                            OnDisconnected(DisconnectReason.DisconnectedByUser);
+                            OnDisconnected(DisconnectReason.Unknown);
                         }
 
                         break;
