@@ -27,10 +27,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AxisOne", "AxisOne", "{0962
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AxisOne.Server", "AxisOne\AxisOne.Server\AxisOne.Server.csproj", "{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeGame.Client", "SnakeGame\SnakeGame.Client\SnakeGame.Client.csproj", "{AE8572BD-92A2-43F3-887D-ACBADD4838B0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SnakeGame.Server", "SnakeGame\SnakeGame.Server\SnakeGame.Server.csproj", "{DBB2866B-7B5E-455C-BA1C-080C263A5C74}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,34 +164,6 @@ Global
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Debug-Events|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Debug-Events|Any CPU.Build.0 = Debug|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Debug-PureECS|Any CPU.ActiveCfg = Debug|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Debug-PureECS|Any CPU.Build.0 = Debug|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release-Events|Any CPU.ActiveCfg = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release-Events|Any CPU.Build.0 = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release-Pure|Any CPU.ActiveCfg = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
-		{AE8572BD-92A2-43F3-887D-ACBADD4838B0}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Debug-Events|Any CPU.ActiveCfg = Debug|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Debug-Events|Any CPU.Build.0 = Debug|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Debug-PureECS|Any CPU.ActiveCfg = Debug|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Debug-PureECS|Any CPU.Build.0 = Debug|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release-Events|Any CPU.ActiveCfg = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release-Events|Any CPU.Build.0 = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release-Pure|Any CPU.ActiveCfg = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
-		{DBB2866B-7B5E-455C-BA1C-080C263A5C74}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
