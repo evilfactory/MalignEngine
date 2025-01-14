@@ -97,7 +97,7 @@ namespace MalignEngine
 
                         if (status == NetConnectionStatus.Disconnected)
                         {
-                            OnClientDisconnected(connections[msg.SenderConnection.RemoteUniqueIdentifier], DisconnectReason.DisconnectedByUser);
+                            OnClientDisconnected(connections[msg.SenderConnection.RemoteUniqueIdentifier], DisconnectReason.Unknown);
 
                             if (connections.ContainsKey(msg.SenderConnection.RemoteUniqueIdentifier))
                             {
