@@ -38,7 +38,7 @@ namespace MalignEngine
         public uint UIntValue;
     }
 
-    internal static class MsgWriter
+    public static class MsgWriter
     {
         internal static void UpdateBitLength(ref int bitLength, int bitPos)
         {
@@ -231,7 +231,7 @@ namespace MalignEngine
         }
     }
 
-    internal static class MsgReader
+    public static class MsgReader
     {
         internal static bool ReadBoolean(byte[] buf, ref int bitPos)
         {
@@ -396,7 +396,7 @@ namespace MalignEngine
         }
     }
 
-    internal sealed class WriteOnlyMessage : IWriteMessage
+    public sealed class WriteOnlyMessage : IWriteMessage
     {
         private byte[] buf = new byte[MsgConstants.InitialBufferSize];
         private int seekPos;
@@ -715,7 +715,7 @@ namespace MalignEngine
         }
     }
 
-    internal sealed class ReadWriteMessage : IWriteMessage, IReadMessage
+    public sealed class ReadWriteMessage : IWriteMessage, IReadMessage
     {
         private byte[] buf;
         private int seekPos;

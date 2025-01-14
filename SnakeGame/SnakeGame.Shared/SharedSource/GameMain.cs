@@ -31,14 +31,18 @@ class GameMain
         application.AddSystem(new SceneSystem());
         application.AddSystem(new PhysicsSystem2D());
 
+#if CLIENT
+        application.AddSystem(new SnakeClient());
+#elif SERVER
+        application.AddSystem(new SnakeServer());
+#endif
+
         application.AddSystem(new SnakeGame());
         application.AddSystem(new SnakeSystem());
 
 #if CLIENT
         application.AddSystem(new MainMenu());
-        application.AddSystem(new SnakeClient());
 #elif SERVER
-        application.AddSystem(new SnakeServer());
 #endif
 
 #if CLIENT

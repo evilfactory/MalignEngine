@@ -36,7 +36,7 @@ namespace MalignEngine
             client.Connect(endpoint);
         }
 
-        public override void Disconnect()
+        public override void Disconnect(DisconnectReason reason)
         {
             if (client == null) { return; }
 
@@ -72,7 +72,7 @@ namespace MalignEngine
 
                         if (status == NetConnectionStatus.Disconnected)
                         {
-                            OnDisconnected();
+                            OnDisconnected(DisconnectReason.DisconnectedByUser);
                         }
 
                         break;

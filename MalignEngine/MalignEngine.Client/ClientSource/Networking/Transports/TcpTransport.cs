@@ -29,22 +29,29 @@ namespace MalignEngine
             byte[] buffer = new byte[1024];
             int bytesRead;
 
-            while (true)
+            try
             {
-                bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                if (bytesRead == 0)
+                while (true)
                 {
-                    OnDisconnected?.Invoke();
-                    break;
+                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        OnDisconnected?.Invoke(DisconnectReason.ServerShutdown);
+                        break;
+                    }
+
+                    IReadMessage message = new ReadOnlyMessage(buffer, false, 0, buffer.Length);
+
+                    OnMessageReceived?.Invoke(message);
                 }
-
-                IReadMessage message = new ReadOnlyMessage(buffer, false, 0, buffer.Length);
-
-                OnMessageReceived?.Invoke(message);
+            }
+            catch
+            {
+                OnDisconnected?.Invoke(DisconnectReason.Unknown);
             }
         }
 
-        public override void Disconnect()
+        public override void Disconnect(DisconnectReason reason)
         {
             client.Close();
             client = null;

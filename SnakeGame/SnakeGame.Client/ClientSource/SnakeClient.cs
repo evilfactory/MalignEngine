@@ -28,7 +28,7 @@ public class SnakeClient : EntitySystem
 
     public void Disconnect()
     {
-        Transport.Disconnect();
+        Transport.Disconnect(DisconnectReason.DisconnectedByUser);
     }
 
     public void SendToServer(IWriteMessage message, PacketChannel packetChannel = PacketChannel.Reliable)
@@ -39,9 +39,14 @@ public class SnakeClient : EntitySystem
     public void OnConnected()
     {
         logger.LogInfo("Connected to server");
+
+        var message = new WriteOnlyMessage();
+        message.WriteString("Hello, server!");
+
+        Transport.SendToServer(message, PacketChannel.Reliable);
     }
 
-    public void OnDisconnected()
+    public void OnDisconnected(DisconnectReason reason)
     {
         logger.LogInfo("Disconnected from server");
     }
@@ -49,5 +54,9 @@ public class SnakeClient : EntitySystem
     public void OnMessageReceived(IReadMessage message)
     {
         logger.LogInfo($"Message received from server");
+
+        var text = message.ReadString();
+
+        logger.LogInfo($"Message: {text}");
     }
 }

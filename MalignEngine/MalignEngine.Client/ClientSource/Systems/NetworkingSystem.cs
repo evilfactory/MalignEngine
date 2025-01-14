@@ -23,9 +23,9 @@ namespace MalignEngine
             transport.Connect(endpoint);
         }
 
-        public void Disconnect()
+        public void Disconnect(DisconnectReason reason)
         {
-            transport.Disconnect();
+            transport.Disconnect(reason);
         }
 
         private void OnConnected()
@@ -33,7 +33,7 @@ namespace MalignEngine
 
         }
 
-        private void OnDisconnected()
+        private void OnDisconnected(DisconnectReason reason)
         {
             Connection = null;
 

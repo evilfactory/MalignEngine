@@ -43,7 +43,7 @@ namespace MalignEngine
             EventSystem.PublishEvent<IEventClientConnected>(x => x.OnClientConnected(connection));
         }
 
-        private void OnClientDisconnected(NetworkConnection connection)
+        private void OnClientDisconnected(NetworkConnection connection, DisconnectReason reason)
         {
             Logger.LogInfo($"Client disconnected: {connection.Id}");
 

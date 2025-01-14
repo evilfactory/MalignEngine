@@ -97,7 +97,7 @@ namespace MalignEngine
 
                         if (status == NetConnectionStatus.Disconnected)
                         {
-                            OnClientDisconnected(connections[msg.SenderConnection.RemoteUniqueIdentifier]);
+                            OnClientDisconnected(connections[msg.SenderConnection.RemoteUniqueIdentifier], DisconnectReason.DisconnectedByUser);
 
                             if (connections.ContainsKey(msg.SenderConnection.RemoteUniqueIdentifier))
                             {
@@ -125,6 +125,28 @@ namespace MalignEngine
                 }
                 server.Recycle(msg);
             }
+        }
+
+        public override void DisconnectClient(NetworkConnection connection, DisconnectReason reason)
+        {
+            if (server == null) { return; }
+
+            NetConnection netConnection = null;
+            foreach ((long remoteId, NetworkConnection c) in connections)
+            {
+                if (c.Id == connection.Id)
+                {
+                    netConnection = server.Connections.First(x => x.RemoteUniqueIdentifier == remoteId);
+                    break;
+                }
+            }
+
+            if (netConnection == null)
+            {
+                throw new Exception("Connection not found");
+            }
+
+            netConnection.Disconnect("disconnect");
         }
 
 

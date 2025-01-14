@@ -48,21 +48,28 @@ namespace MalignEngine
             byte[] buffer = new byte[1024];
             int bytesRead;
 
-            while (true)
+            try
             {
-                bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                if (bytesRead == 0)
+                while (true)
                 {
-                    clients.Remove(connection.Id);
-                    OnClientDisconnected?.Invoke(connection);
-                    break;
+                    bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    if (bytesRead == 0)
+                    {
+                        clients.Remove(connection.Id);
+                        OnClientDisconnected?.Invoke(connection, DisconnectReason.Unknown);
+                        break;
+                    }
+
+                    IReadMessage message = new ReadOnlyMessage(buffer, false, 0, bytesRead);
+                    message.Sender = connection;
+
+                    OnMessageReceived?.Invoke(message);
                 }
-
-                IReadMessage message = new ReadOnlyMessage(buffer, false, 0, buffer.Length);
-
-                message.Sender = connection;
-
-                OnMessageReceived?.Invoke(message);
+            }
+            catch (Exception exception)
+            {
+                clients.Remove(connection.Id);
+                OnClientDisconnected?.Invoke(connection, DisconnectReason.Unknown);
             }
         }
 
@@ -83,6 +90,16 @@ namespace MalignEngine
         {
             currentId++;
             return currentId;
+        }
+
+        public override void DisconnectClient(NetworkConnection connection, DisconnectReason reason)
+        {
+            TcpClient client = clients[connection.Id];
+
+            client.Close();
+            clients.Remove(connection.Id);
+
+            OnClientDisconnected?.Invoke(connection, reason);
         }
     }
 }

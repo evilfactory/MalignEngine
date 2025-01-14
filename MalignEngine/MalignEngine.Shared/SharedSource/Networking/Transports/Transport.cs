@@ -1,19 +1,26 @@
-namespace MalignEngine
+namespace MalignEngine;
+
+public enum PacketChannel
 {
-    public enum PacketChannel
-    {
-        Reliable,
-        Unreliable
-    }
+    Reliable,
+    Unreliable
+}
 
-    public abstract partial class Transport
-    {
-        public ILogger Logger { get; set; }
+public enum DisconnectReason
+{
+    Unknown,
+    Timeout,
+    FailedToConnect,
+    ServerShutdown
+}
 
-        public Action<IReadMessage> OnMessageReceived;
+public abstract partial class Transport
+{
+    public ILogger Logger { get; set; }
 
-        public Transport() { }
+    public Action<IReadMessage> OnMessageReceived;
 
-        public abstract void Update();
-    }
+    public Transport() { }
+
+    public abstract void Update();
 }

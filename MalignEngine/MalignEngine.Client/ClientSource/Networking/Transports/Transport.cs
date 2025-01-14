@@ -1,15 +1,14 @@
 using System.Net;
 
-namespace MalignEngine
+namespace MalignEngine;
+
+partial class Transport
 {
-    partial class Transport
-    {
-        public Action OnConnected;
-        public Action OnDisconnected;
+    public Action OnConnected;
+    public Action<DisconnectReason> OnDisconnected;
 
-        public abstract void SendToServer(IWriteMessage message, PacketChannel packetChannel = PacketChannel.Reliable);
-        public abstract void Connect(IPEndPoint endpoint);
-        public abstract void Disconnect();
+    public abstract void SendToServer(IWriteMessage message, PacketChannel packetChannel = PacketChannel.Reliable);
+    public abstract void Connect(IPEndPoint endpoint);
+    public abstract void Disconnect(DisconnectReason reason);
 
-    }
 }
