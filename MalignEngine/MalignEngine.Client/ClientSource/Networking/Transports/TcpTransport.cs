@@ -7,14 +7,24 @@ namespace MalignEngine
     {
         private TcpClient client;
 
+        private Queue<IWriteMessage> sendQueue = new Queue<IWriteMessage>();
+        private Queue<IReadMessage> receiveQueue = new Queue<IReadMessage>();
+
         public override void SendToServer(IWriteMessage message, PacketChannel packetChannel = PacketChannel.Reliable)
         {
-            NetworkStream stream = client.GetStream();
-            stream.Write(message.Buffer, 0, message.LengthBytes);
+            if (client == null)
+            {
+                throw new Exception("Client not connected");
+            }
+
+            sendQueue.Enqueue(message);
         }
 
         public override void Connect(IPEndPoint endpoint)
         {
+            sendQueue.Clear();
+            receiveQueue.Clear();
+
             client = new TcpClient();
             client.Connect(endpoint);
 
@@ -36,18 +46,16 @@ namespace MalignEngine
                     bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead == 0)
                     {
-                        OnDisconnected?.Invoke(DisconnectReason.ServerShutdown);
+                        Disconnect(DisconnectReason.Unknown);
                         break;
                     }
 
-                    IReadMessage message = new ReadOnlyMessage(buffer, false, 0, buffer.Length);
-
-                    OnMessageReceived?.Invoke(message);
+                    receiveQueue.Enqueue(new ReadOnlyMessage(buffer, false, 0, bytesRead));
                 }
             }
             catch
             {
-                OnDisconnected?.Invoke(DisconnectReason.Unknown);
+                Disconnect(DisconnectReason.Unknown);
             }
         }
 
@@ -55,11 +63,26 @@ namespace MalignEngine
         {
             client.Close();
             client = null;
+
+            OnDisconnected?.Invoke(reason);
         }
 
         public override void Update()
         {
+            if (client == null || !client.Connected) { return; }
 
+            while (sendQueue.Count > 0)
+            {
+                IWriteMessage message = sendQueue.Dequeue();
+
+                NetworkStream stream = client.GetStream();
+                stream.Write(message.Buffer, 0, message.LengthBytes);
+            }
+
+            while (receiveQueue.Count > 0)
+            {
+                OnMessageReceived?.Invoke(receiveQueue.Dequeue());
+            }
         }
     }
 }

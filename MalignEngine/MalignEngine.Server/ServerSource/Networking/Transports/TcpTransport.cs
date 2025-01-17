@@ -6,7 +6,22 @@ namespace MalignEngine
 {
     partial class TcpTransport : Transport
     {
+        private class QueuedSendMessage
+        {
+            public IWriteMessage Message { get; set; }
+            public NetworkConnection Connection { get; set; }
+        }
+
+        private class QueuedReceiveMessage
+        {
+            public IReadMessage Message { get; set; }
+            public NetworkConnection Connection { get; set; }
+        }
+
         private TcpListener server;
+
+        private Queue<QueuedSendMessage> sendQueue = new Queue<QueuedSendMessage>();
+        private Queue<QueuedReceiveMessage> receiveQueue = new Queue<QueuedReceiveMessage>();
 
         Dictionary<byte, TcpClient> clients = new Dictionary<byte, TcpClient>();
 
@@ -17,8 +32,11 @@ namespace MalignEngine
                 throw new Exception("Client not found");
             }
 
-            NetworkStream stream = clients[connection.Id].GetStream();
-            stream.Write(message.Buffer, 0, message.LengthBytes);
+            sendQueue.Enqueue(new QueuedSendMessage
+            {
+                Message = message,
+                Connection = connection
+            });
         }
 
         public override void Listen(int port)
@@ -55,21 +73,25 @@ namespace MalignEngine
                     bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead == 0)
                     {
+                        connection.IsInvalid = true;
                         clients.Remove(connection.Id);
-                        OnClientDisconnected?.Invoke(connection, DisconnectReason.Unknown);
+                        DisconnectClient(connection, DisconnectReason.Unknown);
                         break;
                     }
 
                     IReadMessage message = new ReadOnlyMessage(buffer, false, 0, bytesRead);
                     message.Sender = connection;
-
-                    OnMessageReceived?.Invoke(message);
+                    
+                    receiveQueue.Enqueue(new QueuedReceiveMessage
+                    {
+                        Message = message,
+                        Connection = connection
+                    });
                 }
             }
             catch (Exception exception)
             {
-                clients.Remove(connection.Id);
-                OnClientDisconnected?.Invoke(connection, DisconnectReason.Unknown);
+                DisconnectClient(connection, DisconnectReason.Unknown);
             }
         }
 
@@ -81,7 +103,28 @@ namespace MalignEngine
 
         public override void Update()
         {
+            if (server == null) { return; }
 
+            while (sendQueue.Count > 0)
+            {
+                QueuedSendMessage message = sendQueue.Dequeue();
+                NetworkConnection connection = message.Connection;
+
+                if (connection.IsInvalid)
+                {
+                    Logger.LogWarning($"Dropped packet for invalid connection to {connection}");
+                    continue;
+                }
+
+                NetworkStream stream = clients[connection.Id].GetStream();
+                stream.Write(message.Message.Buffer, 0, message.Message.LengthBytes);
+            }
+
+            while (receiveQueue.Count > 0)
+            {
+                QueuedReceiveMessage message = receiveQueue.Dequeue();
+                OnMessageReceived?.Invoke(message.Message);
+            }
         }
 
 
@@ -98,6 +141,7 @@ namespace MalignEngine
 
             client.Close();
             clients.Remove(connection.Id);
+            connection.IsInvalid = true;
 
             OnClientDisconnected?.Invoke(connection, reason);
         }
