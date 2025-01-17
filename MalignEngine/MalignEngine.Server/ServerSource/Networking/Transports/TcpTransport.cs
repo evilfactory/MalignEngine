@@ -53,6 +53,7 @@ namespace MalignEngine
             {
                 TcpClient client = await server.AcceptTcpClientAsync();
                 var connection = new NetworkConnection(CreateId());
+                connection.IsInvalid = false;
                 OnClientConnected?.Invoke(connection);
                 clients.Add(connection.Id, client);
 
