@@ -74,8 +74,6 @@ namespace MalignEngine
                     bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead == 0)
                     {
-                        connection.IsInvalid = true;
-                        clients.Remove(connection.Id);
                         DisconnectClient(connection, DisconnectReason.Unknown);
                         break;
                     }
