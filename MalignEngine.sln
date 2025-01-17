@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AxisOne", "AxisOne", "{0962
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AxisOne.Server", "AxisOne\AxisOne.Server\AxisOne.Server.csproj", "{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MalignEngine.Core", "MalignEngine\MalignEngine.Core\MalignEngine.Core.csproj", "{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -164,6 +166,20 @@ Global
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Debug-Events|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Debug-Events|Any CPU.Build.0 = Debug|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Debug-PureECS|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Debug-PureECS|Any CPU.Build.0 = Debug|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release-Events|Any CPU.ActiveCfg = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release-Events|Any CPU.Build.0 = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release-Pure|Any CPU.ActiveCfg = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -177,6 +193,7 @@ Global
 		{CE87A8E8-9D28-4EA0-A521-B951B057BDF0} = {0233806C-C951-4B11-AEB1-A52AF5243C3B}
 		{B7A977AB-3588-4F79-8BEF-ECBDE6C96426} = {0962F41B-809D-481F-B8F7-3268ECB37FC4}
 		{80353D9A-1EC3-47DA-97E2-2249AF4AAAAC} = {0962F41B-809D-481F-B8F7-3268ECB37FC4}
+		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B174E1E-125E-48EE-8E30-F3793965839D}
