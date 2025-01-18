@@ -19,6 +19,7 @@
         <PackageReference Include="Silk.NET.Windowing" Version="2.21.0" />
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
         <PackageReference Include="SpaceWizards.Lidgren.Network" Version="0.3.1" />
+        <PackageReference Include="FluentResults" Version="3.16.0" />
     </ItemGroup>
 
     <ItemGroup>
