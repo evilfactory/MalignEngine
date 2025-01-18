@@ -110,7 +110,15 @@ namespace MalignEngine
             while (server != null)
             {
                 TcpClient client = await server.AcceptTcpClientAsync();
-                var connection = new NetworkConnection(CreateId());
+                byte id = CreateId();
+
+                if (id == 0)
+                {
+                    client.Close();
+                    return;
+                }
+
+                var connection = new NetworkConnection(id);
                 connection.IsInvalid = false;
                 OnClientConnected?.Invoke(connection);
                 clients.Add(connection.Id, client);
@@ -156,11 +164,18 @@ namespace MalignEngine
             }
         }
 
-        private byte currentId = 0;
         private byte CreateId()
         {
-            currentId++;
-            return currentId;
+            // Find a free id
+            for (byte i = 1; i < byte.MaxValue; i++)
+            {
+                if (!clients.ContainsKey(i))
+                {
+                    return i;
+                }
+            }
+
+            return 0;
         }
     }
 }
