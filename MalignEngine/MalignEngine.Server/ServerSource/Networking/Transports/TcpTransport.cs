@@ -75,6 +75,12 @@ namespace MalignEngine
             while (receiveQueue.Count > 0)
             {
                 QueuedReceiveMessage message = receiveQueue.Dequeue();
+                if (message.Connection.IsInvalid)
+                {
+                    Logger.LogWarning($"Ignored packet from invalid connection {message.Connection}");
+                    continue;
+                }
+
                 OnMessageReceived?.Invoke(message.Message);
             }
         }
