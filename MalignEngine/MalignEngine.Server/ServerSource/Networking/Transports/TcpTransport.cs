@@ -116,6 +116,9 @@ namespace MalignEngine
                 while (true)
                 {
                     bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
+
+                    if (connection.IsInvalid) { return; }
+
                     if (bytesRead == 0)
                     {
                         DisconnectClient(connection, DisconnectReason.Unknown);
@@ -134,6 +137,7 @@ namespace MalignEngine
             }
             catch (Exception exception)
             {
+                Logger.LogVerbose(exception.Message);
                 DisconnectClient(connection, DisconnectReason.Unknown);
             }
         }
