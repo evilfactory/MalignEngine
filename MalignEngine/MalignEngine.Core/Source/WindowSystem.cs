@@ -4,10 +4,16 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class WindowSystem : BaseSystem, IApplicationRun
+    public class WindowSystem : BaseSystem, IApplicationRun, IUpdateLoop
     {
         [Dependency]
         protected EventSystem EventSystem = default!;
+
+        public double UpdateRate
+        {
+            get { return window.UpdatesPerSecond; }
+            set { window.UpdatesPerSecond = value; }
+        }
 
         public int Width => window.Size.X;
         public int Height => window.Size.Y;
