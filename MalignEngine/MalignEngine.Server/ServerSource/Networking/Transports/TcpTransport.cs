@@ -143,7 +143,7 @@ namespace MalignEngine
             }
             catch (Exception exception)
             {
-                Logger.LogVerbose(exception.Message);
+                Logger.LogVerbose(exception.ToString());
                 DisconnectClient(connection, DisconnectReason.Unknown);
             }
         }
