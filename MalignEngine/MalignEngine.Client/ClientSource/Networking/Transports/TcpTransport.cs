@@ -25,8 +25,16 @@ namespace MalignEngine
             sendQueue.Clear();
             receiveQueue.Clear();
 
-            client = new TcpClient();
-            client.Connect(endpoint);
+            try
+            {
+                client = new TcpClient();
+                client.Connect(endpoint);
+            }
+            catch
+            {
+                Disconnect(DisconnectReason.FailedToConnect);
+                return;
+            }
 
             OnConnected?.Invoke();
 
