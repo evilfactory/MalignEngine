@@ -116,6 +116,12 @@ public class EditorConsole : BaseEditorWindowSystem, ILogHandler
 
     public void NewLog(string line, Vector4 color)
     {
+        // Limit the number of logs to 1000
+        if (logs.Count > 1000)
+        {
+            logs.RemoveAt(0);
+        }
+
         logs.Add(new DebugConsoleLog(line, color));
     }
 
