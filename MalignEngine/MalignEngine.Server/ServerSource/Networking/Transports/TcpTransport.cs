@@ -64,12 +64,20 @@ namespace MalignEngine
 
                 if (connection.IsInvalid)
                 {
-                    Logger.LogWarning($"Dropped packet for invalid connection to {connection}");
+                    Logger.LogWarning($"Dropped packet for invalid connection {connection}");
                     continue;
                 }
 
-                NetworkStream stream = clients[connection.Id].GetStream();
-                stream.Write(message.Message.Buffer, 0, message.Message.LengthBytes);
+                try
+                {
+                    NetworkStream stream = clients[connection.Id].GetStream();
+                    stream.Write(message.Message.Buffer, 0, message.Message.LengthBytes);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning($"Dropped packet to connection {connection}, error = {ex.Message}");
+                    continue;
+                }
             }
 
             while (receiveQueue.Count > 0)
