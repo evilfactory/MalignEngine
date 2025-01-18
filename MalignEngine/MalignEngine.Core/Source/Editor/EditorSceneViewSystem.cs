@@ -13,7 +13,7 @@ namespace MalignEngine
         public bool IsWindowHovered { get; private set; }
 
         [Dependency]
-        protected RenderingSystem RenderingSystem = default!;
+        protected IRenderingService IRenderingService = default!;
         [Dependency]
         protected TransformSystem TransformSystem = default!;
         [Dependency]
@@ -77,9 +77,9 @@ namespace MalignEngine
 
                 if (InputSystem.IsMouseButtonPressed(0))
                 {
-                    RenderingSystem.Begin();
-                    RenderingSystem.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Color.Red, 0f, 15);
-                    RenderingSystem.End();
+                    IRenderingService.Begin();
+                    IRenderingService.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Color.Red, 0f, 15);
+                    IRenderingService.End();
                 }
             }
             else
@@ -97,7 +97,7 @@ namespace MalignEngine
             if (renderTexture != null)
             {
                 ImGuiSystem.Image(renderTexture, size, uv0: new Vector2(0, 1), uv1: new Vector2(1, 0));
-                renderTexture.Resize((uint)size.X, (uint)size.Y);
+                renderTexture.Resize((int)size.X, (int)size.Y);
             }
 
             ImGui.End();

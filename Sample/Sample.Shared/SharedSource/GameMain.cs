@@ -12,7 +12,7 @@ class GameMain : BaseSystem, IDrawGUI
     [Dependency]
     protected FontSystem FontSystem = default!;
     [Dependency]
-    protected RenderingSystem RenderingSystem = default!;
+    protected IRenderingService RenderingService = default!;
     [Dependency]
     protected CameraSystem CameraSystem = default!;
     [Dependency]
@@ -134,9 +134,9 @@ class GameMain : BaseSystem, IDrawGUI
     {
         Vector2 position = CameraSystem.ScreenToWorld(ref camera.Get<OrthographicCamera>(), inputSystem.MousePosition);
 
-        RenderingSystem.Begin();
+        RenderingService.Begin();
         FontSystem.DrawFont(AssetService.FromFile<Font>("Content/Roboto-Regular.ttf"), 100, "Hello World", position, Color.Red, 0f, default, new Vector2(0.01f, -0.01f));
-        RenderingSystem.End();
+        RenderingService.End();
     }
 
     public void OnDrawGUI(float deltaTime)
@@ -145,12 +145,12 @@ class GameMain : BaseSystem, IDrawGUI
 
         Vector2 position = inputSystem.MousePosition;
 
-        RenderingSystem.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, WindowSystem.Width, WindowSystem.Height, 0f, 0.001f, 100f));
+        RenderingService.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, WindowSystem.Width, WindowSystem.Height, 0f, 0.001f, 100f));
 
         FontSystem.DrawFont(AssetService.FromFile<Font>("Content/Roboto-Regular.ttf"), 100, "funny", position, Color.Red, 0f, default, new Vector2(1f, 1f));
 
         frame.Draw();
-        RenderingSystem.DrawQuad(Texture2D.White,
+        RenderingService.DrawQuad(Texture2D.White,
             new VertexPositionColorTexture(new Vector3(500, 500, 0), Color.Blue, new Vector2(1f, 1f)), // top right
             new VertexPositionColorTexture(new Vector3(500, 0, 0), Color.Green, new Vector2(1f, 0f)), // bottom right
             new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.Pink, new Vector2(0f, 0f)), // bottom left
@@ -163,6 +163,6 @@ class GameMain : BaseSystem, IDrawGUI
         //    new VertexPositionColorTexture(new Vector3(5, 10, 0), Color.Red, new Vector2(0f, 1f)) // top left
         //);
         //FontSystem.DrawFont(assetSystem.Load<Font>("Content/Roboto-Regular.ttf"), 100, "Hello World", new Vector2(600f, 600f), Color.Red, 0f, default, new Vector2(100f, 100f));
-        RenderingSystem.End();
+        RenderingService.End();
     }
 }

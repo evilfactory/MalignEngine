@@ -7,26 +7,9 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public interface ITexture
-    {
-        public TextureHandle Handle { get; }
-    }
-
-    public class Texture2D : IFileLoadableAsset<Texture2D>, ITexture
+    public class Texture2D : Texture, IFileLoadableAsset<Texture2D>
     {
         public static Texture2D White = new Texture2D(new Color[,] { { Color.White } }, 1, 1);
-
-        public uint Width { get; private set; }
-        public uint Height { get; private set; }
-        public float AspectRatio
-        {
-            get
-            {
-                return (float)Width / Height;
-            }
-        }
-
-        public TextureHandle Handle { get; private set; }
 
         private Color[,] textureData;
 
@@ -38,7 +21,7 @@ namespace MalignEngine
             CreateHandle();
         }
 
-        public Texture2D(uint width, uint height)
+        public Texture2D(int width, int height)
         {
             Width = width;
             Height = height;
@@ -46,7 +29,7 @@ namespace MalignEngine
             CreateHandle();
         }
 
-        public Texture2D(Color[,] data, uint width, uint height)
+        public Texture2D(Color[,] data, int width, int height)
         {
             textureData = data;
             Width = width;
@@ -68,7 +51,7 @@ namespace MalignEngine
 
         private void CreateHandle()
         {
-            var rendering = IoCManager.Resolve<RenderingSystem>();
+            var rendering = IoCManager.Resolve<IRenderingService>();
 
             if (rendering == null) { return; }
 
@@ -85,8 +68,8 @@ namespace MalignEngine
         {
             using (var img = Image.Load<Rgba32>(assetPath))
             {
-                Width = (uint)img.Width;
-                Height = (uint)img.Height;
+                Width = img.Width;
+                Height = img.Height;
                 Handle?.Resize(Width, Height);
 
                 img.Mutate(x => x.AutoOrient());
@@ -119,11 +102,6 @@ namespace MalignEngine
             }
 
             return this;
-        }
-
-        public static Texture2D CreateDummyAsset()
-        {
-            return White;
         }
     }
 }

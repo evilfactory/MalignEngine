@@ -1,21 +1,16 @@
 namespace MalignEngine
 {
-    public class RenderTexture : ITexture
+    public class RenderTexture : Texture
     {
-        public uint Width { get; private set; }
-        public uint Height { get; private set; }
-
-        public TextureHandle Handle { get; private set; }
-
-        public RenderTexture(uint width, uint height)
+        public RenderTexture(int width, int height)
         {
             Width = width;
             Height = height;
-            Handle = IoCManager.Resolve<RenderingSystem>().CreateTextureHandle();
+            Handle = IoCManager.Resolve<IRenderingService>().CreateTextureHandle();
             Handle.Initialize(width, height, true);
         }
 
-        public void Resize(uint width, uint height)
+        public void Resize(int width, int height)
         {
             Width = width;
             Height = height;

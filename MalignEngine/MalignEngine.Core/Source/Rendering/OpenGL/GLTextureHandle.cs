@@ -21,7 +21,7 @@ namespace MalignEngine
             }
         }
 
-        public override void Initialize(uint width, uint height, bool renderTarget = false)
+        public override void Initialize(int width, int height, bool renderTarget = false)
         {
             isRenderTarget = renderTarget;
             unsafe
@@ -44,7 +44,7 @@ namespace MalignEngine
                 Span<Color> dataSpan = data.AsSpan();
                 fixed (void* d = &dataSpan[0])
                 {
-                    gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, Width, Height, PixelFormat.Rgba, PixelType.UnsignedByte, d);
+                    gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, (uint)Width, (uint)Height, PixelFormat.Rgba, PixelType.UnsignedByte, d);
                 }
             }
         }
@@ -84,7 +84,7 @@ namespace MalignEngine
             gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBufferHandle);
         }
 
-        public override void Resize(uint width, uint height)
+        public override void Resize(int width, int height)
         {
             Width = width;
             Height = height;
@@ -92,7 +92,7 @@ namespace MalignEngine
             unsafe
             {
                 Bind();
-                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
+                gl.TexImage2D(GLEnum.Texture2D, 0, InternalFormat.Rgba8, (uint)width, (uint)height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, null);
                 gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)GLEnum.Repeat);
                 gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)GLEnum.Repeat);
 
@@ -104,7 +104,7 @@ namespace MalignEngine
                     gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferHandle);
                     gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthBufferHandle);
 
-                    gl.RenderbufferStorage(GLEnum.Renderbuffer, GLEnum.DepthComponent, width, height);
+                    gl.RenderbufferStorage(GLEnum.Renderbuffer, GLEnum.DepthComponent, (uint)width, (uint)height);
                     gl.FramebufferRenderbuffer(GLEnum.Framebuffer, GLEnum.DepthAttachment, GLEnum.Renderbuffer, depthBufferHandle);
 
                     gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.ColorAttachment0, GLEnum.Texture2D, textureHandle, 0);

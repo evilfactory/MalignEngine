@@ -11,7 +11,7 @@ public class EditorTile : BaseEditorWindowSystem
     [Dependency]
     protected EditorSceneViewSystem EditorSceneViewSystem = default!;
     [Dependency]
-    protected RenderingSystem RenderingSystem = default!;
+    protected IRenderingService IRenderingService = default!;
     [Dependency]
     protected SpriteRenderingSystem SpriteRenderingSystem = default!;
     [Dependency]
@@ -134,8 +134,8 @@ public class EditorTile : BaseEditorWindowSystem
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
         if (!selectedTileMap.IsValid() || selectedTileData == null) { return; }
 
-        RenderingSystem.Begin();
+        IRenderingService.Begin();
         SpriteRenderingSystem.DrawSprite(selectedTileData.Icon, new Vector2(MathF.Round(EditorSceneViewSystem.WorldMousePosition.X), MathF.Round(EditorSceneViewSystem.WorldMousePosition.Y)), Vector2.One, Color.White);
-        RenderingSystem.End();
+        IRenderingService.End();
     }
 }

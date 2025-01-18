@@ -10,7 +10,7 @@ using Silk.NET.Maths;
 
 namespace MalignEngine
 {
-    public class GLRenderingSystem : RenderingSystem
+    public class GLRenderingSystem : BaseRenderingService
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct Vertex
@@ -31,6 +31,8 @@ namespace MalignEngine
 
         [Dependency]
         protected WindowSystem Window = default!;
+        [Dependency]
+        protected LoggerService LoggerService = default!;
 
         protected ILogger Logger;
 
@@ -355,7 +357,7 @@ namespace MalignEngine
             currentMatrix = matrix;
         }
 
-        public override void SetRenderTarget(RenderTexture renderTexture, uint width = 0, uint height = 0)
+        public override void SetRenderTarget(RenderTexture renderTexture, int width = 0, int height = 0)
         {
             this.renderTexture = renderTexture;
 
@@ -364,7 +366,7 @@ namespace MalignEngine
                 if (width == 0) { width = renderTexture.Width; }
                 if (height == 0) { height = renderTexture.Height; }
                 ((GLTextureHandle)this.renderTexture.Handle).BindAsRenderTarget();
-                openGL.Viewport(0, 0, width, height);
+                openGL.Viewport(0, 0, (uint)width, (uint)height);
             }
             else
             {

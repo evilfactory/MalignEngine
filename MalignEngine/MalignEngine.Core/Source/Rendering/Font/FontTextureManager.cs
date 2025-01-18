@@ -8,7 +8,7 @@ namespace MalignEngine
     {
         public object CreateTexture(int width, int height)
         {
-            Texture2D tex = new Texture2D((uint)width, (uint)height);
+            Texture2D tex = new Texture2D(width, height);
             IoCManager.Resolve<AssetService>().FromAsset(tex);
             return tex;
         }

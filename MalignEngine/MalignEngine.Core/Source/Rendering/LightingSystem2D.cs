@@ -8,17 +8,17 @@ namespace MalignEngine
     public class LightingSystem2D : EntitySystem
     {
         [Dependency]
-        protected RenderingSystem RenderingSystem = default!;
+        protected IRenderingService IRenderingService = default!;
 
         public void DrawLights()
         {
-            RenderingSystem.Begin(blendingMode: BlendingMode.Additive);
+            IRenderingService.Begin(blendingMode: BlendingMode.Additive);
             var query = new QueryDescription().WithAll<Light2D, WorldTransform>();
             EntityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref Light2D light) =>
             {
-                RenderingSystem.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), light.Color, transform.ZAxis, 0f);
+                IRenderingService.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), light.Color, transform.ZAxis, 0f);
             });
-            RenderingSystem.End();
+            IRenderingService.End();
         }
 
         public Color GetAmbientColor()
@@ -37,7 +37,7 @@ namespace MalignEngine
     public class LightingPostProcessingSystem2D : PostProcessBaseSystem
     {
         [Dependency]
-        protected RenderingSystem RenderingSystem = default!;
+        protected IRenderingService IRenderingService = default!;
         [Dependency]
         protected LightingSystem2D LightingSystem2D = default!;
 
@@ -50,13 +50,13 @@ namespace MalignEngine
         {
             using (Stream file = File.OpenRead("Content/Lighting.glsl"))
             {
-                Shader shader = RenderingSystem.LoadShader(file);
+                Shader shader = IRenderingService.LoadShader(file);
                 lightingMaterial = new Material(shader);
             }
 
             using (Stream file = File.OpenRead("Content/LightingBlend.glsl"))
             {
-                Shader shader = RenderingSystem.LoadShader(file);
+                Shader shader = IRenderingService.LoadShader(file);
                 blendMaterial = new Material(shader);
             }
 
@@ -67,16 +67,16 @@ namespace MalignEngine
         {
             lightingTexture.Resize(source.Width, source.Height);
 
-            RenderingSystem.SetRenderTarget(lightingTexture);
-            RenderingSystem.Clear(LightingSystem2D.GetAmbientColor());
+            IRenderingService.SetRenderTarget(lightingTexture);
+            IRenderingService.Clear(LightingSystem2D.GetAmbientColor());
             LightingSystem2D.DrawLights();
 
             lightingMaterial.SetProperty("uLightingTexture", source);
 
-            RenderingSystem.SetRenderTarget(source);
-            RenderingSystem.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f), lightingMaterial);
-            RenderingSystem.DrawTexture2D(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
-            RenderingSystem.End();
+            IRenderingService.SetRenderTarget(source);
+            IRenderingService.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f), lightingMaterial);
+            IRenderingService.DrawTexture2D(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
+            IRenderingService.End();
         }
     }
 }

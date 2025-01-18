@@ -12,7 +12,7 @@ namespace MalignEngine
     public class ImGuiSystem : BaseSystem, IPostDrawGUI
     {
         [Dependency]
-        protected GLRenderingSystem RenderingSystem = default!;
+        protected GLRenderingSystem IRenderingService = default!;
         [Dependency]
         protected WindowSystem Window = default!;
         [Dependency]
@@ -24,7 +24,7 @@ namespace MalignEngine
 
         public override void OnInitialize()
         {
-            imGuiController = new ImGuiController(RenderingSystem.openGL, Window.window, Input.input, () =>
+            imGuiController = new ImGuiController(IRenderingService.openGL, Window.window, Input.input, () =>
             {
                 var io = ImGuiNET.ImGui.GetIO();
                 //io.Fonts.AddFontFromFileTTF("Content/fonts/Ruda-Regular.ttf", 18f);

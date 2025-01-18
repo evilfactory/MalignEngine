@@ -12,7 +12,7 @@ namespace MalignEngine
         [Dependency]
         protected WindowSystem Window = default!;
         [Dependency]
-        protected RenderingSystem Renderer = default!;
+        protected IRenderingService Renderer = default!;
 
         public override void OnInitialize()
         {
@@ -33,11 +33,11 @@ namespace MalignEngine
             {
                 if (camera.RenderTexture == null)
                 {
-                    camera.RenderTexture = new RenderTexture((uint)Window.Width, (uint)Window.Height);
+                    camera.RenderTexture = new RenderTexture(Window.Width, Window.Height);
                 }
                 else if (camera.IsMain)
                 {
-                    camera.RenderTexture.Resize((uint)Window.Width, (uint)Window.Height);
+                    camera.RenderTexture.Resize(Window.Width, Window.Height);
                 }
 
                 camera.Matrix = CreateOrthographicMatrix(camera.RenderTexture.Width, camera.RenderTexture.Height, camera.ViewSize, transform.Position.ToVector2());

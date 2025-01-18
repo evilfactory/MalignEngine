@@ -9,7 +9,7 @@ namespace MalignEngine
     public class SpriteRenderingSystem : EntitySystem
     {
         [Dependency]
-        protected RenderingSystem RenderingSystem = default!;
+        protected IRenderingService IRenderingService = default!;
 
         [Dependency(true)]
         protected EditorPerformanceSystem EditorPerformanceSystem = default!;
@@ -17,7 +17,7 @@ namespace MalignEngine
 
         public void DrawSprite(Sprite sprite, Vector2 position, Vector2 scale, Color color, float rotation = 0f, float depth = 0f)
         {
-            RenderingSystem.DrawTexture2D(sprite.Texture, position, scale, new Vector2(sprite.UV1.X, 1f - sprite.UV2.Y), new Vector2(sprite.UV2.X, 1f - sprite.UV1.Y), color, rotation, depth);
+            IRenderingService.DrawTexture2D(sprite.Texture, position, scale, new Vector2(sprite.UV1.X, 1f - sprite.UV2.Y), new Vector2(sprite.UV2.X, 1f - sprite.UV1.Y), color, rotation, depth);
         }
 
         public override void OnInitialize()
@@ -27,13 +27,13 @@ namespace MalignEngine
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-            RenderingSystem.Begin();
+            IRenderingService.Begin();
             var query = new QueryDescription().WithAll<SpriteRenderer, WorldTransform>();
             EntityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref SpriteRenderer spriteRenderer) =>
             {
                 DrawSprite(spriteRenderer.Sprite, transform.Position.ToVector2(), transform.Scale.ToVector2(), spriteRenderer.Color, transform.ZAxis, spriteRenderer.Layer);
             });
-            RenderingSystem.End();
+            IRenderingService.End();
 
             stopwatch.Stop();
             EditorPerformanceSystem?.AddElapsedTicks("SpriteRenderingSystem", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
