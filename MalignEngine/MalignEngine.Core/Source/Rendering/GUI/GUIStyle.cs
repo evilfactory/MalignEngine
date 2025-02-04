@@ -10,6 +10,8 @@ namespace MalignEngine
         public Color ButtonDefaultColor = new Color(0.5f, 0.5f, 0.5f, 1f);
         public Color ButtonHoverColor = new Color(0.6f, 0.6f, 0.6f, 1f);
         public Color ButtonClickColor = new Color(0.4f, 0.4f, 0.4f, 1f);
+        public Color BoxFocusedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        public Color BoxUnfocusedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
 
         static GUIStyle()
         {

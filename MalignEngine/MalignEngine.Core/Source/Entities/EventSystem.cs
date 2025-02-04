@@ -13,6 +13,8 @@ namespace MalignEngine
                     eventSubscribers.Add(type, new List<object>());
                 }
 
+                if (eventSubscribers[type].Contains(observer)) { return; }
+
                 eventSubscribers[type].Add(observer);
             }
         }

@@ -5,12 +5,24 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    public interface IKeyboardSubscriber : IEvent
+    {
+        public void OnKeyPress(Key key);
+        public void OnKeyRelease(Key key);
+        public void OnCharEntered(char character);
+    }
+
     public class InputSystem : BaseSystem, IPostUpdate
     {
         [Dependency]
         protected WindowSystem Window = default!;
 
+        [Dependency]
+        protected EventSystem EventSystem = default!;
+
         protected ILogger Logger;
+
+        public Dictionary<Key, bool> KeysHeld => keysHeld;
 
         internal IInputContext input;
 
@@ -42,6 +54,18 @@ namespace MalignEngine
                 Logger.LogVerbose($"Using first found mouse \"{usedMouse.Name}\".");
                 usedMouse.Scroll += UsedMouseScroll;
             }
+
+            Enum.GetValues(typeof(Key)).Cast<Key>().ToList().ForEach(key =>
+            {
+                if (key == Key.Unknown || key == Key.Any || key == Key.None) { return; }
+
+                keysState[key] = false;
+                keysHeld[key] = false;
+            });
+
+            usedKeyboard.KeyChar += UsedKeyboardChar;
+            usedKeyboard.KeyDown += UsedKeyboardKeyDown;
+            usedKeyboard.KeyUp += UsedKeyboardKeyUp;
         }
 
         private void UsedMouseScroll(IMouse arg1, ScrollWheel arg2)
@@ -49,6 +73,21 @@ namespace MalignEngine
             //var io = ImGuiNET.ImGui.GetIO();
             //io.AddMouseWheelEvent(arg2.X, arg2.Y);
             lastMouseScroll = arg2.Y;
+        }
+
+        private void UsedKeyboardChar(IKeyboard keyboard, char character)
+        {
+            EventSystem.PublishEvent<IKeyboardSubscriber>(e => e.OnCharEntered(character));
+        }
+
+        private void UsedKeyboardKeyDown(IKeyboard keyboard, Silk.NET.Input.Key key, int arg3)
+        {
+            EventSystem.PublishEvent<IKeyboardSubscriber>(e => e.OnKeyPress((Key)key));
+        }
+
+        private void UsedKeyboardKeyUp(IKeyboard keyboard, Silk.NET.Input.Key key, int arg3)
+        {
+            EventSystem.PublishEvent<IKeyboardSubscriber>(e => e.OnKeyRelease((Key)key));
         }
 
         public Vector2 MousePosition

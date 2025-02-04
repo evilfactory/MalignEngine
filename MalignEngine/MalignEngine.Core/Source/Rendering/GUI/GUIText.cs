@@ -7,7 +7,7 @@ namespace MalignEngine
         public GUIStyle Style = GUIStyle.Default;
         public Color Color { get; private set; } = new Color(1f, 1f, 1f, 1f);
 
-        public int FontSize { get; private set; } = 100;
+        public int FontSize { get; private set; } = 50;
         public string Text { get; private set; }
 
         public GUIText(RectTransform transform, string text, Color color) : base(transform)

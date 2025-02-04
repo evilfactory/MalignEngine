@@ -89,7 +89,7 @@ namespace MalignEngine
                         {
                             if (!connections.ContainsKey(msg.SenderConnection.RemoteUniqueIdentifier))
                             {
-                                connections.Add(msg.SenderConnection.RemoteUniqueIdentifier, new NetworkConnection(CreateId()));
+                                connections.Add(msg.SenderConnection.RemoteUniqueIdentifier, new NetworkConnection(CreateId()) { IsInvalid = false });
                             }
 
                             OnClientConnected(connections[msg.SenderConnection.RemoteUniqueIdentifier]);
