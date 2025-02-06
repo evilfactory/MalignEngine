@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public interface IDrawImGui : IEvent
+    public interface IDrawImGui : ISchedule
     {
         void OnDrawImGui(float deltaTime);
     }
@@ -18,7 +18,7 @@ namespace MalignEngine
         [Dependency]
         protected InputSystem Input = default!;
         [Dependency]
-        protected EventSystem EventSystem = default!;
+        protected ScheduleManager EventSystem = default!;
 
         private ImGuiController imGuiController;
 
@@ -98,7 +98,7 @@ namespace MalignEngine
         public void OnPostDrawGUI(float deltaTime)
         {
             imGuiController.Update(deltaTime);
-            EventSystem.PublishEvent<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
+            EventSystem.Run<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
             imGuiController.Render();
         }
 

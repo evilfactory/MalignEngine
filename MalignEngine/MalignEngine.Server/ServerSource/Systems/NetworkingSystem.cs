@@ -2,12 +2,12 @@ using System.Net;
 
 namespace MalignEngine
 {
-    public interface IEventClientConnected : IEvent
+    public interface IEventClientConnected : ISchedule
     {
         void OnClientConnected(NetworkConnection connection);
     }
 
-    public interface IEventClientDisconnected : IEvent
+    public interface IEventClientDisconnected : ISchedule
     {
         void OnClientDisconnected(NetworkConnection connection);
     }
@@ -40,7 +40,7 @@ namespace MalignEngine
             syncMessage.States = entities.Values.Select(x => CreateNetStateMessage(x)).ToArray();
             SendNetMessage(syncMessage, connection);
 
-            EventSystem.PublishEvent<IEventClientConnected>(x => x.OnClientConnected(connection));
+            EventSystem.Run<IEventClientConnected>(x => x.OnClientConnected(connection));
         }
 
         private void OnClientDisconnected(NetworkConnection connection, DisconnectReason reason)

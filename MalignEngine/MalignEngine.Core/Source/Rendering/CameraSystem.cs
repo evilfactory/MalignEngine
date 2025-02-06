@@ -8,7 +8,7 @@ namespace MalignEngine
     public class CameraSystem : EntitySystem, IWindowDraw
     {
         [Dependency]
-        protected EventSystem EventSystem = default!;
+        protected ScheduleManager EventSystem = default!;
         [Dependency]
         protected WindowSystem Window = default!;
         [Dependency]
@@ -59,7 +59,7 @@ namespace MalignEngine
                 Renderer.SetRenderTarget(camera.RenderTexture, camera.RenderTexture.Width, camera.RenderTexture.Height);
                 Renderer.Clear(camera.ClearColor);
                 Renderer.FlipY = true;
-                EventSystem.PublishEvent<IDraw>(e => e.OnDraw(delta));
+                EventSystem.Run<IDraw>(e => e.OnDraw(delta));
                 Renderer.FlipY = false;
 
                 if (camera.PostProcessingSteps != null)
@@ -88,9 +88,9 @@ namespace MalignEngine
                 Renderer.Clear(Color.Black);
             }
 
-            EventSystem.PublishEvent<IPreDrawGUI>(e => e.OnPreDrawGUI(delta));
-            EventSystem.PublishEvent<IDrawGUI>(e => e.OnDrawGUI(delta));
-            EventSystem.PublishEvent<IPostDrawGUI>(e => e.OnPostDrawGUI(delta));
+            EventSystem.Run<IPreDrawGUI>(e => e.OnPreDrawGUI(delta));
+            EventSystem.Run<IDrawGUI>(e => e.OnDrawGUI(delta));
+            EventSystem.Run<IPostDrawGUI>(e => e.OnPostDrawGUI(delta));
         }
 
         public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position)
@@ -106,6 +106,8 @@ namespace MalignEngine
 
         public Vector2 ScreenToWorld(ref OrthographicCamera camera, Vector2 position)
         {
+            if (camera.RenderTexture == null) { return new Vector2(); }
+
             position = new Vector2((position.X / camera.RenderTexture.Width - 0.5f) * 2f, (-position.Y / camera.RenderTexture.Height + 0.5f) * 2f);
 
             Matrix4x4.Invert(camera.Matrix, out Matrix4x4 invMatrix);

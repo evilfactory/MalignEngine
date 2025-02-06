@@ -13,36 +13,36 @@ class GameMain
     {
         Application application = new Application();
 
-        application.AddSystem(new EntityEventSystem());
-        application.AddSystem(new EntityManagerService());
-        application.AddSystem(new AssetService());
-        application.AddSystem(new WindowSystem("Malign Engine", new Vector2(800, 600)));
-        application.AddSystem(new GLRenderingSystem());
-        application.AddSystem(new InputSystem());
-        application.AddSystem(new CameraSystem());
-        application.AddSystem(new ParentSystem());
-        application.AddSystem(new TransformSystem());
-        application.AddSystem(new PhysicsSystem2D());
-        application.AddSystem(new SpriteRenderingSystem());
-        application.AddSystem(new LightingSystem2D());
-        application.AddSystem(new LightingPostProcessingSystem2D());
-        application.AddSystem(new AudioSystem());
-        application.AddSystem(new FontSystem());
-        application.AddSystem(new SceneSystem());
-        application.AddSystem(new NetworkingSystem());
-        application.AddSystem(new TileSystem());
+        application.Add(new EntityEventSystem());
+        application.Add(new EntityManagerService());
+        application.Add(new AssetService());
+        application.Add(new WindowSystem("Malign Engine", new Vector2(800, 600)));
+        application.Add(new GLRenderingSystem());
+        application.Add(new InputSystem());
+        application.Add(new CameraSystem());
+        application.Add(new ParentSystem());
+        application.Add(new TransformSystem());
+        application.Add(new PhysicsSystem2D());
+        application.Add(new SpriteRenderingSystem());
+        application.Add(new LightingSystem2D());
+        application.Add(new LightingPostProcessingSystem2D());
+        application.Add(new AudioSystem());
+        application.Add(new FontSystem());
+        application.Add(new SceneSystem());
+        application.Add(new NetworkingSystem());
+        application.Add(new TileSystem());
 
-        application.AddAllSystems(Assembly.GetExecutingAssembly());
+        application.Add(Assembly.GetExecutingAssembly());
 
-        application.AddSystem(new ImGuiSystem());
-        application.AddSystem(new EditorSystem());
-        application.AddSystem(new EditorInspectorSystem());
-        application.AddSystem(new EditorPerformanceSystem());
-        application.AddSystem(new EditorSceneViewSystem());
-        application.AddSystem(new EditorAssetViewer());
-        application.AddSystem(new EditorConsole());
-        application.AddSystem(new EditorNetworking());
-        application.AddSystem(new EditorTile());
+        application.Add(new ImGuiSystem());
+        application.Add(new EditorSystem());
+        application.Add(new EditorInspectorSystem());
+        application.Add(new EditorPerformanceSystem());
+        application.Add(new EditorSceneViewSystem());
+        application.Add(new EditorAssetViewer());
+        application.Add(new EditorConsole());
+        application.Add(new EditorNetworking());
+        application.Add(new EditorTile());
 
         application.Run();
     }

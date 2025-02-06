@@ -5,7 +5,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public interface IKeyboardSubscriber : IEvent
+    public interface IKeyboardSubscriber : ISchedule
     {
         public void OnKeyPress(Key key);
         public void OnKeyRelease(Key key);
@@ -18,7 +18,7 @@ namespace MalignEngine
         protected WindowSystem Window = default!;
 
         [Dependency]
-        protected EventSystem EventSystem = default!;
+        protected ScheduleManager EventSystem = default!;
 
         protected ILogger Logger;
 
@@ -77,17 +77,17 @@ namespace MalignEngine
 
         private void UsedKeyboardChar(IKeyboard keyboard, char character)
         {
-            EventSystem.PublishEvent<IKeyboardSubscriber>(e => e.OnCharEntered(character));
+            EventSystem.Run<IKeyboardSubscriber>(e => e.OnCharEntered(character));
         }
 
         private void UsedKeyboardKeyDown(IKeyboard keyboard, Silk.NET.Input.Key key, int arg3)
         {
-            EventSystem.PublishEvent<IKeyboardSubscriber>(e => e.OnKeyPress((Key)key));
+            EventSystem.Run<IKeyboardSubscriber>(e => e.OnKeyPress((Key)key));
         }
 
         private void UsedKeyboardKeyUp(IKeyboard keyboard, Silk.NET.Input.Key key, int arg3)
         {
-            EventSystem.PublishEvent<IKeyboardSubscriber>(e => e.OnKeyRelease((Key)key));
+            EventSystem.Run<IKeyboardSubscriber>(e => e.OnKeyRelease((Key)key));
         }
 
         public Vector2 MousePosition

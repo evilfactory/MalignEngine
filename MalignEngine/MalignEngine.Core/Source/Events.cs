@@ -1,44 +1,44 @@
 namespace MalignEngine
 {
-    public interface IEvent { }
+    public interface ISchedule { }
 
-    public interface IApplicationRun : IEvent
+    public interface IApplicationRun : ISchedule
     {
         public void OnApplicationRun();
     }
-    public interface IInit : IEvent
+    public interface IInit : ISchedule
     {
         public void OnInitialize();
     }
-    public interface IPreUpdate : IEvent
+    public interface IPreUpdate : ISchedule
     {
         public void OnPreUpdate(float deltaTime);
     }
-    public interface IUpdate : IEvent
+    public interface IUpdate : ISchedule
     {
         public void OnUpdate(float deltaTime);
     }
-    public interface IPostUpdate : IEvent
+    public interface IPostUpdate : ISchedule
     {
         public void OnPostUpdate(float deltaTime);
     }
-    public interface IDraw : IEvent
+    public interface IDraw : ISchedule
     {
         public void OnDraw(float deltaTime);
     }
-    public interface IWindowDraw : IEvent
+    public interface IWindowDraw : ISchedule
     {
         public void OnWindowDraw(float deltaTime);
     }
-    public interface IDrawGUI : IEvent
+    public interface IDrawGUI : ISchedule
     {
         public void OnDrawGUI(float deltaTime);
     }
-    public interface IPreDrawGUI : IEvent
+    public interface IPreDrawGUI : ISchedule
     {
         public void OnPreDrawGUI(float deltaTime);
     }
-    public interface IPostDrawGUI : IEvent
+    public interface IPostDrawGUI : ISchedule
     {
         public void OnPostDrawGUI(float deltaTime);
     }

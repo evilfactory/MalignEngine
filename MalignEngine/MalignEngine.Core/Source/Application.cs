@@ -5,6 +5,11 @@ namespace MalignEngine
 {
     public class Application : ILogHandler
     {
+        public ScheduleManager ScheduleManager => scheduleManager;
+        public StateManager StateManager => stateManager;
+
+        private ScheduleManager scheduleManager;
+        private StateManager stateManager;
         private LoggerService logger;
 
         private readonly List<IService> systems;
@@ -13,28 +18,36 @@ namespace MalignEngine
         {
             systems = new List<IService>();
 
+            scheduleManager = new ScheduleManager();
+            Add(scheduleManager);
+
+            stateManager = new StateManager(scheduleManager);
+            Add(stateManager);
+
             logger = new LoggerService();
             logger.Root.AddHandler(this);
-            AddSystem(logger);
-
-            AddSystem(new EventSystem());
+            Add(logger);
         }
 
-        public void AddSystem(IService system)
+        public void Add(IService system, ScheduleMetaData? scheduleMetaData = null)
         {
             systems.Add(system);
+            scheduleManager.SubscribeAll(system, scheduleMetaData);
             IoCManager.Register(system);
-
-            logger.LogVerbose($"Added system {system.GetType().Name}");
         }
 
-        public void AddAllSystems(Assembly assembly)
+        public void Add(ServiceSet serviceSet)
+        {
+            serviceSet.Put(this);
+        }
+
+        public void Add(Assembly assembly)
         {
             foreach (var type in assembly.GetTypes())
             {
                 if (type.IsAssignableTo(typeof(IService)) && type.GetConstructor(Type.EmptyTypes) != null)
                 {
-                    AddSystem((IService)Activator.CreateInstance(type));
+                    Add((IService)Activator.CreateInstance(type));
                 }
             }
         }
@@ -64,7 +77,6 @@ namespace MalignEngine
                 try
                 {
                     IoCManager.InjectDependencies(system);
-                    IoCManager.Resolve<EventSystem>().SubscribeAll(system);
                 }
                 catch (Exception e)
                 {
@@ -72,10 +84,14 @@ namespace MalignEngine
                 }
             }
         }
+
+        /// <summary>
+        /// Executes the IApplicationRun schedule
+        /// </summary>
         public void Run()
         {
             Initialize();
-            IoCManager.Resolve<EventSystem>().PublishEvent<IApplicationRun>(e => e.OnApplicationRun());
+            IoCManager.Resolve<ScheduleManager>().Run<IApplicationRun>(e => e.OnApplicationRun());
         }
 
         public void HandleLog(Sawmill sawmill, LogEvent logEvent)

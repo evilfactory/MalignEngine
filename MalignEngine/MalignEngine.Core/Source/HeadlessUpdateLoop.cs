@@ -5,19 +5,19 @@ public class HeadlessUpdateLoop : IService, IApplicationRun, IUpdateLoop
     public double UpdateRate { get; set; } = 60;
 
     [Dependency]
-    protected EventSystem EventSystem = default!;
+    protected ScheduleManager EventSystem = default!;
 
     public void OnApplicationRun()
     {
-        EventSystem.PublishEvent<IInit>(x => x.OnInitialize());
+        EventSystem.Run<IInit>(x => x.OnInitialize());
 
         while (true)
         {
             var startTime = DateTime.Now;
 
-            EventSystem.PublishEvent<IPreUpdate>(x => x.OnPreUpdate(1.0f / (float)UpdateRate));
-            EventSystem.PublishEvent<IUpdate>(x => x.OnUpdate(1.0f / (float)UpdateRate));
-            EventSystem.PublishEvent<IPostUpdate>(x => x.OnPostUpdate(1.0f / (float)UpdateRate));
+            EventSystem.Run<IPreUpdate>(x => x.OnPreUpdate(1.0f / (float)UpdateRate));
+            EventSystem.Run<IUpdate>(x => x.OnUpdate(1.0f / (float)UpdateRate));
+            EventSystem.Run<IPostUpdate>(x => x.OnPostUpdate(1.0f / (float)UpdateRate));
 
             var endTime = DateTime.Now;
             var deltaTime = (endTime - startTime).TotalSeconds;

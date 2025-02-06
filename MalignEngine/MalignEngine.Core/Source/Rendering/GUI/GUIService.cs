@@ -2,7 +2,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
-public interface IAddToUpdateGUIList : IEvent
+public interface IAddToUpdateGUIList : ISchedule
 {
     public void AddToUpdateList(GUIService gui);
 }
@@ -10,7 +10,7 @@ public interface IAddToUpdateGUIList : IEvent
 public class GUIService : IService, IUpdate, IDrawGUI
 {
     [Dependency]
-    protected EventSystem EventSystem = default!;
+    protected ScheduleManager EventSystem = default!;
 
     [Dependency]
     protected IRenderingService RenderingService = default!;
@@ -51,7 +51,7 @@ public class GUIService : IService, IUpdate, IDrawGUI
     public void OnUpdate(float deltaTime)
     {
         components.Clear();
-        EventSystem.PublishEvent<IAddToUpdateGUIList>(x => x.AddToUpdateList(this));
+        EventSystem.Run<IAddToUpdateGUIList>(x => x.AddToUpdateList(this));
 
         foreach (var component in components)
         {

@@ -18,7 +18,6 @@ namespace MalignEngine
     {
         private static readonly Dictionary<Type, object> instances = new Dictionary<Type, object>();
 
-
         public static void Register(object instance)
         {
             instances[instance.GetType()] = instance;

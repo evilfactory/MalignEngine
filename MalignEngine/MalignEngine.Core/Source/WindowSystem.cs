@@ -7,7 +7,7 @@ namespace MalignEngine
     public class WindowSystem : BaseSystem, IApplicationRun, IUpdateLoop
     {
         [Dependency]
-        protected EventSystem EventSystem = default!;
+        protected ScheduleManager EventSystem = default!;
 
         public double UpdateRate
         {
@@ -47,19 +47,19 @@ namespace MalignEngine
 
         private void WindowLoad()
         {
-            EventSystem.PublishEvent<IInit>(e => e.OnInitialize());
+            EventSystem.Run<IInit>(e => e.OnInitialize());
         }
 
         private void WindowUpdate(double delta)
         {
-            EventSystem.PublishEvent<IPreUpdate>(e => e.OnPreUpdate((float)delta));
-            EventSystem.PublishEvent<IUpdate>(e => e.OnUpdate((float)delta));
-            EventSystem.PublishEvent<IPostUpdate>(e => e.OnPostUpdate((float)delta));
+            EventSystem.Run<IPreUpdate>(e => e.OnPreUpdate((float)delta));
+            EventSystem.Run<IUpdate>(e => e.OnUpdate((float)delta));
+            EventSystem.Run<IPostUpdate>(e => e.OnPostUpdate((float)delta));
         }
 
         private void WindowRender(double delta)
         {
-            EventSystem.PublishEvent<IWindowDraw>(e => e.OnWindowDraw((float)delta));
+            EventSystem.Run<IWindowDraw>(e => e.OnWindowDraw((float)delta));
         }
     }
 }

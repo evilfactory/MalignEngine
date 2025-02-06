@@ -45,7 +45,7 @@ namespace MalignEngine
         }
     }
 
-    public interface IRenderingService : IService, IInit
+    public interface IRenderingService : IService
     {
         public bool FlipY { get; set; }
         public void Clear(Color color);
@@ -63,7 +63,7 @@ namespace MalignEngine
         public void SetStencil(StencilFunction function, int reference, uint mask, StencilOperation fail, StencilOperation zfail, StencilOperation zpass);
     }
 
-    public abstract class BaseRenderingService : IRenderingService
+    public abstract class BaseRenderingService : IRenderingService, IInit
     {
         public bool FlipY { get; set; }
         public abstract void Clear(Color color);
