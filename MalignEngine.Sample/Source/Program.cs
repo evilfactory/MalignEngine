@@ -8,7 +8,8 @@ public enum GameState
     BasicRenderingTest,
     CameraTest,
     PhysicsTest,
-    LightingTest
+    LightingTest,
+    BasicSceneTest,
 }
 
 
@@ -17,16 +18,16 @@ public class Program
     public static void Main(string[] args)
     {
         Application application = new Application();
-
         application.Add(ServiceSet.DefaultServices);
         application.Add(ServiceSet.EditorServices);
 
-        application.Add(new SampleInit());
-        application.Add(new MainMenu());
-        application.Add(new BasicRenderingTest());
-        application.Add(new CameraTest());
-        application.Add(new PhysicsTest());
-        application.Add(new LightingTest());
+        application.Add<SampleInit>();
+        application.Add<MainMenu>();
+        application.Add<BasicRenderingTest>();
+        application.Add<CameraTest>();
+        application.Add<PhysicsTest>();
+        application.Add<LightingTest>();
+        application.Add<BasicSceneTest>();
 
         application.ScheduleManager.SetMetaData<IAddToUpdateGUIList, MainMenu>(new ScheduleMetaData()
         {

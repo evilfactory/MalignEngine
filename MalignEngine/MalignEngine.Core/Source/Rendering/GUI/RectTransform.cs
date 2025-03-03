@@ -78,7 +78,7 @@ namespace MalignEngine
                 // If the parent is null, then its just the relative size
                 if (Parent == null)
                 {
-                    size = new Vector2(IoCManager.Resolve<WindowSystem>().Width, IoCManager.Resolve<WindowSystem>().Height);
+                    size = new Vector2(Application.Main.ServiceContainer.GetInstance<WindowService>().Width, Application.Main.ServiceContainer.GetInstance<WindowService>().Height);
                 }
                 else
                 {

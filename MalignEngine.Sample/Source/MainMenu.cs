@@ -7,7 +7,7 @@ namespace MalignEngine.Sample;
 public class MainMenu : EntitySystem, IAddToUpdateGUIList
 {
     [Dependency]
-    protected WindowSystem WindowSystem = default!;
+    protected WindowService WindowSystem = default!;
     [Dependency]
     protected IRenderingService RenderingService = default!;
     [Dependency]

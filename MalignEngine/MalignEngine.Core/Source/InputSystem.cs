@@ -15,7 +15,7 @@ namespace MalignEngine
     public class InputSystem : BaseSystem, IPostUpdate
     {
         [Dependency]
-        protected WindowSystem Window = default!;
+        protected WindowService Window = default!;
 
         [Dependency]
         protected ScheduleManager EventSystem = default!;

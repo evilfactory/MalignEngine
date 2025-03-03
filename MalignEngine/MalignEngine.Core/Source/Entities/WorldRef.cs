@@ -9,13 +9,13 @@ public class WorldRef
     internal World world;
 
     private ILogger? logger;
-    private EntityEventSystem? entityEventSystem;
+    private EntityManagerService? entityManager;
 
-    public WorldRef(ILogger? logger = null, EntityEventSystem? eventSystem = null)
+    public WorldRef(ILogger? logger = null, EntityManagerService? eventSystem = null)
     {
         this.logger = logger;
         world = World.Create();
-        entityEventSystem = eventSystem;
+        entityManager = eventSystem;
     }
 
     public EntityRef CreateEntity()
@@ -25,7 +25,7 @@ public class WorldRef
         metadata.LifeStage = EntityLifeStage.Created;
         metadata.ComponentLifeStages = new Dictionary<Type, ComponentLifeStage>();
 
-        entityEventSystem?.RaiseEvent(new EntityCreatedEvent(entity));
+        entityManager?.RaiseEvent(new EntityCreatedEvent(entity));
         logger?.LogVerbose($"Entity created: {entity.Id}");
         return entity;
     }
@@ -49,7 +49,7 @@ public class WorldRef
             RemoveComponent(entity, component.GetType());
         }
 
-        entityEventSystem?.RaiseEvent(new EntityDestroyedEvent(entity));
+        entityManager?.RaiseEvent(new EntityDestroyedEvent(entity));
     }
 
     public void AddComponent<T>(EntityRef entity, in T component) where T : IComponent
@@ -58,7 +58,7 @@ public class WorldRef
 
         metadata.ComponentLifeStages[typeof(T)] = ComponentLifeStage.Adding;
         world?.Add(entity.Entity, component);
-        entityEventSystem?.RaiseEvent<ComponentAddedEvent, T>(entity, new ComponentAddedEvent());
+        entityManager?.RaiseEvent<ComponentAddedEvent, T>(entity, new ComponentAddedEvent());
         metadata.ComponentLifeStages[typeof(T)] = ComponentLifeStage.Added;
 
         logger?.LogVerbose($"{typeof(T).Name} added. (Entity = {entity.Id})");
@@ -70,7 +70,7 @@ public class WorldRef
 
         metadata.ComponentLifeStages[component.GetType()] = ComponentLifeStage.Adding;
         world.Add(entity.Entity, (object)component);
-        entityEventSystem?.RaiseEvent(entity, component, new ComponentAddedEvent());
+        entityManager?.RaiseEvent(entity, component, new ComponentAddedEvent());
         metadata.ComponentLifeStages[component.GetType()] = ComponentLifeStage.Added;
 
         logger?.LogVerbose($"{component.GetType().Name} added. (Entity = {entity.Id})");
@@ -97,7 +97,7 @@ public class WorldRef
 
         EntityMetaData metadata = world.Get<EntityMetaData>(entity.Entity);
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopping;
-        entityEventSystem?.RaiseEvent(new EntityRef(this, entity.Entity), new ComponentStopEvent());
+        entityManager?.RaiseEvent(new EntityRef(this, entity.Entity), new ComponentStopEvent());
         metadata.ComponentLifeStages[type] = ComponentLifeStage.Stopped;
     }
 
@@ -281,19 +281,19 @@ public class WorldRef
                 {
                     case ComponentLifeStage.Added:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Initializing;
-                        entityEventSystem?.RaiseEvent(new EntityRef(this, entity), new ComponentInitEvent());
+                        entityManager?.RaiseEvent(new EntityRef(this, entity), new ComponentInitEvent());
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Initialized;
                         logger?.LogVerbose($"{component.Name} initialized. (Entity = {entity.Id})");
                         break;
                     case ComponentLifeStage.Initialized:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Starting;
-                        entityEventSystem?.RaiseEvent(new EntityRef(this, entity), new ComponentStartEvent());
+                        entityManager?.RaiseEvent(new EntityRef(this, entity), new ComponentStartEvent());
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Running;
                         logger?.LogVerbose($"{component.Name} running. (Entity = {entity.Id})");
                         break;
                     case ComponentLifeStage.Stopped:
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Removing;
-                        entityEventSystem?.RaiseEvent(new EntityRef(this, entity), new ComponentRemovedEvent());
+                        entityManager?.RaiseEvent(new EntityRef(this, entity), new ComponentRemovedEvent());
                         world.Remove(entity, component);
                         metadata.ComponentLifeStages[component] = ComponentLifeStage.Deleted;
                         logger?.LogVerbose($"{component.Name} deleted. (Entity = {entity.Id})");

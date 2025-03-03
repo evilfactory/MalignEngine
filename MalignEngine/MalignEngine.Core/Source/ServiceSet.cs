@@ -7,32 +7,30 @@ namespace MalignEngine;
 /// </summary>
 public class ServiceSet
 {
-    public List<IService> Services { get; private set; } = new List<IService>();
-    public ScheduleMetaData? ScheduleMetaData { get; set; }
+    public List<Type> Services { get; private set; } = new List<Type>();
 
     public static ServiceSet DefaultServices
     {
         get
         {
-            ServiceSet serviceSet = new ServiceSet(new IService[]
+            ServiceSet serviceSet = new ServiceSet(new Type[]
             {
-                new EntityManagerService(),
-                new EntityEventSystem(),
-                new AssetService(),
-                new WindowSystem("Malign Engine", new Vector2(800, 600)),
-                new GLRenderingSystem(),
-                new InputSystem(),
-                new CameraSystem(),
-                new ParentSystem(),
-                new TransformSystem(),
-                new PhysicsSystem2D(),
-                new SpriteRenderingSystem(),
-                new LightingSystem2D(),
-                new LightingPostProcessingSystem2D(),
-                new AudioSystem(),
-                new FontSystem(),
-                new SceneSystem(),
-                new GUIService(),
+                typeof(EntityManagerService),
+                typeof(AssetService),
+                typeof(WindowService),
+                typeof(GLRenderingSystem),
+                typeof(InputSystem),
+                typeof(CameraSystem),
+                typeof(ParentSystem),
+                typeof(TransformSystem),
+                typeof(PhysicsSystem2D),
+                typeof(SpriteRenderingSystem),
+                typeof(LightingSystem2D),
+                typeof(LightingPostProcessingSystem2D),
+                typeof(AudioSystem),
+                typeof(FontSystem),
+                typeof(SceneSystem),
+                typeof(GUIService)
             });
 
             return serviceSet;
@@ -43,15 +41,14 @@ public class ServiceSet
     {
         get
         {
-            ServiceSet serviceSet = new ServiceSet(new IService[]
+            ServiceSet serviceSet = new ServiceSet(new Type[]
             {
-                new EntityManagerService(),
-                new EntityEventSystem(),
-                new AssetService(),
-                new HeadlessUpdateLoop(),
-                new ParentSystem(),
-                new TransformSystem(),
-                new PhysicsSystem2D()
+                typeof(EntityManagerService),
+                typeof(AssetService),
+                typeof(HeadlessUpdateLoop),
+                typeof(ParentSystem),
+                typeof(TransformSystem),
+                typeof(PhysicsSystem2D)
             });
 
             return serviceSet;
@@ -62,36 +59,22 @@ public class ServiceSet
     {
         get
         {
-            ServiceSet serviceSet = new ServiceSet(new IService[]
+            ServiceSet serviceSet = new ServiceSet(new Type[]
             {
-                new ImGuiSystem(),
-                new EditorSystem(),
-                new EditorInspectorSystem(),
-                new EditorPerformanceSystem(),
-                new EditorSceneViewSystem(),
-                new EditorAssetViewer(),
-                new EditorServiceAnalyzer(),
+                typeof(ImGuiSystem),
+                typeof(EditorSystem),
+                typeof(EditorInspectorSystem),
+                typeof(EditorPerformanceSystem),
+                typeof(EditorSceneViewSystem),
+                typeof(EditorAssetViewer),
+                typeof(EditorServiceAnalyzer),
 
             });
             return serviceSet;
         }
     }
 
-    public ServiceSet()
-    {
-    }
-
-    public ServiceSet(IService[] services)
-    {
-        Services.AddRange(services);
-    }
-
-    public void Add(IService service)
-    {
-        Services.Add(service);
-    }
-
-    public void Add(params IService[] services)
+    public ServiceSet(Type[] services)
     {
         Services.AddRange(services);
     }
@@ -100,7 +83,7 @@ public class ServiceSet
     {
         foreach (var service in Services)
         {
-            application.Add(service, ScheduleMetaData);
+            application.ServiceContainer.RegisterAll(service);
         }
     }
 }

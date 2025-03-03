@@ -14,7 +14,7 @@ namespace MalignEngine
         [Dependency]
         protected GLRenderingSystem IRenderingService = default!;
         [Dependency]
-        protected WindowSystem Window = default!;
+        protected WindowService Window = default!;
         [Dependency]
         protected InputSystem Input = default!;
         [Dependency]

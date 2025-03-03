@@ -13,7 +13,7 @@ namespace MalignEngine
 
         public Sound()
         {
-            audioSystem = IoCManager.Resolve<AudioSystem>();
+            audioSystem = Application.Main.ServiceContainer.GetInstance<AudioSystem>();
         }
 
         public void Dispose()

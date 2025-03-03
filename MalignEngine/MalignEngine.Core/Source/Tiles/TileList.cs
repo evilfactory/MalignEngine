@@ -43,11 +43,11 @@ public class TileList : XmlAsset<TileList>
             Sprite icon = null;
             if (rectangle != null)
             {
-                icon = new Sprite(IoCManager.Resolve<AssetService>().FromFile<Texture2D>(iconPath), new Vector2(0.5f, 0.5f), rectangle.Value);
+                icon = new Sprite(Application.Main.ServiceContainer.GetInstance<AssetService>().FromFile<Texture2D>(iconPath), new Vector2(0.5f, 0.5f), rectangle.Value);
             }
             else
             {
-                icon = new Sprite(IoCManager.Resolve<AssetService>().FromFile<Texture2D>(iconPath));
+                icon = new Sprite(Application.Main.ServiceContainer.GetInstance<AssetService>().FromFile<Texture2D>(iconPath));
             }
 
             Tiles.Add(new TileData(sceneId, icon));

@@ -10,7 +10,7 @@ namespace MalignEngine
         [Dependency]
         protected ScheduleManager EventSystem = default!;
         [Dependency]
-        protected WindowSystem Window = default!;
+        protected WindowService Window = default!;
         [Dependency]
         protected IRenderingService Renderer = default!;
 

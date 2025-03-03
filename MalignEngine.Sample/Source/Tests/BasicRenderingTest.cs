@@ -7,7 +7,7 @@ public class BasicRenderingTest : IService, IDrawGUI
     [Dependency]
     protected IRenderingService RenderingService = default!;
     [Dependency]
-    protected WindowSystem WindowSystem = default!;
+    protected WindowService WindowSystem = default!;
 
     public void OnDrawGUI(float deltaTime)
     {

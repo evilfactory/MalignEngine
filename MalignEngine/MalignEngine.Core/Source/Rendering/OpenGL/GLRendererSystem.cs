@@ -30,7 +30,7 @@ namespace MalignEngine
         }
 
         [Dependency]
-        protected WindowSystem Window = default!;
+        protected WindowService Window = default!;
         [Dependency]
         protected LoggerService LoggerService = default!;
 
@@ -122,6 +122,16 @@ namespace MalignEngine
                 basicMaterial = new Material((GLShader)LoadShader(file));
                 basicMaterial.UseTextureBatching = true;
             }
+
+            StringBuilder extensions = new StringBuilder();
+            int numExtensions = openGL.GetInteger(GLEnum.NumExtensions);
+            for (int i = 0; i < numExtensions; i++)
+            {
+                extensions.Append(openGL.GetStringS(GLEnum.Extensions, (uint)i));
+                extensions.Append(" ");
+            }
+
+            Logger.LogInfo($"Initialized OpenGL renderer. \n OpenGL {openGL.GetStringS(GLEnum.Version)}\n Shading Language {openGL.GetStringS(GLEnum.ShadingLanguageVersion)} \n GPU: {openGL.GetStringS(GLEnum.Renderer)} \n Vendor: {openGL.GetStringS(GLEnum.Vendor)}");
         }
 
         private void GLDebugMessageCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)

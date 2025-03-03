@@ -7,7 +7,7 @@ namespace MalignEngine
     {
         public object? Deserialize(string dataFieldName, XElement element, EntityIdRemap? idRemap = null)
         {
-            return IoCManager.Resolve<AssetService>().GetFromId<Sprite>(element.GetAttributeString(dataFieldName));
+            return Application.Main.ServiceContainer.GetInstance<AssetService>().GetFromId<Sprite>(element.GetAttributeString(dataFieldName));
         }
 
         public void Serialize(object value, string dataFieldName, XElement element)
@@ -73,7 +73,7 @@ namespace MalignEngine
 
             if (texturePath == null) { throw new Exception("No Texture attribute found"); }
 
-            Texture = IoCManager.Resolve<AssetService>().FromFile<Texture2D>(texturePath);
+            Texture = Application.Main.ServiceContainer.GetInstance<AssetService>().FromFile<Texture2D>(texturePath);
 
             Rect = element.GetAttributeRectangle("Rectangle", new Rectangle(0, 0, (int)Texture.Width, (int)Texture.Height));
             Origin = element.GetAttributeVector2("Origin", Origin);

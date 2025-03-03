@@ -16,7 +16,7 @@ public class GUIService : IService, IUpdate, IDrawGUI
     protected IRenderingService RenderingService = default!;
 
     [Dependency]
-    protected WindowSystem WindowSystem = default!;
+    protected WindowService WindowSystem = default!;
 
     private List<GUIComponent> components = new List<GUIComponent>();
 

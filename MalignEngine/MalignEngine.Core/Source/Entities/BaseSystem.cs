@@ -2,7 +2,7 @@ using Arch.Core;
 
 namespace MalignEngine
 {
-    public interface IService { }
+    public interface IService : IScheduleSubscriber { }
 
     public abstract class BaseSystem : IService, IInit, IUpdate, IDraw
     {

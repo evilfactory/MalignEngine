@@ -6,7 +6,7 @@ namespace MalignEngine
         {
             Width = width;
             Height = height;
-            Handle = IoCManager.Resolve<IRenderingService>().CreateTextureHandle();
+            Handle = Application.Main.ServiceContainer.GetInstance<IRenderingService>().CreateTextureHandle();
             Handle.Initialize(width, height, true);
         }
 

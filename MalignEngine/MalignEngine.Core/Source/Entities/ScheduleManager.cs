@@ -2,10 +2,11 @@ using QuikGraph;
 using QuikGraph.Algorithms;
 using System.Collections.Immutable;
 using System.Data;
-using System.Reflection;
-using static MalignEngine.ScheduleMetaData;
 
 namespace MalignEngine;
+
+public interface IScheduleSubscriber { }
+
 
 public class ScheduleMetaData
 {
@@ -36,7 +37,8 @@ public class ScheduleMetaData
 
 public class Schedule
 {
-    public object Subscriber { get; set; }
+    public Type SubscriberType { get; set; }
+    public object? Subscriber { get; set; }
     public ScheduleMetaData? MetaData { get; set; }
 }
 
@@ -46,6 +48,10 @@ public class Schedule
 public class ScheduleManager : IService
 {
     private Dictionary<Type, List<Schedule>> subscribers = new();
+
+    public ScheduleManager()
+    {
+    }
 
     public ImmutableList<Schedule> GetOrder(Type type)
     {
@@ -65,7 +71,7 @@ public class ScheduleManager : IService
 
         foreach (var schedule in schedules)
         {
-            graph.AddVertex(schedule.Subscriber.GetType());
+            graph.AddVertex(schedule.SubscriberType);
         }
 
         Type? prevSchedule = null; 
@@ -77,18 +83,18 @@ public class ScheduleManager : IService
                 scheduleMetaData = new ScheduleMetaData(new Type[] { prevSchedule }, new Type[0]);
             }
 
-            prevSchedule = schedule.Subscriber.GetType();
+            prevSchedule = schedule.SubscriberType;
 
             if (scheduleMetaData == null) { continue; }
 
             foreach (var before in scheduleMetaData.RunsBefore)
             {
-                graph.AddEdge(new Edge<Type>(schedule.Subscriber.GetType(), before));
+                graph.AddEdge(new Edge<Type>(schedule.SubscriberType, before));
             }
 
             foreach (var after in scheduleMetaData.RunsAfter)
             {
-                graph.AddEdge(new Edge<Type>(after, schedule.Subscriber.GetType()));
+                graph.AddEdge(new Edge<Type>(after, schedule.SubscriberType));
             }
         }
 
@@ -110,13 +116,13 @@ public class ScheduleManager : IService
 
         foreach (var vertex in topologicalSort)
         {
-            sortedSubscribers.Add(subscribers[type].First(schedule => schedule.Subscriber.GetType() == vertex));
+            sortedSubscribers.Add(subscribers[type].First(schedule => schedule.SubscriberType == vertex));
         }
 
         subscribers[type] = sortedSubscribers;
     }
 
-    public void SubscribeAll(object observer, ScheduleMetaData? metadata = null)
+    public void SubscribeAll(object observer)
     {
         foreach (var type in observer.GetType().GetInterfaces().Where(inter => inter.IsAssignableTo(typeof(ISchedule))))
         {
@@ -127,11 +133,15 @@ public class ScheduleManager : IService
 
             if (subscribers[type].Contains(observer)) { return; }
 
-            subscribers[type].Add(new Schedule 
+            Schedule? schedule = subscribers[type].FirstOrDefault(sub => sub.SubscriberType == observer.GetType());
+
+            if (schedule == null)
             {
-                Subscriber = observer,
-                MetaData = metadata
-            });
+                schedule = new Schedule() { MetaData = null, SubscriberType = observer.GetType() };
+                subscribers[type].Add(schedule);
+            }
+
+            schedule.Subscriber = observer;
 
             ReorderAll(type);
         }
@@ -139,9 +149,21 @@ public class ScheduleManager : IService
 
     public void SetMetaData(Type scheduleType, Type subscriberType, ScheduleMetaData metadata)
     {
-        if (!subscribers.ContainsKey(scheduleType)) { return; }
+        if (!subscribers.ContainsKey(scheduleType))
+        {
+            subscribers[scheduleType] = new List<Schedule>();
+        }
 
-        subscribers[scheduleType].First(sub => sub.Subscriber.GetType() == subscriberType).MetaData = metadata;
+        Schedule schedule = subscribers[scheduleType].FirstOrDefault(sub => sub.SubscriberType.GetType() == subscriberType);
+
+        if (schedule == null)
+        {
+            schedule = new Schedule() { SubscriberType = subscriberType, MetaData = metadata };
+
+            subscribers[scheduleType].Add(schedule);
+        }
+
+        schedule.MetaData = metadata;
     }
 
     public void SetMetaData<TSchedule, TSubscriber>(ScheduleMetaData metadata) where TSchedule : ISchedule
@@ -155,7 +177,7 @@ public class ScheduleManager : IService
 
         foreach (var subscriber in subscribers[typeof(T)])
         {
-            if (subscriber.MetaData == null || subscriber.MetaData.RunCondition == null || subscriber.MetaData.RunCondition())
+            if (subscriber.Subscriber != null && (subscriber.MetaData == null || subscriber.MetaData.RunCondition == null || subscriber.MetaData.RunCondition()))
             {
                 eventInvoker((T)subscriber.Subscriber);
             }

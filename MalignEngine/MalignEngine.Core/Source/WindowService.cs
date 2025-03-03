@@ -4,10 +4,27 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class WindowSystem : BaseSystem, IApplicationRun, IUpdateLoop
+    public class WindowService : IService, IApplicationRun, IUpdateLoop
     {
-        [Dependency]
-        protected ScheduleManager EventSystem = default!;
+        private ScheduleManager scheduleManager;
+
+        public string Title
+        {
+            get { return window.Title; }
+            set {  window.Title = value; }
+        }
+
+        public Vector2D<int> Size
+        {
+            get
+            {
+                return window.Size;
+            }
+            set
+            {
+                window.Size = value;
+            }
+        }
 
         public double UpdateRate
         {
@@ -20,15 +37,17 @@ namespace MalignEngine
 
         internal IWindow window;
 
-        public WindowSystem(string title, Vector2 size)
+        public WindowService(ScheduleManager scheduleManager)
         {
+            this.scheduleManager = scheduleManager;
+
             var options = WindowOptions.Default;
             options.PreferredDepthBufferBits = 8;
             options.PreferredStencilBufferBits = 8;
             options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(4, 1));
             options.WindowBorder = WindowBorder.Resizable;
-            options.Size = new Vector2D<int>((int)size.X, (int)size.Y);
-            options.Title = title;
+            options.Size = new Vector2D<int>(1280, 800);
+            options.Title = "Malign Engine";
             window = Window.Create(options);
 
             window.UpdatesPerSecond = 60;
@@ -47,19 +66,19 @@ namespace MalignEngine
 
         private void WindowLoad()
         {
-            EventSystem.Run<IInit>(e => e.OnInitialize());
+            scheduleManager.Run<IInit>(e => e.OnInitialize());
         }
 
         private void WindowUpdate(double delta)
         {
-            EventSystem.Run<IPreUpdate>(e => e.OnPreUpdate((float)delta));
-            EventSystem.Run<IUpdate>(e => e.OnUpdate((float)delta));
-            EventSystem.Run<IPostUpdate>(e => e.OnPostUpdate((float)delta));
+            scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate((float)delta));
+            scheduleManager.Run<IUpdate>(e => e.OnUpdate((float)delta));
+            scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate((float)delta));
         }
 
         private void WindowRender(double delta)
         {
-            EventSystem.Run<IWindowDraw>(e => e.OnWindowDraw((float)delta));
+            scheduleManager.Run<IWindowDraw>(e => e.OnWindowDraw((float)delta));
         }
     }
 }

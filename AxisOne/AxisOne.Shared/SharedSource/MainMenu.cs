@@ -11,7 +11,7 @@ public struct MainMenuComponent : IComponent { }
 public class MainMenu : EntitySystem, IDrawGUI
 {
     [Dependency]
-    protected WindowSystem WindowSystem = default!;
+    protected WindowService WindowSystem = default!;
     [Dependency]
     protected RenderingSystem RenderingSystem = default!;
     [Dependency]
