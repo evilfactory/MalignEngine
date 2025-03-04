@@ -18,7 +18,7 @@ namespace MalignEngine
         public override void OnInitialize()
         {
             // remove, stupid
-            EntityEventSystem.SubscribeEvent<ComponentAddedEvent, Transform>((entity, args) =>
+            EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<Transform>((entity, args) =>
             {
                 if (!entity.Has<WorldTransform>())
                 {

@@ -10,7 +10,7 @@ namespace MalignEngine
         [Dependency]
         protected EntityManagerService EntityManager = default!;
         [Dependency]
-        protected EntityManagerService EntityEventSystem = default!;
+        protected EventService EventService = default!;
 
         public static bool Resolve<T>(in EntityRef entity, ref T comp) where T : IComponent
         {

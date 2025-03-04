@@ -27,8 +27,8 @@ namespace MalignEngine
         {
             physicsWorld = new World(new AVector2(0, -9.81f));
 
-            EntityEventSystem.SubscribeEvent<ComponentAddedEvent, PhysicsBody2D>(PhysicsBodyAdded);
-            EntityEventSystem.SubscribeEvent<ComponentRemovedEvent, PhysicsBody2D>(PhysicsBodyRemoved);
+            EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyAdded);
+            EventService.Get<ComponentEventChannel<ComponentRemovedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyRemoved);
         }
 
         public override void OnUpdate(float deltaTime)

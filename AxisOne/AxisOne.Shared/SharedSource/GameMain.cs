@@ -13,7 +13,7 @@ class GameMain
     {
         Application application = new Application();
 
-        application.Add(new EntityEventSystem());
+        application.Add(new EventService());
         application.Add(new EntityManagerService());
         application.Add(new AssetService());
         application.Add(new WindowSystem("Malign Engine", new Vector2(800, 600)));

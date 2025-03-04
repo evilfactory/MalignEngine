@@ -1,6 +1,7 @@
 using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
+using System.Linq;
 
 namespace MalignEngine;
 
@@ -31,7 +32,7 @@ public class EntityMetaData : IComponent
     public Dictionary<Type, ComponentLifeStage> ComponentLifeStages;
 }
 
-public class EntityCreatedEvent : EntityEventArgs
+public class EntityCreatedEvent : EventArgs
 {
     public EntityRef Entity;
 
@@ -40,7 +41,7 @@ public class EntityCreatedEvent : EntityEventArgs
         Entity = entity;
     }
 }
-public class EntityDestroyedEvent : EntityEventArgs
+public class EntityDestroyedEvent : EventArgs
 {
     public EntityRef Entity;
 
@@ -50,12 +51,12 @@ public class EntityDestroyedEvent : EntityEventArgs
     }
 }
 
-public class ComponentAddedEvent : EntityEventArgs { }
-public class ComponentInitEvent : EntityEventArgs { }
-public class ComponentStartEvent : EntityEventArgs { }
-public class ComponentStopEvent : EntityEventArgs { }
-public class ComponentRemovedEvent : EntityEventArgs { }
-public class ComponentDeletedEvent : EntityEventArgs { }
+public class ComponentAddedEvent : ComponentEventArgs { }
+public class ComponentInitEvent : ComponentEventArgs { }
+public class ComponentStartEvent : ComponentEventArgs { }
+public class ComponentStopEvent : ComponentEventArgs { }
+public class ComponentRemovedEvent : ComponentEventArgs { }
+public class ComponentDeletedEvent : ComponentEventArgs { }
 
 public delegate void ForEachWithEntity(EntityRef entity);
 public delegate void ForEachWithEntity<T0>(EntityRef entity, ref T0 t0Component);
@@ -64,7 +65,63 @@ public delegate void ForEachWithEntity<T0, T1, T2>(EntityRef entity, ref T0 t0Co
 public delegate void ForEachWithEntity<T0, T1, T2, T3>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component, ref T3 t3Component);
 public delegate void ForEachWithEntity<T0, T1, T2, T3, T4>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component, ref T3 t3Component, ref T4 t4Component);
 
-public abstract class EntityEventArgs { }
+public abstract class ComponentEventArgs : EventArgs { }
+
+public class ComponentEventChannel<T> : IEventChannel<T> where T : ComponentEventArgs
+{
+    private class EventSubscription
+    {
+        public Delegate Handler { get; private set; }
+        public Type? ComponentType;
+        public EventSubscription(Delegate handler, Type? componentType = null)
+        {
+            Handler = handler;
+            ComponentType = componentType;
+        }
+    }
+
+    private List<EventSubscription> eventSubscriptions = new();
+
+    public void Raise(EntityRef entity, T args)
+    {
+        var componentTypes = entity.GetComponents().ToList().Select(x => x.GetType());
+
+        foreach (var subscription in eventSubscriptions)
+        {
+            if (subscription.Handler is Action<EntityRef, T> handler && componentTypes.Contains(subscription.ComponentType))
+            {
+                handler(entity, args);
+            }
+        }
+    }
+
+    public void Raise<TComponent>(EntityRef entity, T args)
+    {
+        foreach (var subscription in eventSubscriptions)
+        {
+            if (subscription.Handler is Action<EntityRef, T> handler && typeof(TComponent) == subscription.ComponentType)
+            {
+                handler(entity, args);
+            }
+        }
+    }
+
+    public void Raise(EntityRef entity, Type componentType, T args)
+    {
+        foreach (var subscription in eventSubscriptions)
+        {
+            if (subscription.Handler is Action<EntityRef, T> handler && componentType == subscription.ComponentType)
+            {
+                handler(entity, args);
+            }
+        }
+    }
+
+    public void Subscribe<TComponent>(Action<EntityRef, T> handler)
+    {
+        eventSubscriptions.Add(new EventSubscription(handler, typeof(TComponent)));
+    }
+}
 
 public sealed class EntityManagerService : IService, IInit, IPostUpdate
 {
@@ -82,10 +139,8 @@ public sealed class EntityManagerService : IService, IInit, IPostUpdate
 
     private List<EventSubscription> eventSubscriptions = new List<EventSubscription>();
 
-    [Dependency]
-    private ILoggerService LoggerService;
-
     private ILogger Logger;
+    private EventService eventService;
 
     public WorldRef World
     {
@@ -94,73 +149,29 @@ public sealed class EntityManagerService : IService, IInit, IPostUpdate
 
     private WorldRef world = default!;
 
-    public void OnInitialize()
+    public EntityManagerService(ILoggerService LoggerService, EventService eventService)
     {
         Logger = LoggerService.GetSawmill("ents");
 
-        world = new WorldRef(Logger, this);
+        eventService.Register(new EventChannel<EntityCreatedEvent>());
+        eventService.Register(new EventChannel<EntityDestroyedEvent>());
+        eventService.Register(new ComponentEventChannel<ComponentAddedEvent>());
+        eventService.Register(new ComponentEventChannel<ComponentInitEvent>());
+        eventService.Register(new ComponentEventChannel<ComponentStartEvent>());
+        eventService.Register(new ComponentEventChannel<ComponentStopEvent>());
+        eventService.Register(new ComponentEventChannel<ComponentRemovedEvent>());
+        eventService.Register(new ComponentEventChannel<ComponentDeletedEvent>());
+
+        this.eventService = eventService;
+    }
+
+    public void OnInitialize()
+    {
+        world = new WorldRef(Logger, eventService);
     }
 
     public void OnPostUpdate(float deltaTime)
     {
         World.Update();
-    }
-
-    public void SubscribeEvent<T>(Action<T> handler) where T : EntityEventArgs
-    {
-        eventSubscriptions.Add(new EventSubscription(handler));
-    }
-
-    public void SubscribeEvent<TEvent, TComp>(Action<EntityRef, TEvent> handler)
-    {
-        eventSubscriptions.Add(new EventSubscription(handler, typeof(TComp)));
-    }
-
-    // Broadcasts an event to all subscribers of the event
-    public void RaiseEvent<T>(T args) where T : EntityEventArgs
-    {
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<T> handler)
-            {
-                handler(args);
-            }
-        }
-    }
-
-    // Broadcasts an event to all subscribers of the event that are interested in the component types of this entity
-    public void RaiseEvent<T>(EntityRef entity, T args)
-    {
-        HashSet<Type> componentTypes = World.GetComponents(entity).Select(comp => comp.GetType()).ToHashSet();
-
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<EntityRef, T> handler && componentTypes.Contains(subscription.ComponentType))
-            {
-                handler(entity, args);
-            }
-        }
-    }
-
-    public void RaiseEvent<TEvent, TComp>(EntityRef entity, TEvent args) where TEvent : EntityEventArgs
-    {
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<EntityRef, TEvent> handler && subscription.ComponentType == typeof(TComp))
-            {
-                handler(entity, args);
-            }
-        }
-    }
-
-    public void RaiseEvent<TEvent>(EntityRef entity, IComponent component, TEvent args) where TEvent : EntityEventArgs
-    {
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<EntityRef, TEvent> handler && subscription.ComponentType == component.GetType())
-            {
-                handler(entity, args);
-            }
-        }
     }
 }

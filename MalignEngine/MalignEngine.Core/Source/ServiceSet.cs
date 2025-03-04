@@ -15,6 +15,7 @@ public class ServiceSet
         {
             ServiceSet serviceSet = new ServiceSet(new Type[]
             {
+                typeof(EventService),
                 typeof(EntityManagerService),
                 typeof(AssetService),
                 typeof(WindowService),

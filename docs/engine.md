@@ -10,7 +10,7 @@ The engine is composed of several core parts:
 
 ## Application
 
-The application is the entry point of the engine. It holds all the services and implements a basic console log method. The application doesn't do much by itself, but it's what will start the first services.
+The application is the entry point of the engine. It holds the service container and implements a basic console log method. The application doesn't do much by itself, but it's what will start the first services.
 
 ## Services
 
@@ -49,11 +49,11 @@ public void class MyService : IService, IUpdate
 }
 ```
 
-### Event Service
+### Schedule Manager
 
-The event service is responsible for handling general events between systems, its the most important service in the engine, and it handles all kinds of core events such as `OnUpdate` and `OnDraw`. It's also very fast and with basically no overhead.
+The Schedule Manager is responsible for handling global calls for services, its the most important service in the engine, handling for example the `OnUpdate` and `OnDraw` calls. It's also very fast and with basically no overhead.
 
-Events are dispatched by the event service and can be listened to by other services. Events are implemented through interfaces.
+Schedules are dispatched by the Schedule Manager and can be listened to by other services. Schedules are implemented through interfaces.
 
 ```cs
 public void class MyService : IService, IUpdate
@@ -65,7 +65,11 @@ public void class MyService : IService, IUpdate
 }
 ```
 
-The event service implements the `SubscribeAll` method, which subscribes the service to all events it implements. It also implements the `PublishEvent` method, which dispatches an event to all services that implement the event.
+The Schedule Manager implements the `SubscribeAll` method, which subscribes the service to all events it implements. It also implements the `Run<T>` method, which runs a schedule.
+
+### Event Service
+
+
 
 ### Entity Manager Service
 

@@ -19,10 +19,7 @@ public class TileLayer
     }
 }
 
-public class TileNeighbourChangedEvent : EntityEventArgs
-{
-
-}
+public class TileNeighbourChangedEvent : ComponentEventArgs { }
 
 public class TileSystem : EntitySystem
 {
@@ -78,7 +75,7 @@ public class TileSystem : EntitySystem
 
         foreach (EntityRef neighbour in GetNeighbourTiles(tileMap, x, y, layerName, tileMapComponent))
         {
-            EntityEventSystem.RaiseEvent(neighbour, new TileNeighbourChangedEvent());
+            EventService.Get<ComponentEventChannel<TileNeighbourChangedEvent>>().Raise(neighbour, new TileNeighbourChangedEvent());
         }
 
         return tile;

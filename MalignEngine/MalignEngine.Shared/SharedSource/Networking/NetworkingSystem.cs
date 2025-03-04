@@ -161,7 +161,7 @@ namespace MalignEngine
         [Dependency]
         protected ScheduleManager EventSystem = default!;
         [Dependency]
-        protected EntityEventSystem EntityEvent = default!;
+        protected EventService EntityEvent = default!;
         [Dependency]
         protected EntityManagerService EntityManager = default!;
         [Dependency]

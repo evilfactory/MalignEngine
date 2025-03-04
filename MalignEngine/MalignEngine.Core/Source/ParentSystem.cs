@@ -15,9 +15,9 @@ namespace MalignEngine
     {
         public override void OnInitialize()
         {
-            EntityEventSystem.SubscribeEvent<ComponentAddedEvent, ParentOf>(ParentAddedComponent);
-            EntityEventSystem.SubscribeEvent<ComponentRemovedEvent, ParentOf>(ParentRemovedComponent);
-            EntityEventSystem.SubscribeEvent<EntityDestroyedEvent>(EntityDestroyed);
+            EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<ParentOf>(ParentAddedComponent);
+            EventService.Get<ComponentEventChannel<ComponentRemovedEvent>>().Subscribe<ParentOf>(ParentRemovedComponent);
+            EventService.Get<EventChannel<EntityDestroyedEvent>>().Subscribe(EntityDestroyed);
         }
 
         public IEnumerable<EntityRef> RootEntities
