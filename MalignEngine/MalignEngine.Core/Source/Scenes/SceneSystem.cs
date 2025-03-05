@@ -55,6 +55,11 @@ public class SceneSystem : EntitySystem
             CopyEntity(otherEntities[i], otherNewEntities[i], remap);
         }
 
+        if (scene.AssetId != null)
+        {
+            newRoot.Add(new SceneComponent() { SceneId = scene.AssetId });
+        }
+
         return newRoot;
     }
 

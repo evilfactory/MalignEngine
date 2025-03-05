@@ -21,6 +21,46 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         Root = SceneWorld.CreateEntity();
     }
 
+    private static XElement MergeXElements(XElement baseElement, XElement overlayElement)
+    {
+        XElement result = new XElement(baseElement.Name);
+
+        // Merge attributes (overlay overrides base)
+        foreach (var attr in baseElement.Attributes().Concat(overlayElement.Attributes()).GroupBy(a => a.Name))
+        {
+            result.SetAttributeValue(attr.Key, attr.Last().Value);
+        }
+
+        // Merge child elements by name and attributes (if applicable)
+        var baseChildren = baseElement.Elements().GroupBy(e => e.Name + e.Attributes().ToString());
+        var overlayChildren = overlayElement.Elements().GroupBy(e => e.Name + e.Attributes().ToString());
+
+        var allKeys = baseChildren.Select(g => g.Key).Union(overlayChildren.Select(g => g.Key));
+        foreach (var key in allKeys)
+        {
+            var baseGroup = baseChildren.FirstOrDefault(g => g.Key == key);
+            var overlayGroup = overlayChildren.FirstOrDefault(g => g.Key == key);
+
+            if (baseGroup != null && overlayGroup != null)
+            {
+                foreach (var (b, o) in baseGroup.Zip(overlayGroup, Tuple.Create))
+                {
+                    result.Add(MergeXElements(b, o));
+                }
+            }
+            else if (overlayGroup != null)
+            {
+                result.Add(overlayGroup);
+            }
+            else if (baseGroup != null)
+            {
+                result.Add(baseGroup);
+            }
+        }
+
+        return result;
+    }
+
     public override void Load(XElement element)
     {
         // Destroy all entities
@@ -30,6 +70,16 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         }
 
         AssetId = element.Attribute("Id")?.Value ?? null;
+
+        if (element.Attribute("From") != null)
+        {
+            Scene originalScene = Application.Main.ServiceContainer.GetInstance<AssetService>().GetFromId<Scene>(element.GetAttributeString("From"));
+
+            XElement originalElement = new XElement(originalScene.OriginalElement);
+
+            MergeXElements(originalElement, element);
+            element = originalElement;
+        }
 
         EntityIdRemap remap = new EntityIdRemap();
 
@@ -58,6 +108,11 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         // Go through all entities in the scene and serialize them
 
         element.SetAttributeValue("Id", AssetId);
+
+        if (Root.Has<SceneComponent>())
+        {
+            element.SetAttributeString("From", Root.Get<SceneComponent>().SceneId);
+        }
 
         foreach (var entity in SceneWorld.AllEntities())
         {
