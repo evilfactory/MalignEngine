@@ -5,7 +5,7 @@ namespace MalignEngine.Sample;
 public class LightingTest : IService, IStateEnter<GameState>, IUpdate
 {
     [Dependency]
-    protected EntityManagerService EntityManagerService = default!;
+    protected EntityManager EntityManagerService = default!;
     [Dependency]
     protected LightingPostProcessingSystem2D LightingPostProcessingSystem2D = default!;
     [Dependency]

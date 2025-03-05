@@ -65,7 +65,27 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
             entityElement.SetAttributeValue("Id", entity.Id.ToString());
 
             EntitySerializer.SerializeEntity(entity, entityElement);
+
+            element.Add(entityElement);
         }
     }
 
+    public void CopyEntities(EntityRef[] entities)
+    {
+        EntityIdRemap idRemap = new EntityIdRemap();
+
+        EntityRef[] copyEntities = new EntityRef[entities.Length];
+
+        for (int i = 0; i < entities.Length; i++)
+        {
+            copyEntities[i] = SceneWorld.CreateEntity();
+
+            idRemap.AddEntity(entities[i].Id, copyEntities[i]);
+        }
+
+        for (int i = 0; i < entities.Length; i++)
+        {
+            SceneSystem.CopyEntity(entities[i], copyEntities[i], idRemap);
+        }
+    }
 }

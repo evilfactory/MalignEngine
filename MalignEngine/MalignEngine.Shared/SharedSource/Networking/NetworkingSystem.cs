@@ -163,7 +163,7 @@ namespace MalignEngine
         [Dependency]
         protected EventService EntityEvent = default!;
         [Dependency]
-        protected EntityManagerService EntityManager = default!;
+        protected EntityManager EntityManager = default!;
         [Dependency]
         protected AssetService AssetSystem = default!;
         [Dependency]

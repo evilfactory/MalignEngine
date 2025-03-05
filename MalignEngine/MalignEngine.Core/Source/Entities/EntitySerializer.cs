@@ -50,15 +50,20 @@ public class EntitySerializer
         }
     }
 
-    public static void SerializeEntity(EntityRef entity, XElement data)
+    public static void SerializeEntity(EntityRef entity, XElement data, bool saveAll = false)
     {
         data.SetAttributeValue("Id", entity.Id.ToString());
 
         foreach (object component in entity.GetComponents())
         {
+            if (component.GetType().GetCustomAttribute<SerializableAttribute>() == null)
+            {
+                continue;
+            }
+
             XElement componentElement = new XElement(component.GetType().Name);
 
-            XmlSerializer.SerializeObject(component, componentElement);
+            XmlSerializer.SerializeObject(component, componentElement, saveAll);
 
             data.Add(componentElement);
         }

@@ -5,7 +5,7 @@ namespace MalignEngine.Sample;
 public class CameraTest : IService, IStateEnter<GameState>, IUpdate
 {
     [Dependency]
-    protected EntityManagerService EntityManagerService = default!;
+    protected EntityManager EntityManagerService = default!;
 
     private EntityRef camera;
     private float time = 0;

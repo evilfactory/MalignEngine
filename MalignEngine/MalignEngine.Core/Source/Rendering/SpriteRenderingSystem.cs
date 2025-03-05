@@ -45,7 +45,7 @@ namespace MalignEngine
     public struct SpriteRenderer : IComponent
     {
         [DataField("Sprite")] public Sprite Sprite;
-        [DataField("Color")] public Color Color;
+        [DataField("Color", save: true)] public Color Color;
         [DataField("Layer")] public float Layer;
 
         public SpriteRenderer()

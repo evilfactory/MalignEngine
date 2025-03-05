@@ -52,6 +52,12 @@ namespace MalignEngine
             });
         }
 
+        public void SetPosition(in EntityRef entity, Vector2 position)
+        {
+            Body simBody = GetBody(entity.Get<PhysicsSimId>());
+            simBody.Position = new AVector2(position.X, position.Y);
+        }
+
         public void ApplyForce(in EntityRef entity, Vector2 force)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());

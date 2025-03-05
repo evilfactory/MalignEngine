@@ -123,22 +123,8 @@ public class ComponentEventChannel<T> : IEventChannel<T> where T : ComponentEven
     }
 }
 
-public sealed class EntityManagerService : IService, IInit, IPostUpdate
+public sealed class EntityManager : IService, IPostUpdate
 {
-    private class EventSubscription
-    {
-        public Delegate Handler { get; private set; }
-        public Type? ComponentType;
-
-        public EventSubscription(Delegate handler, Type? componentType = null)
-        {
-            Handler = handler;
-            ComponentType = componentType;
-        }
-    }
-
-    private List<EventSubscription> eventSubscriptions = new List<EventSubscription>();
-
     private ILogger Logger;
     private EventService eventService;
 
@@ -149,7 +135,7 @@ public sealed class EntityManagerService : IService, IInit, IPostUpdate
 
     private WorldRef world = default!;
 
-    public EntityManagerService(ILoggerService LoggerService, EventService eventService)
+    public EntityManager(ILoggerService LoggerService, EventService eventService)
     {
         Logger = LoggerService.GetSawmill("ents");
 
@@ -163,10 +149,7 @@ public sealed class EntityManagerService : IService, IInit, IPostUpdate
         eventService.Register(new ComponentEventChannel<ComponentDeletedEvent>());
 
         this.eventService = eventService;
-    }
 
-    public void OnInitialize()
-    {
         world = new WorldRef(Logger, eventService);
     }
 

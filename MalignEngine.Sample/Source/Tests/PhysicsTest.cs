@@ -5,7 +5,7 @@ namespace MalignEngine.Sample;
 public class PhysicsTest : IService, IStateEnter<GameState>, IUpdate
 {
     [Dependency]
-    protected EntityManagerService EntityManagerService = default!;
+    protected EntityManager EntityManagerService = default!;
     [Dependency]
     protected InputSystem InputSystem = default!;
     [Dependency]

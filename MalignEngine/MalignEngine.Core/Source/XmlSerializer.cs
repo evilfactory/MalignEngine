@@ -48,7 +48,7 @@ namespace MalignEngine
                    type == typeof(EntityRef) || type == typeof(Quaternion);
         }
 
-        public static void SerializeObject(object obj, XElement element)
+        public static void SerializeObject(object obj, XElement element, bool saveAll = false)
         {
             // check if any serializer supports serializing this object as a whole
             foreach (ICustomObjectXmlSerializer serializer in objectSerializers)
@@ -63,7 +63,7 @@ namespace MalignEngine
             foreach (MemberInfo member in obj.GetType().GetMembers())
             {
                 DataFieldAttribute? dataField = member.GetCustomAttribute<DataFieldAttribute>();
-                if (dataField == null || !dataField.Save) { continue; }
+                if (dataField == null || (!dataField.Save && !saveAll)) { continue; }
 
                 Type memberType = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
                 object value = member is PropertyInfo ? ((PropertyInfo)member).GetValue(obj) : ((FieldInfo)member).GetValue(obj);
@@ -91,6 +91,10 @@ namespace MalignEngine
                 else if (memberType == typeof(EntityRef))
                 {
                     element.SetAttributeInt(dataField.Name, ((EntityRef)value).Id);
+                }
+                else if (memberType.IsEnum)
+                {
+                    element.SetAttributeString(dataField.Name, Enum.GetName(memberType, value));
                 }
                 else
                 {
@@ -190,6 +194,10 @@ namespace MalignEngine
                 else if (memberType == typeof(Color))
                 {
                     setValue(obj, element.GetAttributeColor(dataField.Name));
+                }
+                else if (memberType.IsEnum)
+                {
+                    setValue(obj, Enum.Parse(memberType, element.GetAttributeString(dataField.Name)));
                 }
                 else if (memberType == typeof(EntityRef))
                 {

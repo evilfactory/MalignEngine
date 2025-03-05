@@ -1,4 +1,5 @@
 using Arch.Core;
+using System.Globalization;
 using System.Reflection;
 
 namespace MalignEngine;
@@ -14,6 +15,9 @@ public class Application : IDisposable, ILogHandler
     public Application()
     {
         Main = this;
+
+        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
 
         ServiceContainer = new ServiceContainer();
 

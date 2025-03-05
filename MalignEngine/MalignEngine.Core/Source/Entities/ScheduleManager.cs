@@ -2,6 +2,7 @@ using QuikGraph;
 using QuikGraph.Algorithms;
 using System.Collections.Immutable;
 using System.Data;
+using System.Diagnostics;
 
 namespace MalignEngine;
 
@@ -154,7 +155,7 @@ public class ScheduleManager : IService
             subscribers[scheduleType] = new List<Schedule>();
         }
 
-        Schedule schedule = subscribers[scheduleType].FirstOrDefault(sub => sub.SubscriberType.GetType() == subscriberType);
+        Schedule? schedule = subscribers[scheduleType].FirstOrDefault(sub => sub.SubscriberType == subscriberType);
 
         if (schedule == null)
         {

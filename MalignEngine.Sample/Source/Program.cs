@@ -54,6 +54,11 @@ public class Program
             RunCondition = application.StateManager.Is(GameState.LightingTest)
         });
 
+        application.ScheduleManager.SetMetaData<IUpdate, BasicSceneTest>(new ScheduleMetaData()
+        {
+            RunCondition = application.StateManager.Is(GameState.BasicSceneTest)
+        });
+
         application.Run();
     }
 }

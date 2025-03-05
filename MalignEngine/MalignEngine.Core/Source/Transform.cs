@@ -72,9 +72,9 @@ namespace MalignEngine
     [Serializable]
     public struct Transform : IComponent
     {
-        [DataField("Position")] public Vector3 Position;
+        [DataField("Position", save: true)] public Vector3 Position;
         public Quaternion Rotation;
-        [DataField("Scale")] public Vector3 Scale;
+        [DataField("Scale", save: true)] public Vector3 Scale;
 
         [DataField("EulerAngles", save: true)] 
         public Vector3 EulerAngles
