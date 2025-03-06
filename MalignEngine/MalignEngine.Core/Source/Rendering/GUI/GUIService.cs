@@ -7,14 +7,12 @@ public interface IAddToUpdateGUIList : ISchedule
     public void AddToUpdateList(GUIService gui);
 }
 
-public class GUIService : IService, IUpdate, IDrawGUI
+public class GUIService : IService, IUpdate, IWindowDraw
 {
     [Dependency]
-    protected ScheduleManager EventSystem = default!;
-
+    protected ScheduleManager ScheduleManager = default!;
     [Dependency]
     protected IRenderingService RenderingService = default!;
-
     [Dependency]
     protected WindowService WindowSystem = default!;
 
@@ -24,7 +22,7 @@ public class GUIService : IService, IUpdate, IDrawGUI
     {
         foreach (var child in component.Children)
         {
-            EventSystem.SubscribeAll(child);
+            ScheduleManager.SubscribeAll(child);
 
             SubscribeAllChildren(child);
         }
@@ -32,7 +30,7 @@ public class GUIService : IService, IUpdate, IDrawGUI
 
     public void AddToUpdateList(GUIComponent component)
     {
-        EventSystem.SubscribeAll(component);
+        ScheduleManager.SubscribeAll(component);
         SubscribeAllChildren(component);
 
         components.Add(component);
@@ -51,11 +49,26 @@ public class GUIService : IService, IUpdate, IDrawGUI
     public void OnUpdate(float deltaTime)
     {
         components.Clear();
-        EventSystem.Run<IAddToUpdateGUIList>(x => x.AddToUpdateList(this));
+        ScheduleManager.Run<IAddToUpdateGUIList>(x => x.AddToUpdateList(this));
 
         foreach (var component in components)
         {
             component.Update();
         }
+    }
+
+    public void OnWindowDraw(float deltaTime)
+    {
+        ScheduleManager.Run<IPreDrawGUI>(e => e.OnPreDrawGUI(deltaTime));
+
+        foreach (var component in components)
+        {
+            RenderingService.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, WindowSystem.Width, WindowSystem.Height, 0f, 0.001f, 100f));
+            component.Draw();
+            RenderingService.End();
+        }
+
+        ScheduleManager.Run<IDrawGUI>(e => e.OnDrawGUI(deltaTime));
+        ScheduleManager.Run<IPostDrawGUI>(e => e.OnPostDrawGUI(deltaTime));
     }
 }

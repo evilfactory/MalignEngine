@@ -52,6 +52,14 @@ namespace MalignEngine
             });
         }
 
+        public void RayCast(Func<FixtureData2D, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)
+        {
+            physicsWorld.RayCast((Fixture fixture, AVector2 point, AVector2 normal, float fraction) =>
+            {
+                return callback((FixtureData2D)fixture.Tag, new Vector2(point.X, point.Y), new Vector2(point.X, point.Y), fraction);
+            }, new AVector2(start.X, start.Y), new AVector2(end.X, end.Y));
+        }
+
         public void SetPosition(in EntityRef entity, Vector2 position)
         {
             Body simBody = GetBody(entity.Get<PhysicsSimId>());
@@ -121,8 +129,11 @@ namespace MalignEngine
                     throw new Exception("Shape type not supported");
                 }
 
+                fixture.Tag = fixtureData;
                 fixture.Restitution = fixtureData.Restitution;
                 fixture.Friction = fixtureData.Friction;
+                fixture.CollidesWith = (nkast.Aether.Physics2D.Dynamics.Category)fixtureData.CollidesWith;
+                fixture.CollisionCategories = (nkast.Aether.Physics2D.Dynamics.Category)fixtureData.CollisionCategories;
             }
         }
 

@@ -8,7 +8,7 @@ namespace MalignEngine
     public class CameraSystem : EntitySystem, IWindowDraw
     {
         [Dependency]
-        protected ScheduleManager EventSystem = default!;
+        protected ScheduleManager ScheduleManager = default!;
         [Dependency]
         protected WindowService Window = default!;
         [Dependency]
@@ -59,7 +59,7 @@ namespace MalignEngine
                 Renderer.SetRenderTarget(camera.RenderTexture, camera.RenderTexture.Width, camera.RenderTexture.Height);
                 Renderer.Clear(camera.ClearColor);
                 Renderer.FlipY = true;
-                EventSystem.Run<IDraw>(e => e.OnDraw(delta));
+                ScheduleManager.Run<IDraw>(e => e.OnDraw(delta));
                 Renderer.FlipY = false;
 
                 if (camera.PostProcessingSteps != null)
@@ -87,10 +87,6 @@ namespace MalignEngine
             {
                 Renderer.Clear(Color.Black);
             }
-
-            EventSystem.Run<IPreDrawGUI>(e => e.OnPreDrawGUI(delta));
-            EventSystem.Run<IDrawGUI>(e => e.OnDrawGUI(delta));
-            EventSystem.Run<IPostDrawGUI>(e => e.OnPostDrawGUI(delta));
         }
 
         public Matrix4x4 CreateOrthographicMatrix(float width, float height, float viewSize, Vector2 position)

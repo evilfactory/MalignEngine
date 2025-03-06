@@ -28,6 +28,26 @@ public class LightingTest : IService, IStateEnter<GameState>, IUpdate
         EntityRef testEntity = EntityManagerService.World.CreateEntity();
         testEntity.Add(new Transform() { Position = new Vector3(0, 0, 0), Scale = new Vector3(1, 1, 1) });
         testEntity.Add(new SpriteRenderer() { Sprite = new Sprite(Texture2D.White), Color = Color.Red });
+        testEntity.Add(new PhysicsBody2D()
+        {
+            Fixtures = new FixtureData2D[]
+            {
+                new FixtureData2D(new RectangleShape2D(1, 1), 1, 0.2f, 0.5f)
+            },
+            BodyType = PhysicsBodyType.Static
+        });
+
+        EntityRef testEntity2 = EntityManagerService.World.CreateEntity();
+        testEntity2.Add(new Transform() { Position = new Vector3(4, 0, 0), Scale = new Vector3(1, 4, 1) });
+        testEntity2.Add(new SpriteRenderer() { Sprite = new Sprite(Texture2D.White), Color = Color.Red });
+        testEntity2.Add(new PhysicsBody2D()
+        {
+            Fixtures = new FixtureData2D[]
+            {
+                new FixtureData2D(new RectangleShape2D(1, 4), 1, 0.2f, 0.5f)
+            },
+            BodyType = PhysicsBodyType.Static
+        });
 
         light = EntityManagerService.World.CreateEntity();
         light.Add(new Transform() { Position = new Vector3(0, 0, 0), Scale = new Vector3(10, 10, 1) });

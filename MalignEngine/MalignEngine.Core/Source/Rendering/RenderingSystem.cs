@@ -56,6 +56,7 @@ namespace MalignEngine
         public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Color color, float rotation, float layerDepth);
         public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, float layerDepth);
         public void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
+        public void DrawVertices(ITexture texture, VertexPositionColorTexture[] vertices);
         public TextureHandle CreateTextureHandle();
         public Shader LoadShader(Stream data);
         public void SetMatrix(Matrix4x4 matrix);
@@ -74,6 +75,7 @@ namespace MalignEngine
         public abstract void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Color color, float rotation, float layerDepth);
         public abstract void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, float layerDepth);
         public abstract void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
+        public abstract void DrawVertices(ITexture texture, VertexPositionColorTexture[] vertices);
         public abstract TextureHandle CreateTextureHandle();
         public abstract Shader LoadShader(Stream data);
         public abstract void SetMatrix(Matrix4x4 matrix);

@@ -37,7 +37,7 @@ namespace MalignEngine
 
         internal IWindow window;
 
-        public WindowService(ScheduleManager scheduleManager)
+        public WindowService(ILoggerService loggerService, ScheduleManager scheduleManager)
         {
             this.scheduleManager = scheduleManager;
 
@@ -57,6 +57,8 @@ namespace MalignEngine
             window.Load += WindowLoad; ;
             window.Update += WindowUpdate;
             window.Render += WindowRender;
+
+            loggerService.GetSawmill("window").LogInfo($"Window initialized {options.Size.X}x{options.Size.Y}");
         }
 
         public void OnApplicationRun()
