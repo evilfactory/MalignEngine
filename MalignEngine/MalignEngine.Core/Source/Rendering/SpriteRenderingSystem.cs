@@ -9,7 +9,7 @@ namespace MalignEngine
     public class SpriteRenderingSystem : EntitySystem
     {
         [Dependency]
-        protected IRenderingService IRenderingService = default!;
+        protected IRenderer2D IRenderingService = default!;
 
         [Dependency(true)]
         protected EditorPerformanceSystem EditorPerformanceSystem = default!;

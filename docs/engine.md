@@ -70,7 +70,6 @@ The Schedule Manager implements the `SubscribeAll` method, which subscribes the 
 ### Event Service
 
 
-
 ### Entity Manager Service
 
 This is the service responsible for managing entities. It handles the creation, deletion, and updating of entities. It also handles the creation and deletion of components. It also handles the lifecycle of entities and components. Most of it is a wrapper around Arch.
@@ -92,3 +91,10 @@ List of entities in a separate world.
 When instantiating a scene, it will copy each entity and component to the main world.
 
 Scenes can be serialized/deseialized to XML. They can also be manually created with code.
+
+
+### Rendering
+
+TODO: Abstract the rendering into 2 parts. 
+The rendering API: Very low level, just sends render commands to the GPU.
+The rendering service: High level, uses the rendering API, handles quads, sprites, and other high level rendering tasks.

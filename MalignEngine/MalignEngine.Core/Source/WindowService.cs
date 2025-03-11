@@ -1,5 +1,7 @@
+using Silk.NET.GLFW;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using Silk.NET.Windowing.Glfw;
 using System.Numerics;
 
 namespace MalignEngine

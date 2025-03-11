@@ -24,7 +24,7 @@ public class TileNeighbourChangedEvent : ComponentEventArgs { }
 public class TileSystem : EntitySystem
 {
     [Dependency]
-    private IRenderingService IRenderingService = default!;
+    private IRenderer2D IRenderingService = default!;
     [Dependency]
     private SceneSystem SceneSystem = default!;
 

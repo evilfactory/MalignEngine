@@ -9,7 +9,7 @@ public class MainMenu : EntitySystem, IAddToUpdateGUIList
     [Dependency]
     protected WindowService WindowSystem = default!;
     [Dependency]
-    protected IRenderingService RenderingService = default!;
+    protected IRenderer2D RenderingService = default!;
     [Dependency]
     protected StateManager StateManager = default!;
 

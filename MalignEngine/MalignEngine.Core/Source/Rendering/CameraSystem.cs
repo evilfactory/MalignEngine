@@ -12,7 +12,7 @@ namespace MalignEngine
         [Dependency]
         protected WindowService Window = default!;
         [Dependency]
-        protected IRenderingService Renderer = default!;
+        protected IRenderer2D Renderer = default!;
 
         public override void OnInitialize()
         {

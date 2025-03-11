@@ -9,7 +9,7 @@ namespace MalignEngine
         public RectTransform RectTransform { get; private set; }
 
         protected FontSystem FontSystem => Application.Main.ServiceContainer.GetInstance<FontSystem>();
-        protected IRenderingService IRenderingService => Application.Main.ServiceContainer.GetInstance<IRenderingService>();
+        protected IRenderer2D IRenderingService => Application.Main.ServiceContainer.GetInstance<IRenderer2D>();
         protected InputSystem InputSystem => Application.Main.ServiceContainer.GetInstance<InputSystem>();
 
         public IEnumerable<GUIComponent> Children

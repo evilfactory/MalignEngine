@@ -12,7 +12,7 @@ public class GUIService : IService, IUpdate, IWindowDraw
     [Dependency]
     protected ScheduleManager ScheduleManager = default!;
     [Dependency]
-    protected IRenderingService RenderingService = default!;
+    protected IRenderer2D RenderingService = default!;
     [Dependency]
     protected WindowService WindowSystem = default!;
 

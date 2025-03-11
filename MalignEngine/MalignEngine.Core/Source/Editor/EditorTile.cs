@@ -11,7 +11,7 @@ public class EditorTile : BaseEditorWindowSystem
     [Dependency]
     protected EditorSceneViewSystem EditorSceneViewSystem = default!;
     [Dependency]
-    protected IRenderingService IRenderingService = default!;
+    protected IRenderer2D IRenderingService = default!;
     [Dependency]
     protected SpriteRenderingSystem SpriteRenderingSystem = default!;
     [Dependency]

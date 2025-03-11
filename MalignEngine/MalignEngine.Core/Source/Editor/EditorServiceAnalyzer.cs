@@ -8,7 +8,7 @@ public class EditorServiceAnalyzer : BaseEditorWindowSystem
     public override string WindowName => "Service Analyzer";
 
     [Dependency]
-    protected IRenderingService RenderingService = default!;
+    protected IRenderer2D RenderingService = default!;
 
     [Dependency]
     protected ScheduleManager ScheduleManager = default!;

@@ -10,7 +10,34 @@ using Silk.NET.Maths;
 
 namespace MalignEngine
 {
-    public class GLRenderingSystem : BaseRenderingService
+    public struct VertexPositionColorTexture
+    {
+        public Vector3 Position;
+        public Color Color;
+        public Vector2 TextureCoordinate;
+
+        public VertexPositionColorTexture(Vector3 position, Color color, Vector2 textureCoordinate)
+        {
+            Position = position;
+            Color = color;
+            TextureCoordinate = textureCoordinate;
+        }
+    }
+
+    public interface IRenderer2D : IService
+    {
+        public bool FlipY { get; set; }
+        public void Clear(Color color);
+        public void Begin(Matrix4x4 matrix, Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend);
+        public void Begin(Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend);
+        public void End();
+        public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth);
+        public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Color color, float rotation, float layerDepth);
+        public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, float layerDepth);
+        public void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
+    }
+
+    public class Renderer2D : IRenderer2D, IInit
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct Vertex
@@ -44,7 +71,7 @@ namespace MalignEngine
 
         private BufferObject<Vertex> vbo;
         private BufferObject<uint> ebo;
-        private VertexArrayObject<Vertex, uint> vao;
+        private VertexArrayObject vao;
         private GLTextureHandle[] textures;
 
         private uint indexCount = 0;
@@ -65,25 +92,9 @@ namespace MalignEngine
 
         private uint vertexSize = (uint)Marshal.SizeOf<Vertex>();
 
-        public override void OnInitialize()
+        public void OnInitialize()
         {
-            Logger = LoggerService.GetSawmill("rendering");
-
-            openGL = GL.GetApi(Window.window);
-
-            openGL.Enable(GLEnum.Blend);
-            openGL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-            openGL.Enable(GLEnum.DepthTest);
-            openGL.Enable(GLEnum.StencilTest);
-
-            openGL.DepthFunc(GLEnum.Lequal);
-
-            openGL.Enable(GLEnum.DebugOutput);
-            openGL.Enable(GLEnum.DebugOutputSynchronous);
-            unsafe
-            {
-                openGL.DebugMessageCallback(GLDebugMessageCallback, null);
-            }
+            Logger = LoggerService.GetSawmill("rendering.2d");
 
             textures = new GLTextureHandle[MaxTextures];
 
@@ -134,14 +145,6 @@ namespace MalignEngine
             Logger.LogInfo($"Initialized OpenGL renderer. \n OpenGL {openGL.GetStringS(GLEnum.Version)}\n Shading Language {openGL.GetStringS(GLEnum.ShadingLanguageVersion)} \n GPU: {openGL.GetStringS(GLEnum.Renderer)} \n Vendor: {openGL.GetStringS(GLEnum.Vendor)}");
         }
 
-        private void GLDebugMessageCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
-        {
-            string stringMessage = SilkMarshal.PtrToString(message);
-
-            Logger.LogError($"{id}: {type} of {severity}, raised from {source}: {stringMessage}\n{Environment.StackTrace}");
-
-            Debug.Assert(false);
-        }
 
         public override void Begin(Matrix4x4 matrix, Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
         {
@@ -344,101 +347,6 @@ namespace MalignEngine
 
             indexCount = 0;
             drawing = false;
-        }
-
-        public override TextureHandle CreateTextureHandle()
-        {
-            return new GLTextureHandle(openGL);
-        }
-
-        public override Shader LoadShader(Stream data)
-        {
-            StreamReader reader = new StreamReader(data);
-            return new GLShader(openGL, reader.ReadToEnd());
-        }
-
-        public override void SetMatrix(Matrix4x4 matrix)
-        {
-            currentMatrix = matrix;
-        }
-
-        public override void SetRenderTarget(RenderTexture renderTexture, int width = 0, int height = 0)
-        {
-            this.renderTexture = renderTexture;
-
-            if (this.renderTexture != null)
-            {
-                if (width == 0) { width = renderTexture.Width; }
-                if (height == 0) { height = renderTexture.Height; }
-                ((GLTextureHandle)this.renderTexture.Handle).BindAsRenderTarget();
-                openGL.Viewport(0, 0, (uint)width, (uint)height);
-            }
-            else
-            {
-                openGL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-                openGL.Viewport(0, 0, (uint)Window.Width, (uint)Window.Height);
-            }
-        }
-
-        public override void SetStencil(StencilFunction function, int reference, uint mask, StencilOperation fail, StencilOperation zfail, StencilOperation zpass)
-        {
-            GLEnum functiongl = GLEnum.Always;
-
-            switch (function)
-            {
-                case StencilFunction.Equal:
-                    functiongl = GLEnum.Equal;
-                    break;
-                case StencilFunction.NotEqual:
-                    functiongl = GLEnum.Notequal;
-                    break;
-                case StencilFunction.Less:
-                    functiongl = GLEnum.Less;
-                    break;
-                case StencilFunction.LessThanOrEqual:
-                    functiongl = GLEnum.Lequal;
-                    break;
-                case StencilFunction.Greater:
-                    functiongl = GLEnum.Greater;
-                    break;
-                case StencilFunction.GreaterThanOrEqual:
-                    functiongl = GLEnum.Gequal;
-                    break;
-                case StencilFunction.Always:
-                    functiongl = GLEnum.Always;
-                    break;
-                case StencilFunction.Never:
-                    functiongl = GLEnum.Never;
-                    break;
-            }
-
-            GLEnum OperationToGl(StencilOperation operation)
-            {
-                switch (operation)
-                {
-                    case StencilOperation.Keep:
-                        return GLEnum.Keep;
-                    case StencilOperation.Zero:
-                        return GLEnum.Zero;
-                    case StencilOperation.Replace:
-                        return GLEnum.Replace;
-                    case StencilOperation.Increment:
-                        return GLEnum.Incr;
-                    case StencilOperation.IncrementWrap:
-                        return GLEnum.IncrWrap;
-                    case StencilOperation.Decrement:
-                        return GLEnum.Decr;
-                    case StencilOperation.DecrementWrap:
-                        return GLEnum.DecrWrap;
-                    case StencilOperation.Invert:
-                        return GLEnum.Invert;
-                    default:
-                        return GLEnum.Keep;
-                }
-            }
-
-            openGL.StencilOp(OperationToGl(fail), OperationToGl(zfail), OperationToGl(zpass));
-            openGL.StencilFunc(functiongl, reference, mask);
         }
     }
 }

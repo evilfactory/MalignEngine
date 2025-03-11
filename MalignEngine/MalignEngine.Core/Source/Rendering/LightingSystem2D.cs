@@ -8,7 +8,7 @@ namespace MalignEngine
     public class LightingSystem2D : EntitySystem
     {
         [Dependency]
-        protected IRenderingService IRenderingService = default!;
+        protected IRenderer2D IRenderingService = default!;
 
         [Dependency]
         protected PhysicsSystem2D PhysicsSystem2D = default!;
@@ -123,7 +123,7 @@ namespace MalignEngine
     public class LightingPostProcessingSystem2D : PostProcessBaseSystem
     {
         [Dependency]
-        protected IRenderingService IRenderingService = default!;
+        protected IRenderer2D IRenderingService = default!;
         [Dependency]
         protected LightingSystem2D LightingSystem2D = default!;
 

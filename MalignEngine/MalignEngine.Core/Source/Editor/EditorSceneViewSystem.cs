@@ -13,7 +13,7 @@ namespace MalignEngine
         public bool IsWindowHovered { get; private set; }
 
         [Dependency]
-        protected IRenderingService IRenderingService = default!;
+        protected IRenderer2D IRenderingService = default!;
         [Dependency]
         protected TransformSystem TransformSystem = default!;
         [Dependency]

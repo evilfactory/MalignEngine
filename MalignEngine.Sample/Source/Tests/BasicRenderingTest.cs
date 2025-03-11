@@ -5,7 +5,7 @@ namespace MalignEngine.Sample;
 public class BasicRenderingTest : IService, IDrawGUI
 {
     [Dependency]
-    protected IRenderingService RenderingService = default!;
+    protected IRenderer2D RenderingService = default!;
     [Dependency]
     protected WindowService WindowSystem = default!;
 

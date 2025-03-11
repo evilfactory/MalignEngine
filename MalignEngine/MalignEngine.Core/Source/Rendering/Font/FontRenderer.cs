@@ -7,7 +7,7 @@ namespace MalignEngine
     public class FontSystem : BaseSystem, IFontStashRenderer2
     {
         [Dependency]
-        protected IRenderingService IRenderingService = default!;
+        protected IRenderer2D IRenderingService = default!;
 
         public ITexture2DManager TextureManager => new Texture2DManager();
 
