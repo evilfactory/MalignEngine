@@ -4,12 +4,21 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class AudioSystem : BaseSystem
+    public class AudioSystem : BaseSystem, IDisposable
     {
         private static List<SoundChannel> soundChannels = new List<SoundChannel>();
 
         private ALContext alc { get; set; }
         internal AL al { get; private set; }
+
+        private unsafe Device* device;
+
+        private ILogger logger;
+
+        public AudioSystem(ILoggerService loggerService)
+        {
+            this.logger = loggerService.GetSawmill("audio");
+        }
 
         public override void OnInitialize()
         {
@@ -17,7 +26,7 @@ namespace MalignEngine
             {
                 alc = ALContext.GetApi(true);
                 al = AL.GetApi(true);
-                Device* device = alc.OpenDevice("");
+                device = alc.OpenDevice("");
 
                 if (device == null)
                 {
@@ -27,7 +36,9 @@ namespace MalignEngine
                 var context = alc.CreateContext(device, null);
                 alc.MakeContextCurrent(context);
 
-                al.GetError();
+                CaptureError(al.GetError());
+
+                logger.LogInfo("Audio System initialized.");
             }
         }
 
@@ -60,6 +71,31 @@ namespace MalignEngine
         public void RemoveChannel(SoundChannel channel)
         {
             soundChannels.Remove(channel);
+        }
+
+        private void CaptureError(AudioError error)
+        {
+            if (error != AudioError.NoError)
+            {
+                logger.LogError($"OpenAL Error: {error}");
+            }
+        }
+
+        public void Dispose()
+        {
+            unsafe
+            {
+                if (device != null)
+                {
+                    alc.CloseDevice(device);
+                }
+
+                soundChannels.ForEach(channel => channel.Dispose());
+                al.Dispose();
+                alc.Dispose();
+
+                logger.LogInfo("Audio System disposed.");
+            }
         }
     }
 }

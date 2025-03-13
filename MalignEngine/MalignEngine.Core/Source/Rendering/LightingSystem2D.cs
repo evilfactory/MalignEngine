@@ -97,7 +97,7 @@ namespace MalignEngine
                         lastPos = pos;
                         angle -= angleIncrease;
                     }
-                    IRenderingService.DrawVertices(light.Texture, vertices.ToArray());
+                    //IRenderingService.DrawVertices(light.Texture, vertices.ToArray());
                 }
                 else
                 {
@@ -123,7 +123,9 @@ namespace MalignEngine
     public class LightingPostProcessingSystem2D : PostProcessBaseSystem
     {
         [Dependency]
-        protected IRenderer2D IRenderingService = default!;
+        protected IRenderer2D IRenderer2D = default!;
+        [Dependency]
+        protected IRenderingAPI IRenderingAPI = default!;
         [Dependency]
         protected LightingSystem2D LightingSystem2D = default!;
 
@@ -136,13 +138,13 @@ namespace MalignEngine
         {
             using (Stream file = File.OpenRead("Content/Lighting.glsl"))
             {
-                Shader shader = IRenderingService.LoadShader(file);
+                Shader shader = IRenderingAPI.CreateShader(file);
                 lightingMaterial = new Material(shader);
             }
 
             using (Stream file = File.OpenRead("Content/LightingBlend.glsl"))
             {
-                Shader shader = IRenderingService.LoadShader(file);
+                Shader shader = IRenderingAPI.CreateShader(file);
                 blendMaterial = new Material(shader);
             }
 
@@ -153,16 +155,16 @@ namespace MalignEngine
         {
             lightingTexture.Resize(source.Width, source.Height);
 
-            IRenderingService.SetRenderTarget(lightingTexture);
-            IRenderingService.Clear(LightingSystem2D.GetAmbientColor());
+            IRenderingAPI.SetRenderTarget(lightingTexture);
+            IRenderer2D.Clear(LightingSystem2D.GetAmbientColor());
             LightingSystem2D.DrawLights();
 
             lightingMaterial.SetProperty("uLightingTexture", source);
 
-            IRenderingService.SetRenderTarget(source);
-            IRenderingService.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f), lightingMaterial);
-            IRenderingService.DrawTexture2D(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
-            IRenderingService.End();
+            IRenderingAPI.SetRenderTarget(source);
+            IRenderer2D.Begin(Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f), lightingMaterial);
+            IRenderer2D.DrawTexture2D(lightingTexture, new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
+            IRenderer2D.End();
         }
     }
 }

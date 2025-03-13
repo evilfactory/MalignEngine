@@ -22,5 +22,6 @@ public abstract class BufferObject<TDataType> : IDisposable
     }
 
     public abstract void BufferData(Span<TDataType> data);
+    public abstract void BufferData(Span<TDataType> data, int offset, uint length);
     public abstract void Dispose();
 }

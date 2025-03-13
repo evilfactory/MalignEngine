@@ -62,6 +62,18 @@ namespace MalignEngine
             }
         }
 
+        public override void BufferData(Span<TDataType> data, int offset, uint length)
+        {
+            Bind();
+            unsafe
+            {
+                fixed (void* d = data)
+                {
+                    gl.BufferSubData((GLEnum)bufferType, offset, (nuint)(length * sizeof(TDataType)), d);
+                }
+            }
+        }
+
         public void Bind()
         {
             gl.BindBuffer(bufferType, handle);

@@ -51,7 +51,14 @@ public class Application : IDisposable, ILogHandler
         }
 
         ServiceContainer.GetInstance<ScheduleManager>().Run<IApplicationRun>(e => e.OnApplicationRun());
-    }    
+
+        foreach (var disposable in ServiceContainer.GetInstances<IDisposable>())
+        {
+            disposable.Dispose();
+        }
+
+        ServiceContainer.GetInstance<LoggerService>().LogInfo("Goodbye!");
+    }
 
     public void HandleLog(Sawmill sawmill, LogEvent logEvent)
     {

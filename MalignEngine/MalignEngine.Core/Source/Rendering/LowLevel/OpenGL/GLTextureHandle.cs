@@ -1,7 +1,5 @@
 using CommunityToolkit.HighPerformance;
-using FontStashSharp.Interfaces;
 using Silk.NET.OpenGL;
-using System.IO;
 
 namespace MalignEngine
 {

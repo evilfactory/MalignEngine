@@ -74,37 +74,40 @@ namespace MalignEngine
             return location != -1;
         }
 
-        public void SetUniform(string name, int value)
+        public override void Set(string name, int value)
         {
             gl.Uniform1(GetLocation(name), value);
         }
 
-        public void SetUniform(string name, uint value)
+        public override void Set(string name, uint value)
         {
             gl.Uniform1(GetLocation(name), value);
         }
 
-        public unsafe void SetUniform(string name, Matrix4x4 value)
+        public override void Set(string name, Matrix4x4 value)
         {
-            gl.UniformMatrix4(GetLocation(name), 1, false, (float*)&value);
+            unsafe
+            {
+                gl.UniformMatrix4(GetLocation(name), 1, false, (float*)&value);
+            }
         }
 
-        public void SetUniform(string name, float value)
-        {
-            gl.Uniform1(GetLocation(name), value);
-        }
-
-        public unsafe void SetUniform(string name, int[] value)
+        public override void Set(string name, float value)
         {
             gl.Uniform1(GetLocation(name), value);
         }
 
-        public void SetUniform(string name, Color color)
+        public override void Set(string name, int[] value)
+        {
+            gl.Uniform1(GetLocation(name), value);
+        }
+
+        public override void Set(string name, Color color)
         {
             gl.Uniform4(GetLocation(name), new Vector4(color.R, color.G, color.B, color.A));
         }
 
-        public unsafe void SetUniform(string name, Vector2[] value)
+        public override void Set(string name, Vector2[] value)
         {
             float[] floatArray = new float[value.Length * 2];
             int index = 0;
@@ -118,7 +121,7 @@ namespace MalignEngine
             gl.Uniform2(GetLocation(name), floatArray);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             gl.DeleteProgram(handle);
         }

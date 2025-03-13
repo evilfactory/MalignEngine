@@ -1,16 +1,25 @@
 using Silk.NET.OpenGL;
 using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace MalignEngine
 {
     public class GLVertexArrayObject : VertexArrayObject, IDisposable
     {
+        private class VertexAttribute
+        {
+            public int count;
+            public VertexAttributeType type;
+        }
+
         private uint _handle;
         private GL gl;
 
-        private uint index = 0;
-        private int offset = 0;
+        private bool built = false;
+
+        private List<VertexAttribute> attributes = new List<VertexAttribute>();
 
         public GLVertexArrayObject(GL gl)
         {
@@ -21,60 +30,93 @@ namespace MalignEngine
 
         public override void PushVertexAttribute(int count, VertexAttributeType type)
         {
-            Bind();
-
-            unsafe
-            {
-                switch (type)
-                {
-                    case VertexAttributeType.Byte:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.Byte, false, 0, (void*)offset);
-                        offset += count * sizeof(byte);
-                        break;
-                    case VertexAttributeType.UnsignedByte:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.UnsignedByte, false, 0, (void*)offset);
-                        offset += count * sizeof(sbyte);
-                        break;
-                    case VertexAttributeType.Short:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.Short, false, 0, (void*)offset);
-                        offset += count * sizeof(short);
-                        break;
-                    case VertexAttributeType.UnsignedShort:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.UnsignedByte, false, 0, (void*)offset);
-                        offset += count * sizeof(ushort);
-                        break;
-                    case VertexAttributeType.Int:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.Int, false, 0, (void*)offset);
-                        offset += count * sizeof(int);
-                        break;
-                    case VertexAttributeType.UnsignedInt:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.UnsignedInt, false, 0, (void*)offset);
-                        offset += count * sizeof(uint);
-                        break;
-                    case VertexAttributeType.Float:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.Float, false, 0, (void*)offset);
-                        offset += count * sizeof(float);
-                        break;
-                    case VertexAttributeType.Double:
-                        gl.VertexAttribPointer(index, count, VertexAttribPointerType.Double, false, 0, (void*)offset);
-                        offset += count * sizeof(double);
-                        break;
-                }
-            }
-
-            gl.EnableVertexAttribArray(index);
-
-            index++;
+            attributes.Add(new VertexAttribute { count = count, type = type });
         }
 
         public void Bind()
         {
             gl.BindVertexArray(_handle);
+
+            if (!built)
+            {
+                unsafe
+                {
+                    int stride = 0;
+                    for (uint index = 0; index < attributes.Count; index++)
+                    {
+                        stride += attributes[(int)index].count * GetSize(attributes[(int)index].type);
+                    }
+
+                    int offset = 0;
+                    for (uint index = 0; index < attributes.Count; index++)
+                    {
+                        var type = attributes[(int)index].type;
+                        var count = attributes[(int)index].count;
+
+                        gl.VertexAttribPointer(index, count, (GLEnum)GetPointerType(type), false, (uint)stride, (void*)offset);
+                        gl.EnableVertexAttribArray(index);
+
+                        offset += count * GetSize(type);
+                    }
+                }
+
+                built = true;
+            }
         }
 
         public override void Dispose()
         {
             gl.DeleteVertexArray(_handle);
+        }
+
+        private static int GetSize(VertexAttributeType type)
+        {
+            switch (type)
+            {
+                case VertexAttributeType.Byte:
+                    return sizeof(sbyte);
+                case VertexAttributeType.UnsignedByte:
+                    return sizeof(byte);
+                case VertexAttributeType.Short:
+                    return sizeof(short);
+                case VertexAttributeType.UnsignedShort:
+                    return sizeof(ushort);
+                case VertexAttributeType.Int:
+                    return sizeof(int);
+                case VertexAttributeType.UnsignedInt:
+                    return sizeof(uint);
+                case VertexAttributeType.Float:
+                    return sizeof(float);
+                case VertexAttributeType.Double:
+                    return sizeof(double);
+                default:
+                    return 0;
+            }
+        }
+
+        private static VertexAttribPointerType GetPointerType(VertexAttributeType type)
+        {
+            switch (type)
+            {
+                case VertexAttributeType.Byte:
+                    return VertexAttribPointerType.Byte;
+                case VertexAttributeType.UnsignedByte:
+                    return VertexAttribPointerType.UnsignedByte;
+                case VertexAttributeType.Short:
+                    return VertexAttribPointerType.Short;
+                case VertexAttributeType.UnsignedShort:
+                    return VertexAttribPointerType.UnsignedShort;
+                case VertexAttributeType.Int:
+                    return VertexAttribPointerType.Int;
+                case VertexAttributeType.UnsignedInt:
+                    return VertexAttribPointerType.UnsignedInt;
+                case VertexAttributeType.Float:
+                    return VertexAttribPointerType.Float;
+                case VertexAttributeType.Double:
+                    return VertexAttribPointerType.Double;
+                default:
+                    return VertexAttribPointerType.Byte;
+            }
         }
     }
 }

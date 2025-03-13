@@ -51,7 +51,7 @@ namespace MalignEngine
 
         private void CreateHandle()
         {
-            var rendering = Application.Main.ServiceContainer.GetInstance<IRenderer2D>();
+            var rendering = Application.Main.ServiceContainer.GetInstance<IRenderingAPI>();
 
             if (rendering == null) { return; }
 

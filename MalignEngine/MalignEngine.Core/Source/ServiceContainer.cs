@@ -161,7 +161,7 @@ public class ServiceContainer : IDisposable
             }
             else
             {
-                throw new InvalidOperationException($"No service of type {elementType} has been registered");
+                return Array.CreateInstance(elementType, 0);
             }
         }
         else
@@ -172,7 +172,8 @@ public class ServiceContainer : IDisposable
             }
             else
             {
-                throw new InvalidOperationException($"No service of type {serviceType} has been registered");
+                return null;
+                //throw new InvalidOperationException($"No service of type {serviceType} has been registered");
             }
         }
     }

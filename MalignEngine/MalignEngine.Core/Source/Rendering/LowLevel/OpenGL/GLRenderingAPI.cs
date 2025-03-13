@@ -5,6 +5,7 @@ using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using Silk.NET.Windowing;
 using System.Diagnostics;
+using System.Text;
 
 namespace MalignEngine;
 
@@ -14,7 +15,7 @@ public class GLRenderingAPI : IRenderingAPI, IInit
 
     private WindowService window;
 
-    private GL gl;
+    public GL gl;
 
     public GLRenderingAPI(WindowService window, ILoggerService loggerService)
     {
@@ -39,6 +40,16 @@ public class GLRenderingAPI : IRenderingAPI, IInit
         {
             gl.DebugMessageCallback(GLDebugMessageCallback, null);
         }
+
+        StringBuilder extensions = new StringBuilder();
+        int numExtensions = gl.GetInteger(GLEnum.NumExtensions);
+        for (int i = 0; i < numExtensions; i++)
+        {
+            extensions.Append(gl.GetStringS(GLEnum.Extensions, (uint)i));
+            extensions.Append(" ");
+        }
+
+        logger.LogInfo($"Initialized OpenGL. \n OpenGL {gl.GetStringS(GLEnum.Version)}\n Shading Language {gl.GetStringS(GLEnum.ShadingLanguageVersion)} \n GPU: {gl.GetStringS(GLEnum.Renderer)} \n Vendor: {gl.GetStringS(GLEnum.Vendor)}");
     }
 
     private void GLDebugMessageCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
@@ -104,6 +115,12 @@ public class GLRenderingAPI : IRenderingAPI, IInit
         {
             gl.DrawElements(PrimitiveType.Triangles, indices, DrawElementsType.UnsignedInt, null);
         }
+    }
+
+    public void SetShader(Shader shader)
+    {
+        GLShader glShader = (GLShader)shader;
+        glShader.Use();
     }
 
     public void SetRenderTarget(RenderTexture renderTexture, int width = 0, int height = 0)
@@ -181,5 +198,23 @@ public class GLRenderingAPI : IRenderingAPI, IInit
 
         gl.StencilOp(OperationToGl(fail), OperationToGl(zfail), OperationToGl(zpass));
         gl.StencilFunc(functiongl, reference, mask);
+    }
+
+    public void SetBlendingMode(BlendingMode mode)
+    {
+        switch (mode)
+        {
+            case BlendingMode.AlphaBlend:
+                gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+                break;
+            case BlendingMode.Additive:
+                gl.BlendFunc(GLEnum.One, GLEnum.One);
+                break;
+        }
+    }
+
+    public void SetTexture(ITexture texture, int index)
+    {
+        ((GLTextureHandle)texture.Handle).Bind(TextureUnit.Texture0 + index);
     }
 }

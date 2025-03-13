@@ -35,6 +35,7 @@ namespace MalignEngine
         public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, Color color, float rotation, float layerDepth);
         public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 scale, float layerDepth);
         public void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
+        public void SetMatrix(Matrix4x4 matrix);
     }
 
     public class Renderer2D : IRenderer2D, IInit
@@ -60,10 +61,10 @@ namespace MalignEngine
         protected WindowService Window = default!;
         [Dependency]
         protected LoggerService LoggerService = default!;
+        [Dependency]
+        protected IRenderingAPI RenderingAPI = default!;
 
         protected ILogger Logger;
-
-        internal GL openGL;
 
         private const uint MaxBatchCount = 5000;
         private const uint MaxIndexCount = MaxBatchCount * 6;
@@ -72,12 +73,12 @@ namespace MalignEngine
         private BufferObject<Vertex> vbo;
         private BufferObject<uint> ebo;
         private VertexArrayObject vao;
-        private GLTextureHandle[] textures;
+        private ITexture[] textures;
 
         private uint indexCount = 0;
         private uint batchIndex = 0;
 
-        private Vertex[] vertices;
+        private Vertex[] batchVertices;
         private uint[] triangleIndices;
 
         private bool drawing = false;
@@ -86,17 +87,14 @@ namespace MalignEngine
 
         private Matrix4x4 currentMatrix;
         private Material basicMaterial;
-        private RenderTexture renderTexture;
 
-        private Shader postProcessingShader;
-
-        private uint vertexSize = (uint)Marshal.SizeOf<Vertex>();
+        public bool FlipY { get; set; }
 
         public void OnInitialize()
         {
             Logger = LoggerService.GetSawmill("rendering.2d");
 
-            textures = new GLTextureHandle[MaxTextures];
+            textures = new ITexture[MaxTextures];
 
             triangleIndices = new uint[MaxIndexCount];
             uint offset = 0;
@@ -114,70 +112,53 @@ namespace MalignEngine
                 offset += 4;
             }
 
-            vertices = new Vertex[MaxBatchCount * 4];
+            batchVertices = new Vertex[MaxBatchCount * 4];
 
-            ebo = new BufferObject<uint>(openGL, triangleIndices, BufferTargetARB.ElementArrayBuffer);
-            vbo = new BufferObject<Vertex>(openGL, vertices, BufferTargetARB.ArrayBuffer);
-            vao = new VertexArrayObject<Vertex, uint>(openGL, vbo, ebo);
+            ebo = RenderingAPI.CreateBuffer<uint>(triangleIndices, BufferObjectType.Element, BufferUsageType.Static);
+            vbo = RenderingAPI.CreateBuffer<Vertex>(batchVertices, BufferObjectType.Vertex, BufferUsageType.Static);
+            vao = RenderingAPI.CreateVertexArray();
 
             // vertex data layout
-            vao.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, vertexSize, 0 * 4); // position
-            vao.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, vertexSize, 3 * 4); // uv
-            vao.VertexAttributePointer(2, 1, VertexAttribPointerType.Float, vertexSize, 5 * 4); // texture index
-            vao.VertexAttributePointer(3, 4, VertexAttribPointerType.UnsignedByte, vertexSize, 6 * 4); // color
+            vao.PushVertexAttribute(3, VertexAttributeType.Float); // position
+            vao.PushVertexAttribute(2, VertexAttributeType.Float); // uv
+            vao.PushVertexAttribute(1, VertexAttributeType.Float); // texture index
+            vao.PushVertexAttribute(4, VertexAttributeType.UnsignedByte); // color
 
             currentMatrix = Matrix4x4.Identity;
 
             using (Stream file = File.OpenRead("Content/SpriteShader.glsl"))
             {
-                basicMaterial = new Material((GLShader)LoadShader(file));
+                basicMaterial = new Material(RenderingAPI.CreateShader(file));
                 basicMaterial.UseTextureBatching = true;
             }
-
-            StringBuilder extensions = new StringBuilder();
-            int numExtensions = openGL.GetInteger(GLEnum.NumExtensions);
-            for (int i = 0; i < numExtensions; i++)
-            {
-                extensions.Append(openGL.GetStringS(GLEnum.Extensions, (uint)i));
-                extensions.Append(" ");
-            }
-
-            Logger.LogInfo($"Initialized OpenGL renderer. \n OpenGL {openGL.GetStringS(GLEnum.Version)}\n Shading Language {openGL.GetStringS(GLEnum.ShadingLanguageVersion)} \n GPU: {openGL.GetStringS(GLEnum.Renderer)} \n Vendor: {openGL.GetStringS(GLEnum.Vendor)}");
         }
 
+        public void SetMatrix(Matrix4x4 matrix)
+        {
+            currentMatrix = matrix;
+        }
 
-        public override void Begin(Matrix4x4 matrix, Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
+        public void Begin(Matrix4x4 matrix, Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
         {
             drawing = true;
             drawingMaterial = material ?? basicMaterial;
             drawingMatrix = matrix;
-            textures = new GLTextureHandle[MaxTextures];
+            textures = new ITexture[MaxTextures];
 
             batchIndex = 0;
-
-            switch (blendingMode)
-            {
-                case BlendingMode.AlphaBlend:
-                    openGL.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-                    break;
-                case BlendingMode.Additive:
-                    openGL.BlendFunc(GLEnum.One, GLEnum.One);
-                    break;
-            }
         }
 
-        public override void Begin(Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
+        public void Begin(Material material = null, BlendingMode blendingMode = BlendingMode.AlphaBlend)
         {
             Begin(currentMatrix, material, blendingMode);
         }
 
-        public override void Clear(Color color)
+        public void Clear(Color color)
         {
-            openGL.ClearColor(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B));
-            openGL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
+            RenderingAPI.Clear(color);
         }
 
-        public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)
+        public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)
         {
             Vector3 topRightPos = new Vector3(0.0f + size.X / 2f, 0.0f + size.Y / 2f, 0f);
             topRightPos = Vector3.Transform(topRightPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
@@ -203,27 +184,22 @@ namespace MalignEngine
             );
         }
 
-        public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Color color, float rotation, float layerDepth)
+        public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, Color color, float rotation, float layerDepth)
         {
             DrawTexture2D(texture, position, size, Vector2.Zero, Vector2.One, color, rotation, layerDepth);
         }
 
-        public override void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, float layerDepth)
+        public void DrawTexture2D(ITexture texture, Vector2 position, Vector2 size, float layerDepth)
         {
             DrawTexture2D(texture, position, size, Vector2.Zero, Vector2.One, Color.White, 0f, layerDepth);
         }
 
-        public override void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
+        public void DrawQuad(ITexture texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft)
         {
-            DrawVertices((GLTextureHandle)texture.Handle, new VertexPositionColorTexture[] { topRight, bottomRight, bottomLeft, topLeft });
+            DrawVertices(texture, new VertexPositionColorTexture[] { topRight, bottomRight, bottomLeft, topLeft });
         }
 
-        public override void DrawVertices(ITexture texture, VertexPositionColorTexture[] vertices)
-        {
-            DrawVertices((GLTextureHandle)texture.Handle, vertices);
-        }
-
-        private void DrawVertices(GLTextureHandle texture, VertexPositionColorTexture[] vertices)
+        public void DrawVertices(ITexture texture, VertexPositionColorTexture[] vertices)
         {
             if (!drawing)
             {
@@ -269,7 +245,7 @@ namespace MalignEngine
 
             for (int i = 0; i < vertices.Length; i++)
             {
-                this.vertices[batchIndex] = new Vertex(vertices[i].Position, vertices[i].TextureCoordinate, textureSlot, vertices[i].Color);
+                batchVertices[batchIndex] = new Vertex(vertices[i].Position, vertices[i].TextureCoordinate, textureSlot, vertices[i].Color);
                 batchIndex++;
             }
 
@@ -278,29 +254,19 @@ namespace MalignEngine
             indexCount += amountQuads * 6;
         }
 
-        public override void End()
+        public void End()
         {
-            vbo.Bind();
-            vao.Bind();
-            ebo.Bind();
+            vbo.BufferData(batchVertices, 0, batchIndex);
 
-            unsafe
-            {
-                fixed (void* verticePtr = vertices)
-                {
-                    openGL.BufferSubData(GLEnum.ArrayBuffer, 0, batchIndex * vertexSize, verticePtr);
-                }
-            }
+            Shader drawingShader = drawingMaterial.Shader;
 
-            GLShader drawingShader = (GLShader)drawingMaterial.Shader;
+            RenderingAPI.SetShader(drawingShader);
 
-            drawingShader.Use();
+            drawingShader.Set("uModel", Matrix4x4.Identity);
+            drawingShader.Set("uView", Matrix4x4.Identity);
+            drawingShader.Set("uProjection", drawingMatrix);
 
-            drawingShader.SetUniform("uModel", Matrix4x4.Identity);
-            drawingShader.SetUniform("uView", Matrix4x4.Identity);
-            drawingShader.SetUniform("uProjection", drawingMatrix);
-
-            drawingShader.SetUniform("uTextures", new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
+            drawingShader.Set("uTextures", new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 });
 
             // First 16 textures are reserved for the texture batching
             int textureIndex = (int)MaxTextures;
@@ -310,24 +276,24 @@ namespace MalignEngine
 
                 if (propertyValue is int)
                 {
-                    drawingShader.SetUniform(property.Key, (int)propertyValue);
+                    drawingShader.Set(property.Key, (int)propertyValue);
                 }
                 else if (propertyValue is float)
                 {
-                    drawingShader.SetUniform(property.Key, (float)propertyValue);
+                    drawingShader.Set(property.Key, (float)propertyValue);
                 }
                 else if (propertyValue is Color)
                 {
-                    drawingShader.SetUniform(property.Key, (Color)propertyValue);
+                    drawingShader.Set(property.Key, (Color)propertyValue);
                 }
                 else if (propertyValue is Matrix4x4)
                 {
-                    drawingShader.SetUniform(property.Key, (Matrix4x4)propertyValue);
+                    drawingShader.Set(property.Key, (Matrix4x4)propertyValue);
                 }
                 else if (propertyValue is ITexture)
                 {
-                    ((GLTextureHandle)((ITexture)propertyValue).Handle).Bind(TextureUnit.Texture0 + (int)textureIndex);
-                    drawingShader.SetUniform(property.Key, textureIndex);
+                    RenderingAPI.SetTexture((ITexture)propertyValue, textureIndex);
+                    drawingShader.Set(property.Key, textureIndex);
                     textureIndex++;
                 }
             }
@@ -336,14 +302,10 @@ namespace MalignEngine
             {
                 if (textures[i] == null) { break; }
 
-                TextureUnit textureUnit = TextureUnit.Texture0 + i;
-                textures[i].Bind(textureUnit);
+                RenderingAPI.SetTexture(textures[i], i);
             }
 
-            unsafe
-            {
-                openGL.DrawElements(PrimitiveType.Triangles, indexCount, DrawElementsType.UnsignedInt, null);
-            }
+            RenderingAPI.DrawIndexed(ebo, vbo, vao, indexCount);
 
             indexCount = 0;
             drawing = false;
