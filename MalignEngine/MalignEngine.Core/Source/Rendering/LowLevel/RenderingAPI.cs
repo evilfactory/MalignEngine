@@ -35,6 +35,7 @@ public interface IRenderingAPI : IService
 {
     public void Clear(Color color);
     public void DrawIndexed<TVertex>(BufferObject<uint> indexBuffer, BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint indices) where TVertex : unmanaged;
+    public void DrawArrays<TVertex>(BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint count) where TVertex : unmanaged;
     public void SetRenderTarget(RenderTexture renderTexture, int width = 0, int height = 0);
     public void SetShader(Shader shader);
     public void SetStencil(StencilFunction function, int reference, uint mask, StencilOperation fail, StencilOperation zfail, StencilOperation zpass);

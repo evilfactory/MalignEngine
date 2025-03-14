@@ -51,7 +51,7 @@ public class LightingTest : IService, IStateEnter<GameState>, IUpdate
 
         light = EntityManagerService.World.CreateEntity();
         light.Add(new Transform() { Position = new Vector3(0, 0, 0), Scale = new Vector3(10, 10, 1) });
-        light.Add(new Light2D() { Texture = new Texture2D().LoadFromPath("Content/Textures/light.png"), Color = Color.White });
+        light.Add(new Light2D() { Texture = new Texture2D().LoadFromPath("Content/Textures/light.png"), Color = Color.White, ShadowCasting = true });
 
         EntityRef staticLight1 = EntityManagerService.World.CreateEntity();
         staticLight1.Add(new Transform() { Position = new Vector3(5, 0, 0), Scale = new Vector3(5, 5, 1) });

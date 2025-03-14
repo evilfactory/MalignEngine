@@ -117,6 +117,15 @@ public class GLRenderingAPI : IRenderingAPI, IInit
         }
     }
 
+    public void DrawArrays<TVertex>(BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint count) where TVertex : unmanaged
+    {
+        GLVertexArrayObject vao = (GLVertexArrayObject)vertexArray;
+        GLBufferObject<TVertex> vbo = (GLBufferObject<TVertex>)vertexBuffer;
+        vao.Bind();
+        vbo.Bind();
+        gl.DrawArrays(PrimitiveType.Triangles, 0, count);
+    }
+
     public void SetShader(Shader shader)
     {
         GLShader glShader = (GLShader)shader;

@@ -7,6 +7,8 @@ namespace MalignEngine;
 
 public class CameraSystem : EntitySystem, IWindowDraw
 {
+    public OrthographicCamera RenderingCamera { get; private set; }
+
     [Dependency]
     protected ScheduleManager ScheduleManager = default!;
     [Dependency]
@@ -61,6 +63,7 @@ public class CameraSystem : EntitySystem, IWindowDraw
             RenderingAPI.SetRenderTarget(camera.RenderTexture, camera.RenderTexture.Width, camera.RenderTexture.Height);
             Renderer2D.Clear(camera.ClearColor);
             Renderer2D.FlipY = true;
+            RenderingCamera = camera;
             ScheduleManager.Run<IDraw>(e => e.OnDraw(delta));
             Renderer2D.FlipY = false;
 

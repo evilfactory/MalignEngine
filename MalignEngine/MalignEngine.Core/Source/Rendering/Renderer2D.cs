@@ -70,9 +70,13 @@ namespace MalignEngine
         private const uint MaxIndexCount = MaxBatchCount * 6;
         private const uint MaxTextures = 16;
 
-        private BufferObject<Vertex> vbo;
-        private BufferObject<uint> ebo;
-        private VertexArrayObject vao;
+        private BufferObject<Vertex> quadVertexBuffer;
+        private BufferObject<uint> quadElementBuffer;
+
+        private BufferObject<Vertex> triVertexBuffer;
+
+        private VertexArrayObject vertexArray;
+
         private ITexture[] textures;
 
         private uint indexCount = 0;
@@ -84,6 +88,7 @@ namespace MalignEngine
         private bool drawing = false;
         private Material drawingMaterial;
         private Matrix4x4 drawingMatrix;
+        private BlendingMode drawingBlendingMode;
 
         private Matrix4x4 currentMatrix;
         private Material basicMaterial;
@@ -114,15 +119,18 @@ namespace MalignEngine
 
             batchVertices = new Vertex[MaxBatchCount * 4];
 
-            ebo = RenderingAPI.CreateBuffer<uint>(triangleIndices, BufferObjectType.Element, BufferUsageType.Static);
-            vbo = RenderingAPI.CreateBuffer<Vertex>(batchVertices, BufferObjectType.Vertex, BufferUsageType.Static);
-            vao = RenderingAPI.CreateVertexArray();
+            quadElementBuffer = RenderingAPI.CreateBuffer<uint>(triangleIndices, BufferObjectType.Element, BufferUsageType.Static);
+            quadVertexBuffer = RenderingAPI.CreateBuffer<Vertex>(batchVertices, BufferObjectType.Vertex, BufferUsageType.Static);
+
+            triVertexBuffer = RenderingAPI.CreateBuffer<Vertex>(new Vertex[3], BufferObjectType.Vertex, BufferUsageType.Static);
+
+            vertexArray = RenderingAPI.CreateVertexArray();
 
             // vertex data layout
-            vao.PushVertexAttribute(3, VertexAttributeType.Float); // position
-            vao.PushVertexAttribute(2, VertexAttributeType.Float); // uv
-            vao.PushVertexAttribute(1, VertexAttributeType.Float); // texture index
-            vao.PushVertexAttribute(4, VertexAttributeType.UnsignedByte); // color
+            vertexArray.PushVertexAttribute(3, VertexAttributeType.Float); // position
+            vertexArray.PushVertexAttribute(2, VertexAttributeType.Float); // uv
+            vertexArray.PushVertexAttribute(1, VertexAttributeType.Float); // texture index
+            vertexArray.PushVertexAttribute(4, VertexAttributeType.UnsignedByte); // color
 
             currentMatrix = Matrix4x4.Identity;
 
@@ -143,6 +151,8 @@ namespace MalignEngine
             drawing = true;
             drawingMaterial = material ?? basicMaterial;
             drawingMatrix = matrix;
+            drawingBlendingMode = blendingMode;
+
             textures = new ITexture[MaxTextures];
 
             batchIndex = 0;
@@ -256,11 +266,12 @@ namespace MalignEngine
 
         public void End()
         {
-            vbo.BufferData(batchVertices, 0, batchIndex);
+            quadVertexBuffer.BufferData(batchVertices, 0, batchIndex);
 
             Shader drawingShader = drawingMaterial.Shader;
 
             RenderingAPI.SetShader(drawingShader);
+            RenderingAPI.SetBlendingMode(drawingBlendingMode);
 
             drawingShader.Set("uModel", Matrix4x4.Identity);
             drawingShader.Set("uView", Matrix4x4.Identity);
@@ -305,7 +316,7 @@ namespace MalignEngine
                 RenderingAPI.SetTexture(textures[i], i);
             }
 
-            RenderingAPI.DrawIndexed(ebo, vbo, vao, indexCount);
+            RenderingAPI.DrawIndexed(quadElementBuffer, quadVertexBuffer, vertexArray, indexCount);
 
             indexCount = 0;
             drawing = false;

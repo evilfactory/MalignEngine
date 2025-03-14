@@ -8,10 +8,21 @@ namespace MalignEngine
     public class LightingSystem2D : EntitySystem
     {
         [Dependency]
-        protected IRenderer2D IRenderingService = default!;
+        protected IRenderingAPI RenderingAPI = default!;
+
+        [Dependency]
+        protected IRenderer2D Renderer2D = default!;
 
         [Dependency]
         protected PhysicsSystem2D PhysicsSystem2D = default!;
+
+        [Dependency]
+        protected CameraSystem CameraSystem = default!;
+
+
+        private Shader shader;
+        private VertexArrayObject vao;
+        private BufferObject<Renderer2D.Vertex> vbo;
 
         private static Vector2 GetVectorFromAngle(float angle)
         {
@@ -28,83 +39,125 @@ namespace MalignEngine
             return n;
         }
 
+        public override void OnInitialize()
+        {
+            vbo = RenderingAPI.CreateBuffer(new Span<Renderer2D.Vertex>(), BufferObjectType.Vertex, BufferUsageType.Static);
+            vao = RenderingAPI.CreateVertexArray();
+
+            // vertex data layout
+            vao.PushVertexAttribute(3, VertexAttributeType.Float); // position
+            vao.PushVertexAttribute(2, VertexAttributeType.Float); // uv
+            vao.PushVertexAttribute(1, VertexAttributeType.Float); // texture index
+            vao.PushVertexAttribute(4, VertexAttributeType.UnsignedByte); // color
+
+            using (Stream file = File.OpenRead("Content/SpriteShader.glsl"))
+            {
+                shader = RenderingAPI.CreateShader(file);
+            }
+        }
+
         public void DrawLights()
         {
-            IRenderingService.Begin(blendingMode: BlendingMode.Additive);
+            Renderer2D.Begin(blendingMode: BlendingMode.Additive);
             var query = new QueryDescription().WithAll<Light2D, WorldTransform>();
             EntityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref Light2D light) =>
             {
 
                 if (light.ShadowCasting)
                 {
-                    int rayCount = 128;
-                    float angle = 0;
-                    float angleIncrease = 360f / rayCount; // fov / rayCount
                     float viewDistance = transform.Scale.X;
 
-                    List<VertexPositionColorTexture> vertices = new List<VertexPositionColorTexture>();
+                    List<Vector2> edgesToCheck = new List<Vector2>();
 
-                    Vector2? lastPos = null;
-                    for (int i = 0; i <= rayCount; i++)
+                    List<Renderer2D.Vertex> vertices = new List<Renderer2D.Vertex>();
+
+                    Vector2 position = transform.Position.ToVector2();
+
+                    // start edges with the 4 corners of the light
+                    edgesToCheck.Add(position + new Vector2(-viewDistance, -viewDistance));
+                    edgesToCheck.Add(position + new Vector2(-viewDistance, viewDistance));
+                    edgesToCheck.Add(position + new Vector2(viewDistance, viewDistance));
+                    edgesToCheck.Add(position + new Vector2(viewDistance, -viewDistance));
+
+                    PhysicsSystem2D.QueryAABB((EntityRef entity) =>
                     {
-                        Vector2 pos = transform.Position.ToVector2() + GetVectorFromAngle(angle) * viewDistance;
+                        WorldTransform queryTransform = entity.Get<WorldTransform>();
+                        PhysicsBody2D body = entity.Get<PhysicsBody2D>();
+
+                        foreach (Vector2 vertice in body.Fixtures.Select(x => x.Shape).SelectMany(x => x.Vertices))
+                        {
+                            edgesToCheck.Add(queryTransform.Position.ToVector2() + vertice);
+
+                            // and add two slightly offset points to make sure the light is not blocked by the edge
+                        }
+
+                        return true;
+                    }, transform.Position.ToVector2() - new Vector2(viewDistance, viewDistance), transform.Position.ToVector2() + new Vector2(viewDistance, viewDistance));
+
+                    Vector2? lastPoint = null;
+                    foreach (Vector2 edge in edgesToCheck)
+                    {
+                        Vector2 endPoint = position + Vector2.Normalize(edge - position) * viewDistance;
+                        Renderer2D.DrawTexture2D(Texture2D.White, endPoint, new Vector2(0.1f, 0.1f), Color.Red, 0f, 0f);
 
                         Vector2? hitPoint = null;
                         Vector2 hitNormal = Vector2.Zero;
-                        PhysicsSystem2D.RayCast((FixtureData2D fixture, Vector2 point, Vector2 normal, float fraction) =>
+                        PhysicsSystem2D.RayCast((EntityRef hitEntity, Vector2 point, Vector2 normal, float fraction) =>
                         {
                             hitPoint = point;
                             hitNormal = normal;
                             return fraction;
-                        }, transform.Position.ToVector2(), pos);
+                        }, position, endPoint);
 
-                        if (hitPoint != null)
+                        if (hitPoint == null)
                         {
-                            pos = hitPoint.Value;
+                            hitPoint = endPoint;
                         }
 
-                        if (lastPos != null)
+                        if (lastPoint != null)
                         {
-                            vertices.Add(new VertexPositionColorTexture
+                            vertices.Add(new Renderer2D.Vertex
                             {
                                 Color = light.Color,
-                                Position = transform.Position,
-                                TextureCoordinate = new Vector2(0.5f, 0.5f)
+                                Position = position.ToVector3(),
+                                UV = new Vector2(0.5f, 0.5f)
                             });
 
-                            vertices.Add(new VertexPositionColorTexture
+                            vertices.Add(new Renderer2D.Vertex
                             {
                                 Color = light.Color,
-                                Position = transform.Position,
-                                TextureCoordinate = new Vector2(0.5f, 0.5f)
+                                Position = new Vector3(lastPoint.Value, 0f),
+                                UV = new Vector2(1f, 1f)
                             });
 
-                            vertices.Add(new VertexPositionColorTexture
+                            vertices.Add(new Renderer2D.Vertex
                             {
                                 Color = light.Color,
-                                Position = new Vector3(lastPos.Value, 0f),
-                                TextureCoordinate = new Vector2(0.5f, 0.5f)
-                            });
-
-                            vertices.Add(new VertexPositionColorTexture
-                            {
-                                Color = light.Color,
-                                Position = new Vector3(pos, 0f),
-                                TextureCoordinate = new Vector2(0.5f, 0.5f)
+                                Position = new Vector3(hitPoint.Value, 0f),
+                                UV = new Vector2(1f, 1f)
                             });
                         }
 
-                        lastPos = pos;
-                        angle -= angleIncrease;
+                        lastPoint = hitPoint;
                     }
-                    //IRenderingService.DrawVertices(light.Texture, vertices.ToArray());
+
+                    vbo.BufferData(vertices.ToArray());
+                    
+                    RenderingAPI.SetTexture(light.Texture, 0);
+                    RenderingAPI.SetShader(shader);
+                    shader.Set("uTextures", new int[] { 0 });
+                    shader.Set("uModel", Matrix4x4.Identity);
+                    shader.Set("uView", Matrix4x4.Identity);
+                    shader.Set("uProjection", CameraSystem.RenderingCamera.Matrix);
+
+                    RenderingAPI.DrawArrays(vbo, vao, (uint)vertices.Count);
                 }
                 else
                 {
-                    IRenderingService.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), light.Color, transform.ZAxis, 0f);
+                    Renderer2D.DrawTexture2D(light.Texture, transform.Position.ToVector2(), transform.Scale.ToVector2(), light.Color, transform.ZAxis, 0f);
                 }
             });
-            IRenderingService.End();
+            Renderer2D.End();
         }
 
         public Color GetAmbientColor()
