@@ -7,6 +7,8 @@ using Silk.NET.Windowing;
 using System.Diagnostics;
 using System.Text;
 
+using GLPrimitiveType = Silk.NET.OpenGL.PrimitiveType;
+
 namespace MalignEngine;
 
 public class GLRenderingAPI : IRenderingAPI, IInit
@@ -74,6 +76,21 @@ public class GLRenderingAPI : IRenderingAPI, IInit
         Debug.Assert(false);
     }
 
+    private GLPrimitiveType PrimitiveTypeToGlType(PrimitiveType type)
+    {
+        switch (type)
+        {
+            case PrimitiveType.Triangles:
+                return GLPrimitiveType.Triangles;
+            case PrimitiveType.Lines:
+                return GLPrimitiveType.Lines;
+            case PrimitiveType.Points:
+                return GLPrimitiveType.Points;
+            default:
+                return GLPrimitiveType.Triangles;
+        }
+    }
+
     public void Clear(Color color)
     {
         gl.ClearColor(System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B));
@@ -101,7 +118,7 @@ public class GLRenderingAPI : IRenderingAPI, IInit
         return new GLVertexArrayObject(gl);
     }
 
-    public void DrawIndexed<TVertex>(BufferObject<uint> indexBuffer, BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint indices) where TVertex : unmanaged
+    public void DrawIndexed<TVertex>(BufferObject<uint> indexBuffer, BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint indices, PrimitiveType primitiveType = PrimitiveType.Triangles) where TVertex : unmanaged
     {
         GLVertexArrayObject vao = (GLVertexArrayObject)vertexArray;
         GLBufferObject<TVertex> vbo = (GLBufferObject<TVertex>)vertexBuffer;
@@ -113,17 +130,17 @@ public class GLRenderingAPI : IRenderingAPI, IInit
 
         unsafe
         {
-            gl.DrawElements(PrimitiveType.Triangles, indices, DrawElementsType.UnsignedInt, null);
+            gl.DrawElements(PrimitiveTypeToGlType(primitiveType), indices, DrawElementsType.UnsignedInt, null);
         }
     }
 
-    public void DrawArrays<TVertex>(BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint count) where TVertex : unmanaged
+    public void DrawArrays<TVertex>(BufferObject<TVertex> vertexBuffer, VertexArrayObject vertexArray, uint count, PrimitiveType primitiveType = PrimitiveType.Triangles) where TVertex : unmanaged
     {
         GLVertexArrayObject vao = (GLVertexArrayObject)vertexArray;
         GLBufferObject<TVertex> vbo = (GLBufferObject<TVertex>)vertexBuffer;
         vao.Bind();
         vbo.Bind();
-        gl.DrawArrays(PrimitiveType.Triangles, 0, count);
+        gl.DrawArrays(PrimitiveTypeToGlType(primitiveType), 0, count);
     }
 
     public void SetShader(Shader shader)

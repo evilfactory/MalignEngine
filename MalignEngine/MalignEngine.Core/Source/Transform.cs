@@ -10,6 +10,18 @@ namespace MalignEngine
         public static Vector3 ToVector3(this Vector2 vec2, float z = 0) => new Vector3(vec2, z);
     }
 
+    public class TransformMoveEvent : ComponentEventArgs
+    {
+        EntityRef Entity;
+        public Transform Transform;
+
+        public TransformMoveEvent(EntityRef entity, Transform transform)
+        {
+            Entity = entity;
+            Transform = transform;
+        }
+    }
+
     public class TransformSystem : EntitySystem, IPostUpdate
     {
         [Dependency]
@@ -17,6 +29,8 @@ namespace MalignEngine
 
         public override void OnInitialize()
         {
+            EventService.Register(new ComponentEventChannel<TransformMoveEvent>());
+
             // remove, stupid
             EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<Transform>((entity, args) =>
             {
@@ -33,6 +47,17 @@ namespace MalignEngine
             {
                 UpdateTransformTree(entity);
             }
+
+            EntityManager.World.Query(EntityManager.World.CreateQuery().WithAll<Transform, WorldTransform>(), (EntityRef entity, ref Transform transform, ref WorldTransform worldTransform) =>
+            {
+                if (transform.LastPosition != transform.Position)
+                {
+                    EventService.Get<ComponentEventChannel<TransformMoveEvent>>().Raise(entity, new TransformMoveEvent(entity, transform));
+                }
+
+                transform.LastPosition = transform.Position;
+                worldTransform.LastPosition = worldTransform.Position;
+            });
         }
 
         public void UpdateTransformTree(EntityRef root)
@@ -94,6 +119,8 @@ namespace MalignEngine
                 Rotation = Quaternion.CreateFromYawPitchRoll(euler.Y, euler.X, euler.Z);
             }
         }
+
+        public Vector3 LastPosition;
 
         public Transform()
         {
@@ -157,6 +184,8 @@ namespace MalignEngine
         public Vector3 Position;
         public Quaternion Rotation;
         public Vector3 Scale;
+
+        public Vector3 LastPosition;
 
         public Vector3 EulerAngles
         {
