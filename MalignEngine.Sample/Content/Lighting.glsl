@@ -5,7 +5,7 @@ in vec2 fUv;
 in float fTexIndex;
 in vec4 fColor;
 
-uniform sampler2D uTextures[1];
+uniform sampler2D uTextures[16];
 uniform sampler2D uLightingTexture;
 
 uniform vec2 uLights[10];

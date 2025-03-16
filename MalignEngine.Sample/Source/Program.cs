@@ -10,6 +10,7 @@ public enum GameState
     PhysicsTest,
     LightingTest,
     BasicSceneTest,
+    MandelbrotSet,
 }
 
 
@@ -28,6 +29,7 @@ public class Program
         application.Add<PhysicsTest>();
         application.Add<LightingTest>();
         application.Add<BasicSceneTest>();
+        application.Add<MandelbrotSet>();
 
         application.ScheduleManager.SetMetaData<IAddToUpdateGUIList, MainMenu>(new ScheduleMetaData()
         {
@@ -57,6 +59,11 @@ public class Program
         application.ScheduleManager.SetMetaData<IUpdate, BasicSceneTest>(new ScheduleMetaData()
         {
             RunCondition = application.StateManager.Is(GameState.BasicSceneTest)
+        });
+        
+        application.ScheduleManager.SetMetaData<IDrawGUI, MandelbrotSet>(new ScheduleMetaData()
+        {
+            RunCondition = application.StateManager.Is(GameState.MandelbrotSet)
         });
 
         application.Run();
