@@ -76,35 +76,35 @@ namespace MalignEngine
 
         public override void Set(string name, int value)
         {
-            gl.Uniform1(GetLocation(name), value);
+            gl.ProgramUniform1(handle, GetLocation(name), value);
         }
 
         public override void Set(string name, uint value)
         {
-            gl.Uniform1(GetLocation(name), value);
+            gl.ProgramUniform1(handle, GetLocation(name), value);
         }
 
         public override void Set(string name, Matrix4x4 value)
         {
             unsafe
             {
-                gl.UniformMatrix4(GetLocation(name), 1, false, (float*)&value);
+                gl.ProgramUniformMatrix4(handle, GetLocation(name), 1, false, (float*)&value);
             }
         }
 
         public override void Set(string name, float value)
         {
-            gl.Uniform1(GetLocation(name), value);
+            gl.ProgramUniform1(handle, GetLocation(name), value);
         }
 
         public override void Set(string name, int[] value)
         {
-            gl.Uniform1(GetLocation(name), value);
+            gl.ProgramUniform1(handle, GetLocation(name), value);
         }
 
         public override void Set(string name, Color color)
         {
-            gl.Uniform4(GetLocation(name), new Vector4(color.R, color.G, color.B, color.A));
+            gl.ProgramUniform4(handle, GetLocation(name), new Vector4(color.R, color.G, color.B, color.A));
         }
 
         public override void Set(string name, Vector2[] value)
@@ -118,7 +118,7 @@ namespace MalignEngine
 
                 index += 2;
             }
-            gl.Uniform2(GetLocation(name), floatArray);
+            gl.ProgramUniform2(handle, GetLocation(name), floatArray);
         }
 
         public override void Dispose()
