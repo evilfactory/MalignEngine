@@ -90,7 +90,7 @@ public class Program
             RunCondition = application.StateManager.Is(GameState.MandelbrotSet)
         });
 
-        application.ScheduleManager.SetMetaData<IDrawGUI, ManualCube3D>(new ScheduleMetaData()
+        application.ScheduleManager.SetMetaData<IPostDrawGUI, ManualCube3D>(new ScheduleMetaData()
         {
             RunCondition = application.StateManager.Is(GameState.ManualCube3D)
         });
