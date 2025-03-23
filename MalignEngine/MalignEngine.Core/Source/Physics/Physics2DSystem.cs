@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace MalignEngine
 {
-    public class PhysicsSystem2D : EntitySystem
+    public class PhysicsSystem2D : EntitySystem, IPostUpdate
     {
         private Dictionary<PhysicsSimId, Body> simBodies = new Dictionary<PhysicsSimId, Body>();
 
@@ -23,33 +23,17 @@ namespace MalignEngine
             set => physicsWorld.Gravity = new AVector2(value.X, value.Y);
         }
 
-        public override void OnInitialize()
+        public PhysicsSystem2D(EventService eventService)
         {
             physicsWorld = new World(new AVector2(0, -9.81f));
 
-            EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyAdded);
-            EventService.Get<ComponentEventChannel<ComponentRemovedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyRemoved);
+            eventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyAdded);
+            eventService.Get<ComponentEventChannel<ComponentRemovedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyRemoved);
         }
 
         public override void OnUpdate(float deltaTime)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            physicsWorld.Step(deltaTime);
-            stopwatch.Stop();
-            EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
 
-            var query = EntityManager.World.CreateQuery().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
-            EntityManager.World.Query(in query, (EntityRef entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
-            {
-                Body body = GetBody(physicsSimId);
-
-                transform.Position = new Vector3(body.Position.X, body.Position.Y, 0f);
-                transform.ZAxis = body.Rotation;
-
-                physicsBody.LinearVelocity = new Vector2(body.LinearVelocity.X, body.LinearVelocity.Y);
-                physicsBody.AngularVelocity = body.AngularVelocity;
-            });
         }
 
         public void RayCast(Func<EntityRef, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)
@@ -204,6 +188,27 @@ namespace MalignEngine
             {
                 throw new Exception("Body not found");
             }
+        }
+
+        public void OnPostUpdate(float deltaTime)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            physicsWorld.Step(deltaTime);
+            stopwatch.Stop();
+            EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
+
+            var query = EntityManager.World.CreateQuery().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
+            EntityManager.World.Query(in query, (EntityRef entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
+            {
+                Body body = GetBody(physicsSimId);
+
+                transform.Position = new Vector3(body.Position.X, body.Position.Y, 0f);
+                transform.ZAxis = body.Rotation;
+
+                physicsBody.LinearVelocity = new Vector2(body.LinearVelocity.X, body.LinearVelocity.Y);
+                physicsBody.AngularVelocity = body.AngularVelocity;
+            });
         }
     }
 }

@@ -1,6 +1,7 @@
 
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core.Native;
+using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using Silk.NET.Windowing;
@@ -11,7 +12,7 @@ using GLPrimitiveType = Silk.NET.OpenGL.PrimitiveType;
 
 namespace MalignEngine;
 
-public class GLRenderingAPI : IRenderingAPI, IInit
+public class GLRenderingAPI : IRenderingAPI
 {
     private ILogger logger;
 
@@ -23,15 +24,14 @@ public class GLRenderingAPI : IRenderingAPI, IInit
     {
         this.window = window;
         logger = loggerService.GetSawmill("rendering.api");
-    }
 
-    public void OnInitialize()
-    {
         gl = GL.GetApi(window.window);
 
         gl.Enable(GLEnum.Blend);
         gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
         gl.Enable(GLEnum.DepthTest);
+        //gl.Enable(GLEnum.CullFace);
+        //gl.CullFace(GLEnum.Back);
         gl.Enable(GLEnum.StencilTest);
 
         gl.DepthFunc(GLEnum.Lequal);

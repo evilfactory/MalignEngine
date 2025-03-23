@@ -66,7 +66,7 @@ namespace MalignEngine
 
         protected ILogger Logger;
 
-        private const uint MaxBatchCount = 5000;
+        private const uint MaxBatchCount = 1000;
         private const uint MaxIndexCount = MaxBatchCount * 6;
         private const uint MaxTextures = 16;
 
@@ -121,7 +121,7 @@ namespace MalignEngine
 
             quadElementBuffer = RenderingAPI.CreateBuffer<uint>(triangleIndices, BufferObjectType.Element, BufferUsageType.Static);
             quadVertexBuffer = RenderingAPI.CreateBuffer<Vertex>(batchVertices, BufferObjectType.Vertex, BufferUsageType.Static);
-
+            
             triVertexBuffer = RenderingAPI.CreateBuffer<Vertex>(new Vertex[3], BufferObjectType.Vertex, BufferUsageType.Static);
 
             vertexArray = RenderingAPI.CreateVertexArray();

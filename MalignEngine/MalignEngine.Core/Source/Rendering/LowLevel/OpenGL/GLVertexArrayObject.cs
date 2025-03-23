@@ -17,8 +17,6 @@ namespace MalignEngine
         private uint _handle;
         private GL gl;
 
-        private bool built = false;
-
         private List<VertexAttribute> attributes = new List<VertexAttribute>();
 
         public GLVertexArrayObject(GL gl)
@@ -26,6 +24,8 @@ namespace MalignEngine
             this.gl = gl;
 
             _handle = this.gl.GenVertexArray();
+
+            Application.Main.ServiceContainer.GetInstance<ILoggerService>().LogVerbose($"Created vertex array object with handle {_handle}");
         }
 
         public override void PushVertexAttribute(int count, VertexAttributeType type)
@@ -37,30 +37,25 @@ namespace MalignEngine
         {
             gl.BindVertexArray(_handle);
 
-            if (!built)
+            unsafe
             {
-                unsafe
+                int stride = 0;
+                for (uint index = 0; index < attributes.Count; index++)
                 {
-                    int stride = 0;
-                    for (uint index = 0; index < attributes.Count; index++)
-                    {
-                        stride += attributes[(int)index].count * GetSize(attributes[(int)index].type);
-                    }
-
-                    int offset = 0;
-                    for (uint index = 0; index < attributes.Count; index++)
-                    {
-                        var type = attributes[(int)index].type;
-                        var count = attributes[(int)index].count;
-
-                        gl.VertexAttribPointer(index, count, (GLEnum)GetPointerType(type), false, (uint)stride, (void*)offset);
-                        gl.EnableVertexAttribArray(index);
-
-                        offset += count * GetSize(type);
-                    }
+                    stride += attributes[(int)index].count * GetSize(attributes[(int)index].type);
                 }
 
-                built = true;
+                int offset = 0;
+                for (uint index = 0; index < attributes.Count; index++)
+                {
+                    var type = attributes[(int)index].type;
+                    var count = attributes[(int)index].count;
+
+                    gl.VertexAttribPointer(index, count, (GLEnum)GetPointerType(type), false, (uint)stride, (void*)offset);
+                    gl.EnableVertexAttribArray(index);
+
+                    offset += count * GetSize(type);
+                }
             }
         }
 

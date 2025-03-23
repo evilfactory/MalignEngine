@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class AudioSystem : BaseSystem, IDisposable
+    public class AudioSystem : IService, IUpdate, IDisposable
     {
         private static List<SoundChannel> soundChannels = new List<SoundChannel>();
 
@@ -18,10 +18,7 @@ namespace MalignEngine
         public AudioSystem(ILoggerService loggerService)
         {
             this.logger = loggerService.GetSawmill("audio");
-        }
 
-        public override void OnInitialize()
-        {
             unsafe
             {
                 alc = ALContext.GetApi(true);
@@ -42,7 +39,7 @@ namespace MalignEngine
             }
         }
 
-        public override void OnUpdate(float deltaTime)
+        public void OnUpdate(float deltaTime)
         {
             soundChannels.ForEach(channel => channel.Update());
         }

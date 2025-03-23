@@ -12,19 +12,15 @@ namespace MalignEngine
         public void OnCharEntered(char character);
     }
 
-    public class InputSystem : BaseSystem, IPostUpdate
+    public class InputSystem : IService, IPostUpdate
     {
-        [Dependency]
-        protected WindowService Window = default!;
-
-        [Dependency]
-        protected ScheduleManager EventSystem = default!;
-
-        protected ILogger Logger;
+        private ILogger Logger;
 
         public Dictionary<Key, bool> KeysHeld => keysHeld;
 
         internal IInputContext input;
+
+        private ScheduleManager scheduleManager;
 
         private IMouse usedMouse;
         private IKeyboard usedKeyboard;
@@ -36,11 +32,13 @@ namespace MalignEngine
         private Dictionary<Key, bool> keysHeld = new Dictionary<Key, bool>();
         private Dictionary<Key, bool> keysState = new Dictionary<Key, bool>();
 
-        public override void OnInitialize()
+        public InputSystem(LoggerService loggerService, WindowService window, ScheduleManager scheduleManager)
         {
-            Logger = LoggerService.GetSawmill("input");
+            Logger = loggerService.GetSawmill("input");
 
-            input = Window.window.CreateInput();
+            this.scheduleManager = scheduleManager;
+
+            input = window.window.CreateInput();
 
             if (input.Keyboards.Count > 0)
             {
@@ -77,17 +75,17 @@ namespace MalignEngine
 
         private void UsedKeyboardChar(IKeyboard keyboard, char character)
         {
-            EventSystem.Run<IKeyboardSubscriber>(e => e.OnCharEntered(character));
+            scheduleManager.Run<IKeyboardSubscriber>(e => e.OnCharEntered(character));
         }
 
         private void UsedKeyboardKeyDown(IKeyboard keyboard, Silk.NET.Input.Key key, int arg3)
         {
-            EventSystem.Run<IKeyboardSubscriber>(e => e.OnKeyPress((Key)key));
+            scheduleManager.Run<IKeyboardSubscriber>(e => e.OnKeyPress((Key)key));
         }
 
         private void UsedKeyboardKeyUp(IKeyboard keyboard, Silk.NET.Input.Key key, int arg3)
         {
-            EventSystem.Run<IKeyboardSubscriber>(e => e.OnKeyRelease((Key)key));
+            scheduleManager.Run<IKeyboardSubscriber>(e => e.OnKeyRelease((Key)key));
         }
 
         public Vector2 MousePosition

@@ -11,6 +11,7 @@ public enum GameState
     LightingTest,
     BasicSceneTest,
     MandelbrotSet,
+    ManualCube3D
 }
 
 
@@ -22,6 +23,28 @@ public class Program
         application.Add(ServiceSet.DefaultServices);
         application.Add(ServiceSet.EditorServices);
 
+        //application.Add<EventService>();
+        //application.Add<EntityManager>();
+        //application.Add<AssetService>();
+        //application.Add<WindowService>();
+        //application.Add<GLRenderingAPI>();
+        //application.Add<Renderer2D>();
+
+        //typeof(Renderer2D),
+        //typeof(InputSystem),
+        //typeof(CameraSystem),
+        //typeof(ParentSystem),
+        //typeof(PhysicsSystem2D),
+        //typeof(TransformSystem),
+        //typeof(SpriteRenderingSystem),
+        //typeof(LightingSystem2D),
+        //typeof(LightingPostProcessingSystem2D),
+        //typeof(AudioSystem),
+        //typeof(FontSystem),
+        //typeof(SceneSystem),
+        //typeof(GUIService)
+
+
         application.Add<SampleInit>();
         application.Add<MainMenu>();
         application.Add<BasicRenderingTest>();
@@ -30,6 +53,7 @@ public class Program
         application.Add<LightingTest>();
         application.Add<BasicSceneTest>();
         application.Add<MandelbrotSet>();
+        application.Add<ManualCube3D>();
 
         application.ScheduleManager.SetMetaData<IAddToUpdateGUIList, MainMenu>(new ScheduleMetaData()
         {
@@ -64,6 +88,11 @@ public class Program
         application.ScheduleManager.SetMetaData<IDrawGUI, MandelbrotSet>(new ScheduleMetaData()
         {
             RunCondition = application.StateManager.Is(GameState.MandelbrotSet)
+        });
+
+        application.ScheduleManager.SetMetaData<IDrawGUI, ManualCube3D>(new ScheduleMetaData()
+        {
+            RunCondition = application.StateManager.Is(GameState.ManualCube3D)
         });
 
         application.Run();

@@ -48,6 +48,8 @@ namespace MalignEngine
                     gl.BufferData(bufferType, (nuint)(data.Length * sizeof(TDataType)), d, usageType);
                 }
             }
+
+            Application.Main.ServiceContainer.GetInstance<ILoggerService>().LogVerbose($"Created buffer object with handle {handle}, type {bufferType} and usage {usageType}");
         }
 
         public override void BufferData(Span<TDataType> data)

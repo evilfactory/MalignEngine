@@ -9,22 +9,17 @@ namespace MalignEngine
         void OnDrawImGui(float deltaTime);
     }
 
-    public class ImGuiSystem : BaseSystem, IPostDrawGUI
+    public class ImGuiSystem : IService, IPostDrawGUI
     {
-        [Dependency]
-        protected GLRenderingAPI GLRenderingAPI = default!;
-        [Dependency]
-        protected WindowService Window = default!;
-        [Dependency]
-        protected InputSystem Input = default!;
-        [Dependency]
-        protected ScheduleManager EventSystem = default!;
+        private ScheduleManager scheduleManager;
 
         private ImGuiController imGuiController;
 
-        public override void OnInitialize()
+        public ImGuiSystem(WindowService windowService, GLRenderingAPI glRenderingAPI, InputSystem inputSystem, ScheduleManager scheduleManager)
         {
-            imGuiController = new ImGuiController(GLRenderingAPI.gl, Window.window, Input.input, () =>
+            this.scheduleManager = scheduleManager;
+
+            imGuiController = new ImGuiController(glRenderingAPI.gl, windowService.window, inputSystem.input, () =>
             {
                 var io = ImGuiNET.ImGui.GetIO();
                 //io.Fonts.AddFontFromFileTTF("Content/fonts/Ruda-Regular.ttf", 18f);
@@ -91,14 +86,10 @@ namespace MalignEngine
             });
         }
 
-        public override void OnDraw(float deltaTime)
-        {
-        }
-
         public void OnPostDrawGUI(float deltaTime)
         {
             imGuiController.Update(deltaTime);
-            EventSystem.Run<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
+            scheduleManager.Run<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
             imGuiController.Render();
         }
 

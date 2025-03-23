@@ -34,8 +34,8 @@ namespace MalignEngine
             set { window.UpdatesPerSecond = value; }
         }
 
-        public int Width => window.Size.X;
-        public int Height => window.Size.Y;
+        public int Width => Size.X;
+        public int Height => Size.Y;
 
         internal IWindow window;
 
@@ -56,15 +56,18 @@ namespace MalignEngine
             window.FramesPerSecond = 120;
             window.VSync = false;
 
-            window.Load += WindowLoad; ;
             window.Update += WindowUpdate;
             window.Render += WindowRender;
+
+            window.Initialize();
 
             loggerService.GetSawmill("window").LogInfo($"Window initialized {options.Size.X}x{options.Size.Y}");
         }
 
         public void OnApplicationRun()
         {
+            WindowLoad();
+
             window.Run();
         }
 
