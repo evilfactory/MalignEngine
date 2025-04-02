@@ -27,7 +27,7 @@ class GameMain
         application.Add(new LightingSystem2D());
         application.Add(new LightingPostProcessingSystem2D());
         application.Add(new AudioSystem());
-        application.Add(new FontSystem());
+        application.Add(new FontRenderer());
         application.Add(new SceneSystem());
         application.Add(new NetworkingSystem());
         application.Add(new TileSystem());

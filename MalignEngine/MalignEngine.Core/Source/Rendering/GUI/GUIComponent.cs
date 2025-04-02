@@ -8,7 +8,7 @@ namespace MalignEngine
     {
         public RectTransform RectTransform { get; private set; }
 
-        protected FontSystem FontSystem => Application.Main.ServiceContainer.GetInstance<FontSystem>();
+        protected FontRenderer FontSystem => Application.Main.ServiceContainer.GetInstance<FontRenderer>();
         protected IRenderer2D IRenderingService => Application.Main.ServiceContainer.GetInstance<IRenderer2D>();
         protected InputSystem InputSystem => Application.Main.ServiceContainer.GetInstance<InputSystem>();
 

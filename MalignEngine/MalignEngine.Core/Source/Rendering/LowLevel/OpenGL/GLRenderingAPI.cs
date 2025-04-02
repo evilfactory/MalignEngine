@@ -62,6 +62,7 @@ public class GLRenderingAPI : IRenderingAPI
         {
             case GLEnum.DebugSeverityHigh:
                 logger.LogError($"{id}: {type} of {severity}, raised from {source}: {stringMessage}");
+                Debug.Assert(true);
                 break;
             case GLEnum.DebugSeverityMedium:
                 logger.LogWarning($"{id}: {type} of {severity}, raised from {source}: {stringMessage}");
@@ -73,7 +74,6 @@ public class GLRenderingAPI : IRenderingAPI
                 break;
         }
 
-        Debug.Assert(false);
     }
 
     private GLPrimitiveType PrimitiveTypeToGlType(PrimitiveType type)

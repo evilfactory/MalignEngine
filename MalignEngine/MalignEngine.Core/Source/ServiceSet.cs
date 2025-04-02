@@ -30,7 +30,7 @@ public class ServiceSet
                 typeof(LightingSystem2D),
                 typeof(LightingPostProcessingSystem2D),
                 typeof(AudioSystem),
-                typeof(FontSystem),
+                typeof(FontRenderer),
                 typeof(SceneSystem),
                 typeof(GUIService)
             });
