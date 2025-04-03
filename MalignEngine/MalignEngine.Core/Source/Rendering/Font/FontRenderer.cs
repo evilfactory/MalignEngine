@@ -16,7 +16,9 @@ namespace MalignEngine
             Renderer2D.DrawQuad((Texture2D)texture, topRight, bottomRight, bottomLeft, topLeft);
         }
 
-        public void DrawFont(Font font, int fontSize, string text, Vector2 position, Color color, float rotation, Vector2 origin = default, Vector2 scale = default)
+        public void DrawFont(Font font, int fontSize, string text, Vector2 position, Color color) => DrawFont(font, fontSize, text, position, color, 0f, Vector2.Zero, Vector2.One);
+
+        public void DrawFont(Font font, int fontSize, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale)
         {
             // move texture
 
