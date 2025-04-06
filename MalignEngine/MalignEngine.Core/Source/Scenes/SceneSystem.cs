@@ -99,6 +99,11 @@ public class SceneSystem : EntitySystem
     {
         foreach (var component in from.GetComponents())
         {
+            if (component is EntityMetaData)
+            {
+                continue;
+            }
+
             CopyComponent(component, from, to, remap);
         }
     }
