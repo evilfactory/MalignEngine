@@ -20,8 +20,4 @@
         <Compile Remove="..\AxisOne.Shared\Content\**\*.cs" />
         <Content Include="..\AxisOne.Shared\**\*" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\MalignEngine\MalignEngine.Server\MalignEngine.Server.csproj" />
-    </ItemGroup>
 </Project>

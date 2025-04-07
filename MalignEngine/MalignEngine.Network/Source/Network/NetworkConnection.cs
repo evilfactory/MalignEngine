@@ -2,13 +2,16 @@ namespace MalignEngine
 {
     public class NetworkConnection
     {
-        public byte Id { get; private set; }
-
-        public bool IsInvalid { get; set; } = true;
+        public long Id { get; private set; }
 
         public object Data { get; set; }
 
-        public NetworkConnection(byte id)
+        public bool IsValid
+        {
+            get {  return Id != 0; }
+        }
+
+        public NetworkConnection(long id)
         {
             Id = id;
         }
@@ -31,6 +34,11 @@ namespace MalignEngine
         public override string ToString()
         {
             return $"Connection: {Id}";
+        }
+
+        internal void Invalidate()
+        {
+            Id = 0;
         }
 
         public static bool operator ==(NetworkConnection a, NetworkConnection b)

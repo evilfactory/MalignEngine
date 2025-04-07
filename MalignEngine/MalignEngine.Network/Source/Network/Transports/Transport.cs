@@ -8,14 +8,14 @@ public enum PacketChannel
     Unreliable
 }
 
-public interface ITransport
+public interface ITransport : ServerTransport, ClientTransport
 {
     public void Update();
 }
 
-public interface ServerTransport : ITransport
+public interface ServerTransport
 {
-    public event Action<NetworkConnection, IReadMessage> OnData;
+    public event Action<NetworkConnection, IReadMessage> OnClientData;
     public event Action<NetworkConnection> OnClientConnected;
     public event Action<NetworkConnection> OnClientDisconnected;
 
@@ -25,9 +25,9 @@ public interface ServerTransport : ITransport
     public void Stop();
 }
 
-public interface ClientTransport : ITransport
+public interface ClientTransport
 {
-    public event Action<IReadMessage> OnClientData;
+    public event Action<IReadMessage> OnData;
     public event Action OnConnected;
     public event Action OnDisconnected;
 

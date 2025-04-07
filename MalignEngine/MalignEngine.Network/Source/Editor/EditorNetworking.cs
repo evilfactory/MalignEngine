@@ -6,7 +6,7 @@ namespace MalignEngine;
 public class EditorNetworking : BaseEditorWindowSystem
 {
     [Dependency]
-    protected NetworkingSystem NetworkingSystem = default!;
+    protected NetworkingService NetworkingSystem = default!;
 
     public override string WindowName => "Network Viewer";
 
