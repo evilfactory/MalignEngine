@@ -1,54 +1,53 @@
-namespace MalignEngine
+namespace MalignEngine.Network;
+
+public class NetworkConnection
 {
-    public class NetworkConnection
+    public long Id { get; private set; }
+
+    public object Data { get; set; }
+
+    public bool IsValid
     {
-        public long Id { get; private set; }
+        get {  return Id != 0; }
+    }
 
-        public object Data { get; set; }
+    public NetworkConnection(long id)
+    {
+        Id = id;
+    }
 
-        public bool IsValid
+    public override bool Equals(object? obj)
+    {
+        if (obj is NetworkConnection connection)
         {
-            get {  return Id != 0; }
+            return connection.Id == Id;
         }
 
-        public NetworkConnection(long id)
-        {
-            Id = id;
-        }
+        return false;
+    }
 
-        public override bool Equals(object? obj)
-        {
-            if (obj is NetworkConnection connection)
-            {
-                return connection.Id == Id;
-            }
+    public override int GetHashCode()
+    {
+        return Id.GetHashCode();
+    }
 
-            return false;
-        }
+    public override string ToString()
+    {
+        return $"Connection: {Id}";
+    }
 
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
+    internal void Invalidate()
+    {
+        Id = 0;
+    }
 
-        public override string ToString()
-        {
-            return $"Connection: {Id}";
-        }
+    public static bool operator ==(NetworkConnection a, NetworkConnection b)
+    {
+        return a?.Id == b?.Id;
+    }
 
-        internal void Invalidate()
-        {
-            Id = 0;
-        }
-
-        public static bool operator ==(NetworkConnection a, NetworkConnection b)
-        {
-            return a?.Id == b?.Id;
-        }
-
-        public static bool operator !=(NetworkConnection a, NetworkConnection b)
-        {
-            return a?.Id != b?.Id;
-        }
+    public static bool operator !=(NetworkConnection a, NetworkConnection b)
+    {
+        return a?.Id != b?.Id;
     }
 }

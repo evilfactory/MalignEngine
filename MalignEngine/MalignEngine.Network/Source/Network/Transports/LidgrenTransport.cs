@@ -26,7 +26,7 @@ public partial class LidgrenTransport : ServerTransport, ClientTransport
         logger = networkLogger;
     }
 
-    public void SendData(IWriteMessage message, PacketChannel packetChannel = PacketChannel.Reliable)
+    public void SendDataToServer(IWriteMessage message, PacketChannel packetChannel = PacketChannel.Reliable)
     {
         if (client == null)
         {
@@ -49,7 +49,7 @@ public partial class LidgrenTransport : ServerTransport, ClientTransport
         }
     }
 
-    public void SendData(NetworkConnection connection, IWriteMessage message, PacketChannel channel = PacketChannel.Reliable)
+    public void SendDataToClient(NetworkConnection connection, IWriteMessage message, PacketChannel channel = PacketChannel.Reliable)
     {
         if (server != null)
         {
@@ -192,7 +192,7 @@ public partial class LidgrenTransport : ServerTransport, ClientTransport
                     byte[] data = msg.ReadBytes(msg.LengthBytes);
                     IReadMessage readMessage = new ReadOnlyMessage(data, false, 0, data.Length);
                     readMessage.Sender = connections[msg.SenderConnection.RemoteUniqueIdentifier];
-                    OnClientData(readMessage.Sender, readMessage);
+                    OnClientData(readMessage.Sender.Value, readMessage);
 
                     break;
                 default:

@@ -1,5 +1,6 @@
 using MalignEngine;
 using System.Net;
+using System.Numerics;
 
 namespace MalignEngine.Network;
 
@@ -63,8 +64,14 @@ public interface INetworkingService : IService
 
 public class ServerStartEvent : EventArgs { }
 public class ServerStopEvent : EventArgs { }
-public class ClientConnected : EventArgs { }
-public class ClientDisconnected : EventArgs { }
+public class ClientConnected : EventArgs
+{
+    public NetworkConnection Connection;
+}
+public class ClientDisconnected : EventArgs
+{
+    public NetworkConnection Connection;
+}
 public class Connected : EventArgs { }
 public class Disconnected : EventArgs { }
 
@@ -98,6 +105,11 @@ public partial class NetworkingService : BaseSystem, INetworkingService
         RegisterNetMessage<ClientDataNetMessage>(ClientDataReceived);
     }
 
+    private void ClientDataReceived(ClientDataNetMessage message)
+    {
+        if (!IsClientRunning) { return; }
+    }
+
     public void SetTransport(ITransport transport)
     {
         transport.OnClientConnected += OnClientConnected;
@@ -105,7 +117,26 @@ public partial class NetworkingService : BaseSystem, INetworkingService
 
         transport.OnConnected += OnConnected;
         transport.OnDisconnected += OnDisconnected;
+
+        transport.OnClientData += OnClientData;
+        transport.OnData += OnData;
     }
+
+    private void OnData(IReadMessage message)
+    {
+        string msgName = message.ReadString();
+        if (!netReceives.TryGetValue(msgName, out MessageData messageData))
+        {
+            logger.LogWarning($"Received unknown message: {msgName}");
+        }
+
+        NetMessage msg = (NetMessage)Activator.CreateInstance(messageData.Type);
+        msg.Deserialize(message);
+
+        messageData.Callback?.Invoke(msg);
+    }
+
+    private void OnClientData(NetworkConnection connection, IReadMessage message) => OnData(message);
 
     public void StartServer(IPEndPoint endpoint)
     {
@@ -152,7 +183,7 @@ public partial class NetworkingService : BaseSystem, INetworkingService
         writeMessage.WriteString(message.MsgName); // very bad, optimize later
         message.Serialize(writeMessage);
 
-        transport.SendData(writeMessage, PacketChannel.Reliable);
+        transport.SendDataToServer(writeMessage, PacketChannel.Reliable);
     }
 
     public void SendNetMessage<T>(T message, NetworkConnection connection) where T : NetMessage
@@ -166,21 +197,7 @@ public partial class NetworkingService : BaseSystem, INetworkingService
         writeMessage.WriteString(message.MsgName); // very bad, optimize later
         message.Serialize(writeMessage);
         
-        transport.SendData(connection, writeMessage, PacketChannel.Reliable);
-    }
-
-    private void OnMessageReceived(IReadMessage message)
-    {
-        string msgName = message.ReadString();
-        if (!netReceives.TryGetValue(msgName, out MessageData messageData))
-        {
-            Logger.LogWarning($"Received unknown message: {msgName}");
-        }
-
-        NetMessage msg = (NetMessage)Activator.CreateInstance(messageData.Type);
-        msg.Deserialize(message);
-
-        messageData.Callback?.Invoke(msg);
+        transport.SendDataToClient(connection, writeMessage, PacketChannel.Reliable);
     }
 
     public override void OnUpdate(float deltaTime)
@@ -190,22 +207,24 @@ public partial class NetworkingService : BaseSystem, INetworkingService
 
     private void OnDisconnected()
     {
-        throw new NotImplementedException();
+        IsClientRunning = false;
+        EventService.Get<EventChannel<Disconnected>>().Raise(new Disconnected());
     }
 
     private void OnConnected()
     {
-        throw new NotImplementedException();
+        IsClientRunning = false;
+        EventService.Get<EventChannel<Connected>>().Raise(new Connected());
     }
 
     private void OnClientDisconnected(NetworkConnection connection)
     {
-        throw new NotImplementedException();
+        EventService.Get<EventChannel<ClientDisconnected>>().Raise(new ClientDisconnected { Connection = connection });
     }
 
     private void OnClientConnected(NetworkConnection connection)
     {
-        throw new NotImplementedException();
+        EventService.Get<EventChannel<ClientConnected>>().Raise(new ClientConnected { Connection = connection });
     }
 
 }
