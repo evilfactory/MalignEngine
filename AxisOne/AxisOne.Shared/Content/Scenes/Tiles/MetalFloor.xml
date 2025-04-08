@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Scene Identifier="metalfloor">
-    <Entity Id="1">
-        <TileLayerComponent Layer="Floor" />
-        <SpriteRenderer>
-            <Sprite Texture="Content/Textures/Tiles.png" Rectangle="64,64,32,32" />
-        </SpriteRenderer>
-    </Entity>
-</Scene>
