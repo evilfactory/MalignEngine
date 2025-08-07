@@ -21,6 +21,8 @@ public class Application : IDisposable, ILogHandler
 
         ServiceContainer = new ServiceContainer();
 
+        ServiceContainer.RegisterInstance(ServiceContainer);
+
         ServiceContainer.RegisterAll<LoggerService>(new SingletonLifeTime());
         ServiceContainer.RegisterAll<ScheduleManager>(new SingletonLifeTime());
         ServiceContainer.RegisterAll<StateManager>(new SingletonLifeTime());
@@ -45,11 +47,6 @@ public class Application : IDisposable, ILogHandler
     /// </summary>
     public void Run()
     {
-        foreach (var scheduleSubscriber in ServiceContainer.GetInstances<IScheduleSubscriber>())
-        {
-            ScheduleManager.SubscribeAll(scheduleSubscriber);
-        }
-
         ServiceContainer.GetInstance<ScheduleManager>().Run<IApplicationRun>(e => e.OnApplicationRun());
 
         foreach (var disposable in ServiceContainer.GetInstances<IDisposable>())

@@ -47,10 +47,10 @@ public class EditorServiceAnalyzer : BaseEditorWindowSystem
             ImGui.EndCombo();
         }
 
-        foreach (var schedule in ScheduleManager.GetOrder(selectedScheduleType))
-        {
-            ImGui.Text(schedule.Subscriber.GetType().Name);
-        }
+        //foreach (var schedule in ScheduleManager.GetOrder(selectedScheduleType))
+        //{
+        //    ImGui.Text(schedule.Subscriber.GetType().Name);
+        //}
 
         //RenderingService.SetRenderTarget(renderTexture);
 

@@ -1,0 +1,18 @@
+@startuml MalignEngine
+
+top to bottom direction
+
+!include https://raw.githubusercontent.com/guipatriota/dracula-plantuml-theme/v1.0.0/theme.puml
+
+
+interface IDisposable {
+    void Dispose();
+}
+
+class Application {
+    ServiceContainer ServiceContainer
+    void Add<T>(ILifeTime? lifetime)
+    void Run()
+}
+
+@enduml

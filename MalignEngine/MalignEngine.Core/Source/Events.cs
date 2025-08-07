@@ -1,8 +1,5 @@
 namespace MalignEngine
-{
-    public interface ISchedule { }
-
-    public interface IApplicationRun : ISchedule
+{    public interface IApplicationRun : ISchedule
     {
         public void OnApplicationRun();
     }

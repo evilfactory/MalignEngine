@@ -13,9 +13,15 @@ public class SingletonLifeTime : ILifeTime
 {
     private object? instance;
 
+    public SingletonLifeTime() { }
+    public SingletonLifeTime(object instance)
+    {
+        this.instance = instance;
+    }
+
     public void Dispose()
     {
-        if (instance is IDisposable disposable)
+        if (instance is not IServiceContainer && instance is IDisposable disposable)
         {
             disposable.Dispose();
         }
@@ -46,7 +52,66 @@ public class Dependency : Attribute
     }
 }
 
-public class ServiceContainer : IDisposable
+public interface IServiceContainer : IDisposable
+{
+    /// <summary>
+    /// Gets a specific instance by supplying the interface type
+    /// </summary>
+    /// <param name="type">An instance</param>
+    /// <returns></returns>
+    public object GetInstance(Type type);
+    /// <summary>
+    /// Generic version of GetInstance(Type type)
+    /// </summary>
+    /// <typeparam name="T">Interface Type</typeparam>
+    /// <returns></returns>
+    public T GetInstance<T>();
+    /// <summary>
+    /// If there's more than one implementation type for an interface type, this will return all of them
+    /// </summary>
+    /// <typeparam name="T">Interface Type</typeparam>
+    /// <returns></returns>
+    public IEnumerable<T> GetInstances<T>();
+    /// <summary>
+    /// Registers an implementation type to a interface type
+    /// </summary>
+    /// <param name="interfaceType"></param>
+    /// <param name="implementationType"></param>
+    /// <param name="lifetime"></param>
+    public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime);
+    /// <summary>
+    /// Registers all interfaces present in the implementation type
+    /// </summary>
+    /// <param name="implementationType"></param>
+    /// <param name="lifetime"></param>
+    public void RegisterAll(Type implementationType, ILifeTime lifetime = null);
+    /// <summary>
+    /// Generic version of Register(Type interfaceType, Type implementationType, ILifeTime lifetime)
+    /// </summary>
+    /// <typeparam name="TInterface"></typeparam>
+    /// <typeparam name="TImplementation"></typeparam>
+    /// <param name="lifetime"></param>
+    public void Register<TInterface, TImplementation>(ILifeTime lifetime);
+    /// <summary>
+    /// Generic version of RegisterAll(Type implementationType, ILifeTime lifetime = null)
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="lifetime"></param>
+    public void RegisterAll<T>(ILifeTime lifetime);
+    /// <summary>
+    /// Registers a specific instance to all interface types it implements
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="instance"></param>
+    public void RegisterInstance<T>(T instance) where T : notnull;
+    /// <summary>
+    /// Injects implementations to all [Dependency] attributes in the instance
+    /// </summary>
+    /// <param name="obj"></param>
+    public void InjectAll(object obj);
+}
+
+public class ServiceContainer : IServiceContainer
 {
     private class ServiceImplementation
     {
@@ -117,6 +182,12 @@ public class ServiceContainer : IDisposable
             return obj;
         };
     }
+
+    public void RegisterInstance<T>(T instance) where T : notnull
+    {
+        RegisterAll(typeof(T), new SingletonLifeTime(instance));
+    }
+
     public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime)
     {
         if (!serviceInterfaces.ContainsKey(interfaceType))
@@ -130,6 +201,11 @@ public class ServiceContainer : IDisposable
         {
             lifeTimes.Add(lifetime);
         }
+    }
+
+    public void Register<TInterface, TImplementation>(ILifeTime lifetime)
+    {
+        Register(typeof(TInterface), typeof(TImplementation), lifetime);
     }
 
     public void RegisterAll(Type implementationType, ILifeTime? lifetime = null)

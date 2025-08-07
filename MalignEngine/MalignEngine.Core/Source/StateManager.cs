@@ -17,9 +17,9 @@ public class StateManager : IService
 
     private Dictionary<Type, Enum> states = new();
 
-    private ScheduleManager scheduleManager;
+    private IScheduleManager scheduleManager;
 
-    public StateManager(ScheduleManager scheduleManager)
+    public StateManager(IScheduleManager scheduleManager)
     {
         this.scheduleManager = scheduleManager;
     }

@@ -22,17 +22,21 @@ public class GUIService : IService, IUpdate, IWindowDraw
 
     private void SubscribeAllChildren(GUIComponent component)
     {
+        /*
         foreach (var child in component.Children)
         {
             ScheduleManager.SubscribeAll(child);
 
             SubscribeAllChildren(child);
         }
+        */
     }
 
     public void AddToUpdateList(GUIComponent component)
     {
+        /*
         ScheduleManager.SubscribeAll(component);
+        */
         SubscribeAllChildren(component);
 
         components.Add(component);
