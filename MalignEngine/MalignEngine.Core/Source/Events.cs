@@ -23,10 +23,6 @@ namespace MalignEngine
     {
         public void OnDraw(float deltaTime);
     }
-    public interface IWindowDraw : ISchedule
-    {
-        public void OnWindowDraw(float deltaTime);
-    }
     public interface IDrawGUI : ISchedule
     {
         public void OnDrawGUI(float deltaTime);

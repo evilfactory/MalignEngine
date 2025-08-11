@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    /*
     public class EditorAssetViewer : BaseEditorWindowSystem
     {
         [Dependency]
@@ -68,4 +69,5 @@ namespace MalignEngine
             ImGui.End();
         }
     }
+    */
 }

@@ -4,8 +4,10 @@ using Silk.NET.OpenGL;
 
 namespace MalignEngine
 {
+    /*
     internal class Texture2DManager : ITexture2DManager
     {
+
         public object CreateTexture(int width, int height)
         {
             Texture2D tex = new Texture2D(width, height);
@@ -25,4 +27,5 @@ namespace MalignEngine
             t.Handle.SubmitData(bounds, data);
         }
     }
+    */
 }

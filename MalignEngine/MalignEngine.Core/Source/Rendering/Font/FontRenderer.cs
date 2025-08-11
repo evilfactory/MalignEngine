@@ -4,6 +4,7 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace MalignEngine
 {
+    /*
     public class FontRenderer : BaseSystem, IFontStashRenderer2
     {
         [Dependency]
@@ -43,4 +44,5 @@ namespace MalignEngine
             );
         }
     }
+    */
 }

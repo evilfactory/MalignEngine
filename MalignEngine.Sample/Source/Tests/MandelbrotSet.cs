@@ -15,8 +15,8 @@ public class MandelbrotSet : BaseSystem, IDrawGUI
     protected InputSystem InputSystem = default!;
     
     private Shader mandelbrotShader;
-    private BufferObject<Renderer2D.Vertex> vertexBuffer;
-    private VertexArrayObject vertexArrayObject;
+    private IBufferObject<Renderer2D.Vertex> vertexBuffer;
+    private VertexArrayDescriptor vertexArrayObject;
 
     private float scale = 1f;
     private float movex = 0f;

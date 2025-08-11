@@ -3,6 +3,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine
 {
+    /*
     public class SpriteSerializer : ICustomTypeXmlSerializer
     {
         public object? Deserialize(string dataFieldName, XElement element, EntityIdRemap? idRemap = null)
@@ -86,4 +87,5 @@ namespace MalignEngine
             throw new Exception("Not implemented");
         }
     }
+    */
 }

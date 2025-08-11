@@ -25,8 +25,6 @@ public class SingletonLifeTime : ILifeTime
         {
             disposable.Dispose();
         }
-
-        instance = null;
     }
 
     public object GetInstance(Func<object> instanceFactory)

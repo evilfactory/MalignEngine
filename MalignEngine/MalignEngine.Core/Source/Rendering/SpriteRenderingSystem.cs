@@ -6,6 +6,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine
 {
+    /*
     public class SpriteRenderingSystem : EntitySystem
     {
         [Dependency]
@@ -53,4 +54,5 @@ namespace MalignEngine
             Color = Color.White;
         }
     }
+    */
 }

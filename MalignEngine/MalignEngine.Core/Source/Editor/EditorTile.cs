@@ -4,6 +4,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public class EditorTile : BaseEditorWindowSystem
 {
     [Dependency]
@@ -139,3 +140,4 @@ public class EditorTile : BaseEditorWindowSystem
         IRenderingService.End();
     }
 }
+*/

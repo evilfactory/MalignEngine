@@ -2,6 +2,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    /*
     public struct Light2D : IComponent
     {
         public Color Color;
@@ -17,4 +18,5 @@ namespace MalignEngine
     {
         public Color Color;
     }
+    */
 }

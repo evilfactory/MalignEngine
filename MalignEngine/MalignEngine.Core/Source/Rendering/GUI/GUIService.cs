@@ -2,11 +2,11 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public interface IAddToUpdateGUIList : ISchedule
 {
     public void AddToUpdateList(GUIService gui);
 }
-
 public class GUIService : IService, IUpdate, IWindowDraw
 {
     [Dependency]
@@ -22,21 +22,14 @@ public class GUIService : IService, IUpdate, IWindowDraw
 
     private void SubscribeAllChildren(GUIComponent component)
     {
-        /*
         foreach (var child in component.Children)
         {
-            ScheduleManager.SubscribeAll(child);
-
             SubscribeAllChildren(child);
         }
-        */
     }
 
     public void AddToUpdateList(GUIComponent component)
     {
-        /*
-        ScheduleManager.SubscribeAll(component);
-        */
         SubscribeAllChildren(component);
 
         components.Add(component);
@@ -78,3 +71,4 @@ public class GUIService : IService, IUpdate, IWindowDraw
         ScheduleManager.Run<IPostDrawGUI>(e => e.OnPostDrawGUI(deltaTime));
     }
 }
+*/

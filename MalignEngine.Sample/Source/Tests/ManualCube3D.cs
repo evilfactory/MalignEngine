@@ -13,9 +13,9 @@ public class ManualCube3D : IService, IUpdate, IPostDrawGUI, IStateEnter<GameSta
     [Dependency]
     protected InputSystem InputSystem = default!;
 
-    private BufferObject<float> vertexBuffer;
-    private BufferObject<uint> indexBuffer;
-    private VertexArrayObject vertexArray;
+    private IBufferObject<float> vertexBuffer;
+    private IBufferObject<uint> indexBuffer;
+    private VertexArrayDescriptor vertexArray;
 
     private Shader shader;
     private Texture2D texture;

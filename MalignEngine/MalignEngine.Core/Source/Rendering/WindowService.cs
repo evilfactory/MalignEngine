@@ -4,88 +4,97 @@ using Silk.NET.Windowing;
 using Silk.NET.Windowing.Glfw;
 using System.Numerics;
 
-namespace MalignEngine
+namespace MalignEngine;
+
+public interface IWindowService
 {
-    public class WindowService : IService, IApplicationRun, IUpdateLoop
+    string Title { get; set; }
+    Vector2D<int> Size { get; set; }
+    void ClearContext();
+    void MakeContextCurrent();
+    void SwapBuffers();
+}
+
+public class WindowService : IWindowService, IService, IPreUpdate, IDisposable
+{
+    public string Title
     {
-        private ScheduleManager scheduleManager;
+        get { return window.Title; }
+        set {  window.Title = value; }
+    }
 
-        public string Title
+    public Vector2D<int> Size
+    {
+        get
         {
-            get { return window.Title; }
-            set {  window.Title = value; }
+            return window.Size;
         }
-
-        public Vector2D<int> Size
+        set
         {
-            get
-            {
-                return window.Size;
-            }
-            set
-            {
-                window.Size = value;
-            }
+            window.Size = value;
         }
+    }
 
-        public double UpdateRate
+    public int Width => Size.X;
+    public int Height => Size.Y;
+
+    private ILogger _logger;
+    private IEventLoop _eventLoop;
+
+    // for renderer, i need to get rid of this later
+    internal IWindow window;
+
+    public WindowService(ILoggerService loggerService, IEventLoop eventLoop)
+    {
+        _logger = loggerService.GetSawmill("window");
+
+        var options = WindowOptions.Default;
+        options.PreferredDepthBufferBits = 8;
+        options.PreferredStencilBufferBits = 8;
+        options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(4, 1));
+        options.WindowBorder = WindowBorder.Resizable;
+        options.Size = new Vector2D<int>(1280, 800);
+        options.Title = "Malign Engine";
+        window = Window.Create(options);
+
+        window.VSync = false;
+
+        window.Initialize();
+
+        _eventLoop = eventLoop;
+
+        _logger.LogInfo($"Window \"{Title}\" initialized {options.Size.X}x{options.Size.Y}");
+    }
+
+    public void ClearContext()
+    {
+        window.ClearContext();
+    }
+
+    public void MakeContextCurrent()
+    {
+        window.MakeCurrent();
+    }
+
+    public void SwapBuffers()
+    {
+        window.SwapBuffers();
+    }
+
+    public void Dispose()
+    {
+        _logger.LogInfo($"Window \"{Title}\" destroyed");
+
+        window.Dispose();
+    }
+
+    public void OnPreUpdate(float deltaTime)
+    {
+        window.DoEvents();
+
+        if (window.IsClosing)
         {
-            get { return window.UpdatesPerSecond; }
-            set { window.UpdatesPerSecond = value; }
-        }
-
-        public int Width => Size.X;
-        public int Height => Size.Y;
-
-        internal IWindow window;
-
-        public WindowService(ILoggerService loggerService, ScheduleManager scheduleManager)
-        {
-            this.scheduleManager = scheduleManager;
-
-            var options = WindowOptions.Default;
-            options.PreferredDepthBufferBits = 8;
-            options.PreferredStencilBufferBits = 8;
-            options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(4, 1));
-            options.WindowBorder = WindowBorder.Resizable;
-            options.Size = new Vector2D<int>(1280, 800);
-            options.Title = "Malign Engine";
-            window = Window.Create(options);
-
-            window.UpdatesPerSecond = 60;
-            window.FramesPerSecond = 120;
-            window.VSync = false;
-
-            window.Update += WindowUpdate;
-            window.Render += WindowRender;
-
-            window.Initialize();
-
-            loggerService.GetSawmill("window").LogInfo($"Window initialized {options.Size.X}x{options.Size.Y}");
-        }
-
-        public void OnApplicationRun()
-        {
-            WindowLoad();
-
-            window.Run();
-        }
-
-        private void WindowLoad()
-        {
-            scheduleManager.Run<IInit>(e => e.OnInitialize());
-        }
-
-        private void WindowUpdate(double delta)
-        {
-            scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate((float)delta));
-            scheduleManager.Run<IUpdate>(e => e.OnUpdate((float)delta));
-            scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate((float)delta));
-        }
-
-        private void WindowRender(double delta)
-        {
-            scheduleManager.Run<IWindowDraw>(e => e.OnWindowDraw((float)delta));
+            _eventLoop.Stop();
         }
     }
 }

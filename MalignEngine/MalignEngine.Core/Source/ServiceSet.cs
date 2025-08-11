@@ -13,8 +13,10 @@ public class ServiceSet
     {
         get
         {
+
             ServiceSet serviceSet = new ServiceSet(new Type[]
             {
+                /*
                 typeof(EventService),
                 typeof(EntityManager),
                 typeof(AssetService),
@@ -33,6 +35,7 @@ public class ServiceSet
                 typeof(FontRenderer),
                 typeof(SceneSystem),
                 typeof(GUIService)
+                */
             });
 
             return serviceSet;
@@ -47,7 +50,6 @@ public class ServiceSet
             {
                 typeof(EntityManager),
                 typeof(AssetService),
-                typeof(HeadlessUpdateLoop),
                 typeof(ParentSystem),
                 typeof(TransformSystem),
                 typeof(PhysicsSystem2D)
@@ -63,14 +65,13 @@ public class ServiceSet
         {
             ServiceSet serviceSet = new ServiceSet(new Type[]
             {
-                typeof(ImGuiSystem),
+                typeof(ImGuiService),
                 typeof(EditorSystem),
-                typeof(EditorInspectorSystem),
+                //typeof(EditorInspectorSystem),
                 typeof(EditorPerformanceSystem),
-                typeof(EditorSceneViewSystem),
-                typeof(EditorAssetViewer),
-                typeof(EditorServiceAnalyzer),
-
+                //typeof(EditorSceneViewSystem),
+                //typeof(EditorAssetViewer),
+                //typeof(EditorServiceAnalyzer),
             });
             return serviceSet;
         }

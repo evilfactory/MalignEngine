@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public class TileData
 {
     public string SceneId { get; private set; }
@@ -59,3 +60,4 @@ public class TileList : XmlAsset<TileList>
         throw new NotImplementedException();
     }
 }
+*/

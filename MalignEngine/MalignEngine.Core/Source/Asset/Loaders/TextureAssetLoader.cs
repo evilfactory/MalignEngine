@@ -1,5 +1,6 @@
 namespace MalignEngine;
 
+/*
 public class TextureAssetLoaderFactory : IAssetFileLoaderFactory
 {
     public bool CanLoadExtension(string extension)
@@ -26,3 +27,4 @@ public class TextureAssetLoader : AssetFileLoader
         return texture;
     }
 }
+*/

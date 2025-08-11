@@ -1,6 +1,7 @@
 using Silk.NET.OpenGLES;
 using System.Numerics;
 
+/*
 namespace MalignEngine
 {
     // Post processing
@@ -17,3 +18,4 @@ namespace MalignEngine
         public PostProcessBaseSystem[] PostProcessingSteps;
     }
 }
+*/

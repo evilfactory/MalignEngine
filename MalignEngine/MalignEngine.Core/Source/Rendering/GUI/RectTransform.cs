@@ -8,7 +8,7 @@ namespace MalignEngine
 
     public class RectTransform
     {
-        public GUIComponent GUIComponent { get; set; }
+        //public GUIComponent GUIComponent { get; set; }
 
         public RectTransform Parent { get; private set; }
         public List<RectTransform> Children { get; private set; }

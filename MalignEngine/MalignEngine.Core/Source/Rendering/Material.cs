@@ -2,6 +2,7 @@ namespace MalignEngine
 {
     public class Material : IAsset
     {
+        /*
         public Shader Shader { get; set; }
         public bool UseTextureBatching { get; set; } = true;
         public string AssetPath { get; set; }
@@ -27,5 +28,6 @@ namespace MalignEngine
         {
             properties.TryGetValue(name, out value);
         }
+        */
     }
 }

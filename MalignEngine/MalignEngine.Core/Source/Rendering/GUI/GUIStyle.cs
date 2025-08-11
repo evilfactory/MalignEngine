@@ -1,5 +1,6 @@
 namespace MalignEngine
 {
+    /*
     public class GUIStyle
     {
         public static GUIStyle Default { get; set;}
@@ -21,4 +22,5 @@ namespace MalignEngine
             };
         }
     }
+    */
 }

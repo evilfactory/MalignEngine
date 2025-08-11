@@ -3,6 +3,7 @@ using Silk.NET.SDL;
 using System.Numerics;
 using Arch.Core.Extensions;
 
+/*
 namespace MalignEngine
 {
     public class LightingSystem2D : EntitySystem
@@ -20,8 +21,8 @@ namespace MalignEngine
 
 
         private Shader shader;
-        private VertexArrayObject vao;
-        private BufferObject<Renderer2D.Vertex> vbo;
+        private VertexArrayDescriptor vao;
+        private IBufferObject<Renderer2D.Vertex> vbo;
 
         private static Vector2 GetVectorFromAngle(float angle)
         {
@@ -298,3 +299,4 @@ namespace MalignEngine
         }
     }
 }
+*/

@@ -2,7 +2,7 @@ using Silk.NET.Maths;
 using System.Numerics;
 
 namespace MalignEngine;
-
+/*
 public class TileLayer
 {
     public string LayerName;
@@ -185,3 +185,4 @@ public class TileSystem : EntitySystem
         }
     }
 }
+*/

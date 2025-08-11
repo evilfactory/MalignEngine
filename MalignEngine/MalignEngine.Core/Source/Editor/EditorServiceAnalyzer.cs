@@ -3,6 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public class EditorServiceAnalyzer : BaseEditorWindowSystem
 {
     public override string WindowName => "Service Analyzer";
@@ -75,3 +76,4 @@ public class EditorServiceAnalyzer : BaseEditorWindowSystem
         ImGui.End();
     }
 }
+*/

@@ -45,8 +45,9 @@ public class Sawmill : ILogger
 {
     public Sawmill? Parent { get; set; }
     public string Name { get; private set; }
-
     private List<ILogHandler> handlers = new List<ILogHandler>();
+
+    private object _mutex = new object();
 
     public Sawmill(string name)
     {
@@ -68,14 +69,17 @@ public class Sawmill : ILogger
 
     private void LogInternal(Sawmill sawmill, LogType type, string message)
     {
-        foreach (var handler in handlers)
+        lock(_mutex)
         {
-            handler.HandleLog(sawmill, new LogEvent(type, message));
-        }
+            foreach (var handler in handlers)
+            {
+                handler.HandleLog(sawmill, new LogEvent(type, message));
+            }
 
-        if (Parent != null)
-        {
-            Parent.LogInternal(sawmill, type, message);
+            if (Parent != null)
+            {
+                Parent.LogInternal(sawmill, type, message);
+            }
         }
     }
 }

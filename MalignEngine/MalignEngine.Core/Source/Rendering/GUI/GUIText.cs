@@ -2,6 +2,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    /*
     public class GUIText : GUIComponent
     {
         public GUIStyle Style = GUIStyle.Default;
@@ -43,4 +44,5 @@ namespace MalignEngine
             base.Draw();
         }
     }
+    */
 }

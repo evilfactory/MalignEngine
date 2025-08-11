@@ -5,6 +5,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public class CameraSystem : EntitySystem, IWindowDraw
 {
     public OrthographicCamera RenderingCamera { get; private set; }
@@ -124,3 +125,4 @@ public class CameraSystem : EntitySystem, IWindowDraw
         return position;
     }
 }
+*/

@@ -2,6 +2,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    /*
     public class GUIList : GUIComponent
     {
         public float Spacing { get; set; }
@@ -25,4 +26,5 @@ namespace MalignEngine
             base.Draw();
         }
     }
+    */
 }

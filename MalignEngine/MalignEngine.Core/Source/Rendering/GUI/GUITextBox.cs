@@ -2,6 +2,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public class GUITextBox : GUIComponent, IKeyboardSubscriber
 {
     public GUIStyle Style { get; set; }
@@ -63,3 +64,4 @@ public class GUITextBox : GUIComponent, IKeyboardSubscriber
         }
     }
 }
+*/

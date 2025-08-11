@@ -6,6 +6,7 @@ using System.Reflection;
 
 namespace MalignEngine
 {
+    /*
     public class EditorInspectorSystem : BaseEditorWindowSystem
     {
         [Dependency]
@@ -281,4 +282,5 @@ namespace MalignEngine
             }
         }
     }
+    */
 }

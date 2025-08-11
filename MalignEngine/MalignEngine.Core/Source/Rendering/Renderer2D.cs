@@ -1,13 +1,7 @@
-using Silk.NET.Core.Native;
-using Silk.NET.OpenGL;
-using Silk.NET.Windowing;
-using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.IO;
-using Silk.NET.Maths;
 
+/*
 namespace MalignEngine
 {
     public struct VertexPositionColorTexture
@@ -70,12 +64,12 @@ namespace MalignEngine
         private const uint MaxIndexCount = MaxBatchCount * 6;
         private const uint MaxTextures = 16;
 
-        private BufferObject<Vertex> quadVertexBuffer;
-        private BufferObject<uint> quadElementBuffer;
+        private IBufferObject<Vertex> quadVertexBuffer;
+        private IBufferObject<uint> quadElementBuffer;
 
-        private BufferObject<Vertex> triVertexBuffer;
+        private IBufferObject<Vertex> triVertexBuffer;
 
-        private VertexArrayObject vertexArray;
+        private VertexArrayDescriptor vertexArray;
 
         private ITexture[] textures;
 
@@ -323,3 +317,4 @@ namespace MalignEngine
         }
     }
 }
+*/

@@ -5,6 +5,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
+    /*
     public class EditorSceneViewSystem : BaseEditorWindowSystem
     {
         public override string WindowName => "Scene View";
@@ -103,4 +104,5 @@ namespace MalignEngine
             ImGui.End();
         }
     }
+*/
 }

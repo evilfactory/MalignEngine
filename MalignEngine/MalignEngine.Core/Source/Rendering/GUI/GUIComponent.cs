@@ -4,6 +4,8 @@ using MalignEngine;
 
 namespace MalignEngine
 {
+    /*
+
     public abstract class GUIComponent
     {
         public RectTransform RectTransform { get; private set; }
@@ -51,4 +53,5 @@ namespace MalignEngine
             }
         }
     }
+    */
 }

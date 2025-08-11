@@ -2,8 +2,8 @@ using QuikGraph;
 using QuikGraph.Algorithms;
 using System.Collections.Immutable;
 using System.Data;
-using System.Diagnostics;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace MalignEngine;
 
@@ -11,14 +11,12 @@ public interface ISchedule { }
 
 public class ScheduleMetaData
 {
-    public Type[] RunsBefore { get; } = new Type[0];
-    public Type[] RunsAfter { get; } = new Type[0];
+    public float Priority { get; set; }
     public Func<bool>? RunCondition { get; set; }
 
-    public ScheduleMetaData(Type[] runsAfter, Type[] runsBefore)
+    public ScheduleMetaData()
     {
-        RunsAfter = runsAfter;
-        RunsBefore = runsBefore;
+        Priority = 0;
     }
 
     public ScheduleMetaData(Func<bool> runCondition)
@@ -26,14 +24,11 @@ public class ScheduleMetaData
         RunCondition = runCondition;
     }
 
-    public ScheduleMetaData(Type[] runsAfter, Type[] runsBefore, Func<bool> runCondition)
+    public ScheduleMetaData(float priority, Func<bool> runCondition)
     {
-        RunsAfter = runsAfter;
-        RunsBefore = runsBefore;
+        Priority = priority;
         RunCondition = runCondition;
     }
-
-    public ScheduleMetaData() { }
 }
 
 public interface IScheduleManager
@@ -49,14 +44,8 @@ public class ScheduleManager : IScheduleManager, IService
 {
     private IServiceContainer serviceContainer;
 
-    private readonly ConcurrentDictionary<Type, ImmutableList<object>> _sortedCache
-        = new ConcurrentDictionary<Type, ImmutableList<object>>();
-
     private readonly ConcurrentDictionary<(Type, Type), ScheduleMetaData> _metadata
         = new ConcurrentDictionary<(Type, Type), ScheduleMetaData>();
-
-    private readonly ConcurrentDictionary<Type, ConcurrentDictionary<Type, object>> _typeInstanceCache
-        = new ConcurrentDictionary<Type, ConcurrentDictionary<Type, object>>();
 
     public ScheduleManager(IServiceContainer serviceContainer)
     {
@@ -65,13 +54,18 @@ public class ScheduleManager : IScheduleManager, IService
 
     public void Run<T>(Action<T> action) where T : ISchedule
     {
-        //var sortedSchedules = GetTopologicallySortedSchedules<T>();
         var sortedSchedules = serviceContainer.GetInstances<T>().ToList();
+        sortedSchedules.Sort((x, y) => 
+        {
+            var px = GetMetaData(typeof(T), x.GetType()).Priority;
+            var py = GetMetaData(typeof(T), y.GetType()).Priority;
+            return px.CompareTo(py);
+        });
 
         foreach (T schedule in sortedSchedules)
         {
             var metadata = GetMetaData(typeof(T), schedule.GetType());
-            if (metadata?.RunCondition != null && !metadata.RunCondition())
+            if (metadata.RunCondition != null && !metadata.RunCondition())
             {
                 continue;
             }
@@ -80,94 +74,7 @@ public class ScheduleManager : IScheduleManager, IService
         }
     }
 
-    private ImmutableList<T> GetTopologicallySortedSchedules<T>() where T : ISchedule
-    {
-        var cacheKey = typeof(T);
-
-        if (_sortedCache.TryGetValue(cacheKey, out var cached))
-        {
-            return cached.Cast<T>().ToImmutableList();
-        }
-
-        var instances = serviceContainer.GetInstances<T>().ToList();
-        CacheTypeInstances<T>(instances);
-
-        var sorted = TopologicalSortQuikGraph(instances);
-
-        var immutableSorted = sorted.ToImmutableList();
-        _sortedCache.TryAdd(cacheKey, immutableSorted.Cast<object>().ToImmutableList());
-
-        return immutableSorted;
-    }
-
-    private void CacheTypeInstances<T>(List<T> instances) where T : ISchedule
-    {
-        var typeCache = new ConcurrentDictionary<Type, object>();
-        foreach (var instance in instances)
-        {
-            typeCache.TryAdd(instance.GetType(), instance);
-        }
-        _typeInstanceCache.AddOrUpdate(typeof(T), typeCache, (k, v) => typeCache);
-    }
-
-    private List<T> TopologicalSortQuikGraph<T>(List<T> schedules) where T : ISchedule
-    {
-        if (schedules.Count <= 1)
-        {
-            return schedules;
-        }
-
-        var graph = new AdjacencyGraph<T, Edge<T>>();
-
-        graph.AddVertexRange(schedules);
-
-        foreach (var schedule in schedules)
-        {
-            var metadata = GetMetaData(typeof(T), schedule.GetType());
-            if (metadata == null) { continue; }
-
-            foreach (var afterType in metadata.RunsAfter)
-            {
-                var afterSchedule = FindScheduleByType<T>(afterType);
-                if (afterSchedule != null)
-                {
-                    graph.AddEdge(new Edge<T>(afterSchedule, schedule));
-                }
-            }
-
-            foreach (var beforeType in metadata.RunsBefore)
-            {
-                var beforeSchedule = FindScheduleByType<T>(beforeType);
-                if (beforeSchedule != null)
-                {
-                    graph.AddEdge(new Edge<T>(schedule, beforeSchedule));
-                }
-            }
-        }
-
-        try
-        {
-            var sortedVertices = graph.TopologicalSort();
-            return sortedVertices.ToList();
-        }
-        catch (NonAcyclicGraphException)
-        {
-            throw new InvalidOperationException($"Circular dependency detected in schedule type {typeof(T).Name}");
-        }
-    }
-
-    private T? FindScheduleByType<T>(Type targetType) where T : ISchedule
-    {
-        var baseType = typeof(T);
-        if (_typeInstanceCache.TryGetValue(baseType, out var typeCache) &&
-            typeCache.TryGetValue(targetType, out var instance))
-        {
-            return (T)instance;
-        }
-        return default(T);
-    }
-
-    private ScheduleMetaData? GetMetaData(Type scheduleType, Type serviceType)
+    private ScheduleMetaData GetMetaData(Type scheduleType, Type serviceType)
     {
         var key = (scheduleType, serviceType);
 
@@ -176,7 +83,18 @@ public class ScheduleManager : IScheduleManager, IService
             return val;
         }
 
-        return null;
+        var metadata = new ScheduleMetaData();
+
+        foreach (var stageAttribute in serviceType.GetCustomAttributes<StageAttribute>())
+        {
+            if (stageAttribute.ScheduleType == scheduleType)
+            {
+                metadata.Priority = stageAttribute.Priority;
+                break;
+            }
+        }
+
+        return metadata;
     }
 
     public void SetMetaData<TSchedule, TService>(ScheduleMetaData metadata)
@@ -189,14 +107,54 @@ public class ScheduleManager : IScheduleManager, IService
 
     private void InvalidateCache()
     {
-        _sortedCache.Clear();
-        _typeInstanceCache.Clear();
+
     }
 
     public void ClearAllCaches()
     {
-        _sortedCache.Clear();
         _metadata.Clear();
-        _typeInstanceCache.Clear();
     }
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class StageAttribute : Attribute
+{
+    /// <summary>
+    /// 0.0 - Lowest priority
+    /// 1.0 - Highest priority
+    /// </summary>
+    public float Priority { get; protected set; }
+    public Type ScheduleType { get; protected set; }
+
+    public StageAttribute(Type scheduleType, float priority)
+    {
+        ScheduleType = scheduleType;
+        Priority = priority;
+    }
+
+}
+
+public class StageAttribute<TSchedule> : StageAttribute where TSchedule : ISchedule
+{
+    public StageAttribute(float priority) : base(typeof(TSchedule), priority) { }
+}
+
+public class StageAttribute<TSchedule, TStage> : StageAttribute<TSchedule> where TStage : Stage, new() where TSchedule : ISchedule
+{
+    public StageAttribute() : base(new TStage().Priority) { }
+}
+
+public abstract class Stage
+{
+    public abstract float Priority { get; }
+}
+
+public class HighestPriorityStage : Stage
+{
+    public override float Priority => 1f;
+}
+
+public class LowestPriorityStage : Stage
+{
+    public override float Priority => 0f;
 }

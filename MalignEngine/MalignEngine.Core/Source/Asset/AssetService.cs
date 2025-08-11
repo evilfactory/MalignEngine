@@ -46,7 +46,7 @@ namespace MalignEngine
         {
             logger = LoggerService.GetSawmill("assets");
 
-            RegisterLoader(new TextureAssetLoaderFactory());
+            //RegisterLoader(new TextureAssetLoaderFactory());
             RegisterLoader(new FontAssetLoaderFactory());
             RegisterLoader(new XmlAssetLoaderFactory());
         }
