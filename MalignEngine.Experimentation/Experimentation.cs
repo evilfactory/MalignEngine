@@ -28,7 +28,7 @@ class Experimentation : IService, IDraw
             VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
         });
 
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/he.png"));
+        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/light.png"));
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Color", 0, VertexAttributeType.Float, 3, false);
