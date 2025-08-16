@@ -24,7 +24,7 @@ public static class TextureLoader
             descriptor.Height = img.Height;
 
             img.Mutate(x => x.AutoOrient());
-            img.Mutate(x => x.Flip(FlipMode.Vertical));
+            //img.Mutate(x => x.Flip(FlipMode.Vertical));
 
             Color[,] textureData = new Color[img.Width, img.Height];
 

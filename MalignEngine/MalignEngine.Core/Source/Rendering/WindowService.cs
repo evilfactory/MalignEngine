@@ -10,6 +10,7 @@ public interface IWindowService
 {
     string Title { get; set; }
     Vector2D<int> Size { get; set; }
+    Vector2D<int> FrameSize { get; }
     void ClearContext();
     void MakeContextCurrent();
     void SwapBuffers();
@@ -35,6 +36,14 @@ public class WindowService : IWindowService, IService, IPreUpdate, IDisposable
         }
     }
 
+    public Vector2D<int> FrameSize
+    {
+        get
+        {
+            return window.FramebufferSize;
+        }
+    }
+
     public int Width => Size.X;
     public int Height => Size.Y;
 
@@ -53,7 +62,7 @@ public class WindowService : IWindowService, IService, IPreUpdate, IDisposable
         options.PreferredStencilBufferBits = 8;
         options.API = new GraphicsAPI(ContextAPI.OpenGL, ContextProfile.Core, ContextFlags.Debug, new APIVersion(4, 1));
         options.WindowBorder = WindowBorder.Resizable;
-        options.Size = new Vector2D<int>(1280, 800);
+        options.Size = new Vector2D<int>(1280, 1280);
         options.Title = "Malign Engine";
         window = Window.Create(options);
 
