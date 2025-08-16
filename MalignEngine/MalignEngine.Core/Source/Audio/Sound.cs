@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MalignEngine
 {
-    public class Sound : IFileLoadableAsset<Sound>, IDisposable
+    public class Sound : IAsset, IDisposable
     {
         internal uint buffer;
 

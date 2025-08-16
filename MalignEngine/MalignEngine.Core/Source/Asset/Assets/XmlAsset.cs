@@ -2,6 +2,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
+/*
 public abstract class XmlAsset
 {
     public abstract void Load(XElement element);
@@ -24,3 +25,5 @@ public abstract class XmlAsset<T> : XmlAsset, IFileLoadableAsset<T> where T : cl
         return this as T;
     }
 }
+
+*/

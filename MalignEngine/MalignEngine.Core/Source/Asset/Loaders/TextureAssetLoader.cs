@@ -1,30 +1,29 @@
+
 namespace MalignEngine;
 
-/*
-public class TextureAssetLoaderFactory : IAssetFileLoaderFactory
+public class TextureAssetLoader : IService, IAssetLoader
 {
-    public bool CanLoadExtension(string extension)
+    public Type AssetType => typeof(Texture2D);
+
+    private IRenderingAPI _renderingAPI;
+
+    public TextureAssetLoader(IRenderingAPI renderingAPI)
     {
-        return extension == ".png" || extension == ".jpg" || extension == ".jpeg";
+        _renderingAPI = renderingAPI;
     }
 
-    public IAssetFileLoader[] CreateLoaders(string file)
+    public bool IsCompatible(AssetPath assetPath)
     {
-        return new IAssetFileLoader[] { new TextureAssetLoader(new AssetPath(file)) };
+        return assetPath.Extension == "png";
+    }
+
+    public IEnumerable<IAsset> Load(AssetPath assetPath)
+    {
+        AssetSource source = AssetSource.Get(assetPath);
+
+        ITextureDescriptor descriptor = TextureLoader.Load(source.GetStream());
+        ITextureResource resource = _renderingAPI.CreateTexture(descriptor);
+        Texture2D texture = new Texture2D(resource);
+        return new List<IAsset>() { texture };
     }
 }
-
-public class TextureAssetLoader : AssetFileLoader
-{
-    public TextureAssetLoader(AssetPath assetPath) : base(assetPath) { }
-
-    public override Type AssetType => typeof(Texture2D);
-
-    public override IAsset Load()
-    {
-        Texture2D texture = new Texture2D();
-        texture.LoadFromPath(AssetPath.PathWithoutId);
-        return texture;
-    }
-}
-*/

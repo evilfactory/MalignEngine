@@ -9,6 +9,6 @@ public class Texture2D : IAsset
 
     public Texture2D(ITextureResource resource)
     {
-        this.Resource = resource;
+        Resource = resource;
     }
 }

@@ -2,6 +2,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
+/*
 public class XmlAssetLoaderFactory : IAssetFileLoaderFactory
 {
     public bool CanLoadExtension(string extension)
@@ -79,3 +80,5 @@ public class XmlAssetLoader : AssetFileLoader
         return (IAsset)asset;
     }
 }
+
+*/

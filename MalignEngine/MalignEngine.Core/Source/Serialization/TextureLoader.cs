@@ -6,11 +6,19 @@ namespace MalignEngine;
 
 public static class TextureLoader
 {
-    public static ITextureDescriptor Load(string file)
+    public static ITextureDescriptor Load(string filePath)
+    {
+        using (Stream file = File.Open(filePath, FileMode.Open))
+        {
+            return Load(file);
+        }
+    }
+
+    public static ITextureDescriptor Load(Stream stream)
     {
         TextureDescriptor descriptor = new TextureDescriptor();
 
-        using (var img = Image.Load<Rgba32>(file))
+        using (var img = Image.Load<Rgba32>(stream))
         {
             descriptor.Width = img.Width;
             descriptor.Height = img.Height;

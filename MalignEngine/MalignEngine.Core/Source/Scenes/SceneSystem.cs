@@ -9,6 +9,7 @@ public struct SceneComponent : IComponent
     public string SceneId;
 }
 
+/*
 public class SceneSystem : EntitySystem
 {
     [Dependency]
@@ -108,3 +109,5 @@ public class SceneSystem : EntitySystem
         }
     }
 }
+
+*/

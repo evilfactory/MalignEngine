@@ -13,7 +13,8 @@ namespace MalignEngine
     {
         public bool IsLoading { get; private set; }
         public AssetPath AssetPath { get; private set; }
-        private IAsset asset;
+
+        private IAsset? asset;
         public IAsset Asset
         {
             get
@@ -35,19 +36,19 @@ namespace MalignEngine
         {
             get
             {
-                if (IsLoading) { return loader.AssetType; }
+                if (IsLoading) { return _loader.AssetType; }
 
                 return Asset.GetType();
             }
         }
 
-        private IAssetFileLoader loader;
+        private IAssetLoader _loader;
 
-        public AssetHandle(AssetPath assetPath, IAssetFileLoader loader)
+        public AssetHandle(AssetPath assetPath, IAssetLoader loader)
         {
             IsLoading = true;
             AssetPath = assetPath;
-            this.loader = loader;
+            _loader = loader;
         }
 
         public AssetHandle(AssetPath assetPath, IAsset asset)
@@ -59,7 +60,7 @@ namespace MalignEngine
 
         public void LoadNow()
         {
-            Asset = loader.Load();
+            Asset = _loader.Load(AssetPath).First();
 
             IsLoading = false;
         }

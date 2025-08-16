@@ -1,28 +1,23 @@
+
 namespace MalignEngine;
 
-public class FontAssetLoaderFactory : IAssetFileLoaderFactory
+public class FontAssetLoader : IAssetLoader
 {
-    public bool CanLoadExtension(string extension)
-    {
-        return extension == ".ttf";
+    public Type AssetType => typeof(Font);
+
+    public FontAssetLoader()
+    { 
     }
 
-    public IAssetFileLoader[] CreateLoaders(string file)
+    public bool IsCompatible(AssetPath assetPath)
     {
-        return new IAssetFileLoader[] { new FontAssetLoader(new AssetPath(file)) };
+        return assetPath.Extension == "ttf";
     }
-}
 
-public class FontAssetLoader : AssetFileLoader
-{
-    public FontAssetLoader(AssetPath assetPath) : base(assetPath) { }
-
-    public override Type AssetType => typeof(Font);
-
-    public override IAsset Load()
+    public IEnumerable<IAsset> Load(AssetPath assetPath)
     {
         Font font = new Font();
-        font.LoadFromPath(AssetPath);
-        return font;
+        font.LoadFromPath(assetPath);
+        return new List<IAsset>() { (IAsset)font };
     }
 }

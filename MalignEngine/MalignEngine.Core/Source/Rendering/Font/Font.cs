@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine
 {
-    public class Font : IFileLoadableAsset<Font>
+    public class Font : IAsset
     {
         internal FontStashSharp.FontSystem fontSystem = new FontStashSharp.FontSystem();
 

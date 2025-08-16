@@ -5,6 +5,8 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
+/*
+
 /// <summary>
 /// A scene holds a list of entities that can be used to create copies of the scene.
 /// </summary>
@@ -144,3 +146,5 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         }
     }
 }
+
+*/

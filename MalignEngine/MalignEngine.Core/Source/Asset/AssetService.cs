@@ -2,166 +2,79 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Xml.Linq;
 
-namespace MalignEngine
+namespace MalignEngine;
+
+public interface IAssetService
 {
-    /// <summary>
-    /// An asset path is used to identify an asset in the asset service, it looks like this: "Content/SomeXmlFile.xml#Identifier"
-    /// </summary>
-    public struct AssetPath
+    public AssetHandle FromPath(AssetPath assetPath);
+    public AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
+}
+
+public class AssetService : IService, IUpdate
+{
+    private ILogger _logger;
+
+    private Dictionary<AssetPath, AssetHandle> _assetHandles;
+    private Queue<IAssetHandle> _loadingQueue;
+    private IServiceContainer _container;
+
+    public AssetService(ILoggerService loggerService, IServiceContainer container)
     {
-        public string FullPath { get; private set; }
-        public string PathWithoutId => FullPath.Split('#')[0];
-        public string Id => FullPath.Split('#')[1];
-        public string Extension => Path.GetExtension(PathWithoutId);
+        _logger = loggerService.GetSawmill("assets");
 
-        public AssetPath(string path)
-        {
-            FullPath = path;
-        }
-
-        public static implicit operator AssetPath(string path) => new AssetPath(path);
-        public static implicit operator string(AssetPath path) => path.FullPath;
+        _assetHandles = new Dictionary<AssetPath, AssetHandle>();
+        _loadingQueue = new Queue<IAssetHandle>();
+        _container = container;
     }
 
-    public class AssetService : IService, IInit, IUpdate
+
+    public void OnUpdate(float deltatime)
     {
-        [Dependency]
-        protected LoggerService LoggerService = default!;
-        protected ILogger logger;
-
-        private Dictionary<AssetPath, AssetHandle> assetHandles;
-
-        private List<IAssetFileLoaderFactory> assetLoaders;
-
-        private Queue<IAssetHandle> loadingQueue;
-
-        public AssetService()
+        if (_loadingQueue != null)
         {
-            assetHandles = new Dictionary<AssetPath, AssetHandle>();
-            assetLoaders = new List<IAssetFileLoaderFactory>();
-            loadingQueue = new Queue<IAssetHandle>();
-        }
-
-        public void OnInitialize()
-        {
-            logger = LoggerService.GetSawmill("assets");
-
-            //RegisterLoader(new TextureAssetLoaderFactory());
-            RegisterLoader(new FontAssetLoaderFactory());
-            RegisterLoader(new XmlAssetLoaderFactory());
-        }
-
-        public void OnUpdate(float deltatime)
-        {
-            if (loadingQueue != null)
+            int assetsLoaded = 0;
+            while (_loadingQueue.Count > 0)
             {
-                int assetsLoaded = 0;
-                while (loadingQueue.Count > 0)
+                IAssetHandle handle = _loadingQueue.Dequeue();
+
+                if (handle.IsLoading)
                 {
-                    IAssetHandle handle = loadingQueue.Dequeue();
+                    handle.LoadNow();
+                }
 
-                    if (handle.IsLoading)
-                    {
-                        handle.LoadNow();
-                    }
+                assetsLoaded++;
 
-                    assetsLoaded++;
-
-                    if (assetsLoaded > 10)
-                    {
-                        break;
-                    }
+                if (assetsLoaded > 10)
+                {
+                    break;
                 }
             }
         }
+    }
 
-        public void RegisterLoader(IAssetFileLoaderFactory loader)
+    public void LoadFolder(string folderPath)
+    {
+        throw new NotImplementedException();
+    }
+
+    public AssetHandle FromPath(AssetPath assetPath)
+    {
+        if (_assetHandles.ContainsKey(assetPath))
         {
-            assetLoaders.Add(loader);
+            return _assetHandles[assetPath];
         }
 
-        public void LoadFolder(string folderPath)
-        {
-            // Find all files and files in subdirectories
-            string[] files = Directory.GetFiles(folderPath, "*.*", SearchOption.AllDirectories);
+        IEnumerable<IAssetLoader> loaders = _container.GetInstances<IAssetLoader>();
 
-            foreach (string file in files)
-            {
-                IAssetFileLoaderFactory? loader = assetLoaders.FirstOrDefault(l => l.CanLoadExtension(Path.GetExtension(file)));
+        var loader = loaders.Where(x => x.IsCompatible(assetPath)).First();
 
-                if (loader != null)
-                {
-                    FromFile(file);
-                }
-            }
-        }
+        AssetHandle handle = new AssetHandle(assetPath, loader);
 
-        public AssetHandle FromFile(AssetPath assetPath)
-        {
-            if (assetHandles.ContainsKey(assetPath))
-            {
-                return assetHandles[assetPath];
-            }
+        return handle;
+    }
 
-            IAssetFileLoaderFactory? loader = assetLoaders.FirstOrDefault(l => l.CanLoadExtension(assetPath.Extension));
-
-            if (loader == null)
-            {
-                throw new Exception($"No loader found for {assetPath}");
-            }
-
-            IAssetFileLoader[] loaders = loader.CreateLoaders(assetPath.PathWithoutId);
-
-            AssetHandle[] handles = loaders.Select(loader => new AssetHandle(assetPath, loader)).ToArray();
-
-            foreach (AssetHandle handle in handles)
-            {
-                assetHandles.Add(handle.AssetPath, handle);
-                loadingQueue.Enqueue(handle);
-            }
-
-            return handles.Where(h => h.AssetPath == assetPath).First();
-        }
-
-        public AssetHandle<T> FromFile<T>(AssetPath assetPath) where T : class, IFileLoadableAsset<T>, new() => FromFile(assetPath).Upgrade<T>();
-
-        public AssetHandle<T> FromAsset<T>(T asset) where T : class, IFileLoadableAsset<T>, new()
-        {
-            string assetPath = Guid.NewGuid().ToString();
-            AssetHandle handle = new AssetHandle(assetPath, asset);
-
-            assetHandles.Add(assetPath, handle);
-
-            return handle.Upgrade<T>();
-        }
-
-        public AssetHandle<T> GetFromId<T>(string identifier) where T : class, IFileLoadableAsset<T>, IAssetWithId, new()
-        {
-            // Go through all assets that implement IAssetWithId and check if the id matches
-            foreach ((AssetPath assetPath, AssetHandle handle) in assetHandles)
-            {
-                if (handle.AssetType == typeof(T) && ((IAssetWithId)handle.Asset).AssetId == identifier)
-                {
-                    return handle.Upgrade<T>();
-                }
-            }
-
-            return null;
-        }
-
-        public List<AssetHandle<T>> GetOfType<T>() where T : class, IFileLoadableAsset<T>, new()
-        {
-            List<AssetHandle<T>> handles = new List<AssetHandle<T>>();
-
-            foreach ((AssetPath assetPath, AssetHandle handle) in assetHandles)
-            {
-                if (handle.AssetType == typeof(T))
-                {
-                    handles.Add(handle.Upgrade<T>());
-                }
-            }
-
-            return handles;
-        }
+    public AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset
+    {
+        return FromPath(assetPath).Upgrade<T>();
     }
 }
