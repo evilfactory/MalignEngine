@@ -12,7 +12,7 @@ class Program
         application.Add<GLRenderingAPI>();
         application.Add<DrawLoopBefore>();
         application.Add<DrawLoopAfter>();
-        application.Add<InputSystem>();
+        application.Add<InputService>();
         application.Add<Experimentation>();
         application.Add<ImGuiService>();
         application.Add<EditorSystem>();

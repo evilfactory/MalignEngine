@@ -10,7 +10,7 @@ public class BasicSceneTest : IService, IUpdate, IStateEnter<GameState>
     [Dependency]
     protected EntityManager EntityManager = default!;
     [Dependency]
-    protected InputSystem InputSystem = default!;
+    protected IInputService InputSystem = default!;
     [Dependency]
     protected CameraSystem CameraSystem = default!;
     [Dependency]

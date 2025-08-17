@@ -12,7 +12,7 @@ public class MandelbrotSet : BaseSystem, IDrawGUI
     [Dependency]
     protected IRenderer2D Renderer2D = default!;
     [Dependency] 
-    protected InputSystem InputSystem = default!;
+    protected IInputService InputSystem = default!;
     
     private Shader mandelbrotShader;
     private IBufferObject<Renderer2D.Vertex> vertexBuffer;

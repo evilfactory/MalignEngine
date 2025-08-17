@@ -7,7 +7,7 @@ public class PhysicsTest : IService, IStateEnter<GameState>, IUpdate
     [Dependency]
     protected EntityManager EntityManagerService = default!;
     [Dependency]
-    protected InputSystem InputSystem = default!;
+    protected IInputService InputSystem = default!;
     [Dependency]
     protected CameraSystem CameraSystem = default!;
 

@@ -33,7 +33,7 @@ internal class Minesweeper : IService, IUpdate, IDraw
     private ITextureResource _mineTexture;
     private ITextureResource _unknownTexture;
 
-    private InputSystem _inputSystem;
+    private IInputService _inputSystem;
 
     private Matrix4x4 _matrix;
 
@@ -116,7 +116,7 @@ internal class Minesweeper : IService, IUpdate, IDraw
         }
     }
 
-    public Minesweeper(IWindowService windowService, IRenderingAPI renderAPI, InputSystem inputSystem)
+    public Minesweeper(IWindowService windowService, IRenderingAPI renderAPI, IInputService inputSystem)
     {
         _windowService = windowService;
         _renderAPI = renderAPI;

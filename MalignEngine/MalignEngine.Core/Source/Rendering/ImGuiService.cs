@@ -16,14 +16,14 @@ namespace MalignEngine
         private ScheduleManager _scheduleManager;
         private ImGuiController _imGuiController;
 
-        public ImGuiService(WindowService windowService, GLRenderingAPI glRenderingAPI, InputSystem inputSystem, ScheduleManager scheduleManager)
+        public ImGuiService(WindowService windowService, GLRenderingAPI glRenderingAPI, ISilkInputContextProvider inputContext, ScheduleManager scheduleManager)
         {
             _glRenderAPI = glRenderingAPI;
             _scheduleManager = scheduleManager;
 
             _glRenderAPI.Submit(() =>
             {
-                _imGuiController = new ImGuiController(_glRenderAPI.InternalAPI, windowService.window, inputSystem.input, () =>
+                _imGuiController = new ImGuiController(_glRenderAPI.InternalAPI, windowService.window, inputContext.InputContext, () =>
                 {
                     var io = ImGuiNET.ImGui.GetIO();
                     //io.Fonts.AddFontFromFileTTF("Content/fonts/Ruda-Regular.ttf", 18f);

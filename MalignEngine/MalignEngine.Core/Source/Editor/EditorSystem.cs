@@ -7,7 +7,7 @@ namespace MalignEngine
     public class EditorSystem : BaseSystem, IDrawImGui
     {
         [Dependency]
-        protected InputSystem InputSystem = default!;
+        protected IInputService InputSystem = default!;
 
         public EntityRef SelectedEntity { get; set; } = default;
 
@@ -22,7 +22,7 @@ namespace MalignEngine
 
         public override void OnUpdate(float deltaTime)
         {
-            if (InputSystem.IsKeyHeld(Key.F1))
+            if (InputSystem.Keyboard.IsKeyPressed(Key.F1))
             {
                 hideAllWindows = !hideAllWindows;
             }

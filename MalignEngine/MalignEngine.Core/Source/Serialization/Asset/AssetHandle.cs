@@ -36,7 +36,7 @@ namespace MalignEngine
         {
             get
             {
-                if (IsLoading) { return _loader.AssetType; }
+                if (IsLoading) { return _loader.GetType(); }
 
                 return Asset.GetType();
             }

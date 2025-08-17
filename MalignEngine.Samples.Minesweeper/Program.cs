@@ -10,7 +10,7 @@ class Program
         application.Add<GLRenderingAPI>();
         application.Add<DrawLoopBefore>();
         application.Add<DrawLoopAfter>();
-        application.Add<InputSystem>();
+        application.Add<IInputService>();
         application.Add<Minesweeper>();
         application.Add<EditorSystem>();
 

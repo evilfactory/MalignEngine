@@ -11,7 +11,7 @@ public class ManualCube3D : IService, IUpdate, IPostDrawGUI, IStateEnter<GameSta
     private EntityManager EntityManager = default!;
 
     [Dependency]
-    protected InputSystem InputSystem = default!;
+    protected IInputService InputSystem = default!;
 
     private IBufferObject<float> vertexBuffer;
     private IBufferObject<uint> indexBuffer;

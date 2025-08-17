@@ -9,7 +9,7 @@ public class LightingTest : IService, IStateEnter<GameState>, IUpdate
     [Dependency]
     protected LightingPostProcessingSystem2D LightingPostProcessingSystem2D = default!;
     [Dependency]
-    protected InputSystem InputSystem = default!;
+    protected IInputService InputSystem = default!;
     [Dependency]
     protected CameraSystem CameraSystem = default!;
 
