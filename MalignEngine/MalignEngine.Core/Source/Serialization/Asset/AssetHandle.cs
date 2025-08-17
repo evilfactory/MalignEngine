@@ -60,7 +60,7 @@ namespace MalignEngine
 
         public void LoadNow()
         {
-            Asset = _loader.Load(AssetPath).First();
+            Asset = _loader.Load(AssetPath);
 
             IsLoading = false;
         }

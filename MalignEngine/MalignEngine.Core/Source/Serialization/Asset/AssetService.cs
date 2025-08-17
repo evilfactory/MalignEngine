@@ -1,21 +1,24 @@
-using System.Collections.Concurrent;
-using System.Reflection;
-using System.Xml.Linq;
-
 namespace MalignEngine;
 
 public interface IAssetService
 {
+    /// <summary>
+    /// Returns all handles associated with a specific asset path, without a specific id
+    /// </summary>
+    public IEnumerable<AssetHandle> FromPathAll(AssetPath assetPath);
+    /// <summary>
+    /// Gets the handle for the specified asset path. Throws an exception if there's more than one handle in this asset path and there's no id specified in the asset path
+    /// </summary>
     public AssetHandle FromPath(AssetPath assetPath);
+    /// <inheritdoc cref="FromPath" />
     public AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
 }
 
-public class AssetService : IService, IUpdate
+public class AssetService : IService
 {
     private ILogger _logger;
 
     private Dictionary<AssetPath, AssetHandle> _assetHandles;
-    private Queue<IAssetHandle> _loadingQueue;
     private IServiceContainer _container;
 
     public AssetService(ILoggerService loggerService, IServiceContainer container)
@@ -23,38 +26,30 @@ public class AssetService : IService, IUpdate
         _logger = loggerService.GetSawmill("assets");
 
         _assetHandles = new Dictionary<AssetPath, AssetHandle>();
-        _loadingQueue = new Queue<IAssetHandle>();
         _container = container;
     }
 
-
-    public void OnUpdate(float deltatime)
+    public IEnumerable<AssetHandle> FromPathAll(AssetPath assetPath)
     {
-        if (_loadingQueue != null)
+        IEnumerable<IAssetLoader> loaders = _container.GetInstances<IAssetLoader>();
+
+        var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
+
+        if (loader == null)
         {
-            int assetsLoaded = 0;
-            while (_loadingQueue.Count > 0)
-            {
-                IAssetHandle handle = _loadingQueue.Dequeue();
-
-                if (handle.IsLoading)
-                {
-                    handle.LoadNow();
-                }
-
-                assetsLoaded++;
-
-                if (assetsLoaded > 10)
-                {
-                    break;
-                }
-            }
+            throw new Exception("No loader defined for this asset extension");
         }
-    }
 
-    public void LoadFolder(string folderPath)
-    {
-        throw new NotImplementedException();
+        List<AssetHandle> handles = new List<AssetHandle>();
+
+        foreach (var id in loader.GetSubIds(assetPath))
+        {
+            AssetPath assetPathWithId = assetPath + "#" + id;
+
+            handles.Add(FromPath(assetPathWithId));
+        }
+
+        return handles;
     }
 
     public AssetHandle FromPath(AssetPath assetPath)
@@ -66,9 +61,40 @@ public class AssetService : IService, IUpdate
 
         IEnumerable<IAssetLoader> loaders = _container.GetInstances<IAssetLoader>();
 
-        var loader = loaders.Where(x => x.IsCompatible(assetPath)).First();
+        var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
+
+        if (loader == null)
+        {
+            throw new Exception("No loader defined for this asset extension");
+        }
+
+        IEnumerable<string> subIds = loader.GetSubIds(assetPath);
+
+        bool matchesAny = false;
+
+        if (subIds.Count() == 0)
+        {
+            matchesAny = true;
+        }
+        else
+        {
+            foreach (var str in subIds)
+            {
+                if (str == assetPath.Id)
+                {
+                    matchesAny = true;
+                }
+            }
+        }
+
+        if (!matchesAny)
+        {
+            throw new Exception("Asset id is invalid");
+        }
 
         AssetHandle handle = new AssetHandle(assetPath, loader);
+
+        _assetHandles[assetPath] = handle;
 
         return handle;
     }

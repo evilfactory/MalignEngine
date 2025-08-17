@@ -1,7 +1,8 @@
 ﻿namespace MalignEngine;
 
 /// <summary>
-/// An asset path is used to identify an asset in the asset service, it looks like this: "file:Content/SomeXmlFile.xml"
+/// An asset path is used to identify an asset in the asset service, it looks like this: "file:Content/SomeXmlFile.xml#test"
+/// The id is only required if the asset type can support multiple assets per file
 /// </summary>
 public struct AssetPath
 {

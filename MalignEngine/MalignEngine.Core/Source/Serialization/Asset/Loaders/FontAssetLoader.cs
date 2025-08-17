@@ -9,15 +9,20 @@ public class FontAssetLoader : IAssetLoader
     { 
     }
 
+    public IEnumerable<string> GetSubIds(AssetPath assetPath)
+    {
+        return Enumerable.Empty<string>();
+    }
+
     public bool IsCompatible(AssetPath assetPath)
     {
         return assetPath.Extension == "ttf";
     }
 
-    public IEnumerable<IAsset> Load(AssetPath assetPath)
+    public IAsset Load(AssetPath assetPath)
     {
         Font font = new Font();
         font.LoadFromPath(assetPath);
-        return new List<IAsset>() { (IAsset)font };
+        return font;
     }
 }

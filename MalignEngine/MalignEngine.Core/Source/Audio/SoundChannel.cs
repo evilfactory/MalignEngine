@@ -1,142 +1,142 @@
-﻿using Silk.NET.Input;
-using Silk.NET.OpenAL;
+﻿using Silk.NET.OpenAL;
 using System.Numerics;
 
-namespace MalignEngine
+namespace MalignEngine;
+
+// TODO: properly interface this
+
+public class SoundChannel : IDisposable
 {
-    public class SoundChannel : IDisposable
+    private AudioService audioSystem;
+
+    private float volume = 1f;
+    public float Volume
     {
-        private AudioSystem audioSystem;
-
-        private float volume = 1f;
-        public float Volume
+        get
         {
-            get
-            {
-                return volume;
-            }
-
-            set
-            {
-                volume = value;
-                al.SetSourceProperty(source, SourceFloat.Gain, volume);
-            }
+            return volume;
         }
 
-        private float pitch = 1f;
-        public float Pitch
+        set
         {
-            get
-            {
-                return pitch;
-            }
+            volume = value;
+            al.SetSourceProperty(source, SourceFloat.Gain, volume);
+        }
+    }
 
-            set
-            {
-                pitch = value;
-                al.SetSourceProperty(source, SourceFloat.Pitch, pitch);
-            }
+    private float pitch = 1f;
+    public float Pitch
+    {
+        get
+        {
+            return pitch;
         }
 
-        private bool looping = false;
-        public bool Looping
+        set
         {
-            get
-            {
-                return looping;
-            }
+            pitch = value;
+            al.SetSourceProperty(source, SourceFloat.Pitch, pitch);
+        }
+    }
 
-            set
-            {
-                looping = value;
-                al.SetSourceProperty(source, SourceBoolean.Looping, looping);
-            }
+    private bool looping = false;
+    public bool Looping
+    {
+        get
+        {
+            return looping;
         }
 
-        public float Near
+        set
         {
-            get
-            {
-                al.GetSourceProperty(source, SourceFloat.ReferenceDistance, out float value);
-                return value;
-            }
-            set
-            {
-                al.SetSourceProperty(source, SourceFloat.ReferenceDistance, value);
-            }
+            looping = value;
+            al.SetSourceProperty(source, SourceBoolean.Looping, looping);
         }
+    }
 
-        public float Far
+    public float Near
+    {
+        get
         {
-            get
-            {
-                al.GetSourceProperty(source, SourceFloat.MaxDistance, out float value);
-                return value;
-            }
-            set
-            {
-                al.SetSourceProperty(source, SourceFloat.MaxDistance, value);
-            }
+            al.GetSourceProperty(source, SourceFloat.ReferenceDistance, out float value);
+            return value;
         }
-
-        public Vector3 Position { get; set; }
-        public bool Directional { get; set; } = true;
-
-
-        private AL al;
-        private uint buffer;
-        private uint source;
-
-        public SoundChannel(AudioSystem audioSystem, uint buffer)
+        set
         {
-            this.audioSystem = audioSystem;
-            this.buffer = buffer;
+            al.SetSourceProperty(source, SourceFloat.ReferenceDistance, value);
+        }
+    }
 
-            source = al.GenSource();
-            al.SetSourceProperty(source, SourceInteger.Buffer, buffer);
-            al.SetSourceProperty(source, SourceBoolean.Looping, Looping);
+    public float Far
+    {
+        get
+        {
+            al.GetSourceProperty(source, SourceFloat.MaxDistance, out float value);
+            return value;
+        }
+        set
+        {
+            al.SetSourceProperty(source, SourceFloat.MaxDistance, value);
+        }
+    }
+
+    public Vector3 Position { get; set; }
+    public bool Directional { get; set; } = true;
+
+
+    private AL al;
+    private uint buffer;
+    private uint source;
+
+    public SoundChannel(AudioService audioSystem, uint buffer)
+    {
+        this.audioSystem = audioSystem;
+        this.buffer = buffer;
+
+        source = al.GenSource();
+        al.SetSourceProperty(source, SourceInteger.Buffer, buffer);
+        al.SetSourceProperty(source, SourceBoolean.Looping, Looping);
+        al.SetSourceProperty(source, SourceBoolean.SourceRelative, false);
+    }
+
+    public void Play()
+    {
+        al.SourcePlay(source);
+    }
+
+    public void Play(Vector3 position)
+    {
+        Position = position;
+        Play();
+    }
+
+    public void Pause()
+    {
+        al.SourcePause(source);
+    }
+
+    public void Stop()
+    {
+        al.SourceStop(source);
+    }
+
+    public void Update()
+    {
+        if (Directional)
+        {
             al.SetSourceProperty(source, SourceBoolean.SourceRelative, false);
+            al.SetSourceProperty(source, SourceVector3.Position, Position);
         }
-
-        public void Play()
+        else
         {
-            al.SourcePlay(source);
+            al.SetSourceProperty(source, SourceBoolean.SourceRelative, true);
+            al.SetSourceProperty(source, SourceVector3.Position, new Vector3(0f, 0f, Vector3.Distance(Position, audioSystem.ListenerPosition)));
         }
+    }
 
-        public void Play(Vector3 position)
-        {
-            Position = position;
-            Play();
-        }
-
-        public void Pause()
-        {
-            al.SourcePause(source);
-        }
-
-        public void Stop()
-        {
-            al.SourceStop(source);
-        }
-
-        public void Update()
-        {
-            if (Directional)
-            {
-                al.SetSourceProperty(source, SourceBoolean.SourceRelative, false);
-                al.SetSourceProperty(source, SourceVector3.Position, Position);
-            }
-            else
-            {
-                al.SetSourceProperty(source, SourceBoolean.SourceRelative, true);
-                al.SetSourceProperty(source, SourceVector3.Position, new Vector3(0f, 0f, Vector3.Distance(Position, audioSystem.ListenerPosition)));
-            }
-        }
-
-        public void Dispose()
-        {
-            al.DeleteSource(source);
-            audioSystem.RemoveChannel(this);
-        }
+    public void Dispose()
+    {
+        al.DeleteSource(source);
+        audioSystem.RemoveChannel(this);
     }
 }

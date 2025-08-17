@@ -17,13 +17,18 @@ public class TextureAssetLoader : IService, IAssetLoader
         return assetPath.Extension == "png";
     }
 
-    public IEnumerable<IAsset> Load(AssetPath assetPath)
+    public IEnumerable<string> GetSubIds(AssetPath assetPath)
+    {
+        return Enumerable.Empty<string>();
+    }
+
+    public IAsset Load(AssetPath assetPath)
     {
         AssetSource source = AssetSource.Get(assetPath);
 
         ITextureDescriptor descriptor = TextureLoader.Load(source.GetStream());
         ITextureResource resource = _renderingAPI.CreateTexture(descriptor);
         Texture2D texture = new Texture2D(resource);
-        return new List<IAsset>() { texture };
+        return texture;
     }
 }
