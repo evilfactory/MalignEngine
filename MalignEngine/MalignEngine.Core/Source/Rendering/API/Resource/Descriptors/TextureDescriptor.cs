@@ -84,8 +84,8 @@ public class TextureDescriptor : ITextureDescriptor
     public TextureWrapMode WrapS { get; set; } = TextureWrapMode.Repeat;
     public TextureWrapMode WrapT { get; set; } = TextureWrapMode.Repeat;
 
-    public TextureFilter FilterMin { get; set; } = TextureFilter.Linear;
-    public TextureFilter FilterMag { get; set; } = TextureFilter.Linear;
+    public TextureFilter FilterMin { get; set; } = TextureFilter.Nearest;
+    public TextureFilter FilterMag { get; set; } = TextureFilter.Nearest;
 
     public Color[]? InitialData { get; set; } = null;
 

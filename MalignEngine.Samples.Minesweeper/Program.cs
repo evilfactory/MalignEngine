@@ -12,7 +12,6 @@ class Program
         application.Add<DrawLoopAfter>();
         application.Add<InputSystem>();
         application.Add<Minesweeper>();
-        application.Add<ImGuiService>();
         application.Add<EditorSystem>();
 
         application.Run();

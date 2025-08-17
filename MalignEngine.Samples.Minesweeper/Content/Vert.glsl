@@ -10,7 +10,6 @@ out vec2 fUv;
 
 void main()
 {
-    //Multiplying our uniform with the vertex position, the multiplication order here does matter.
     gl_Position = uProjection * uModel * vec4(vPos, 1.0);
     fUv = vUv;
 }

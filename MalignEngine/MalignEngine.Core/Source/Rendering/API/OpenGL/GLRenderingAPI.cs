@@ -37,6 +37,8 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
 
         _renderThread = new Thread(RenderThread);
 
+        _renderThread.Name = "Render Thread";
+
         _renderThread.Start();
     }
 
