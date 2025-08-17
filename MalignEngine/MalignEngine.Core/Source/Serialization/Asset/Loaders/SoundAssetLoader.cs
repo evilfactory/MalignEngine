@@ -15,7 +15,7 @@ public class SoundAssetLoader : IAssetLoader
         _audioService = audioService;
     }
 
-    public Type AssetType => typeof(SoundAsset);
+    public Type GetAssetType(AssetPath assetPath) => typeof(SoundAsset);
 
     public IEnumerable<string> GetSubIds(AssetPath assetPath)
     {

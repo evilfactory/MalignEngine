@@ -2,8 +2,8 @@ namespace MalignEngine;
 
 public interface IAssetLoader
 {
-    Type AssetType { get; }
+    Type GetAssetType(AssetPath path);
     bool IsCompatible(AssetPath assetPath);
     IEnumerable<string> GetSubIds(AssetPath assetPath);
-    IAsset Load(AssetPath assetSource);
+    IAsset Load(AssetPath assetPath);
 }

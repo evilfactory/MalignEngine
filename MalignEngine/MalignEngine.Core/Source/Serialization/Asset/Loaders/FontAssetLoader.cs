@@ -9,6 +9,8 @@ public class FontAssetLoader : IAssetLoader
     { 
     }
 
+    public Type GetAssetType(AssetPath assetPath) => typeof(Font); 
+
     public IEnumerable<string> GetSubIds(AssetPath assetPath)
     {
         return Enumerable.Empty<string>();

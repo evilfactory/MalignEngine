@@ -3,13 +3,16 @@ namespace MalignEngine;
 
 public class TextureAssetLoader : IService, IAssetLoader
 {
-    public Type AssetType => typeof(Texture2D);
-
     private IRenderingAPI _renderingAPI;
 
     public TextureAssetLoader(IRenderingAPI renderingAPI)
     {
         _renderingAPI = renderingAPI;
+    }
+
+    public Type GetAssetType(AssetPath assetPath)
+    {
+        return typeof(Texture2D);
     }
 
     public bool IsCompatible(AssetPath assetPath)

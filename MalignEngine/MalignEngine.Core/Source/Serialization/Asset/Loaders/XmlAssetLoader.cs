@@ -2,18 +2,29 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
-/*
-public class XmlAssetLoaderFactory : IAssetFileLoaderFactory
+public class XmlAssetLoader : IAssetLoader
 {
-    public bool CanLoadExtension(string extension)
+    public XmlAssetLoader()
     {
-        return extension == ".xml";
     }
 
-    public IAssetFileLoader[] CreateLoaders(string file)
+    public Type GetAssetType(AssetPath assetPath)
     {
-        string fileText = File.ReadAllText(file);
-        XElement element = XElement.Parse(fileText);
+        var source = AssetSource.Get(assetPath);
+
+        StreamReader reader = new StreamReader(source.GetStream());
+        string text = reader.ReadToEnd();
+        XElement element = XElement.Parse(reader.ReadToEnd());
+        return GetTypeFrom(element);
+    }
+
+    public IAsset Load(AssetPath assetPath)
+    {
+        var source = AssetSource.Get(assetPath);
+
+        StreamReader reader = new StreamReader(source.GetStream());
+        string text = reader.ReadToEnd();
+        XElement element = XElement.Parse(reader.ReadToEnd());
 
         string rootName = element.Name.LocalName;
 
@@ -24,14 +35,60 @@ public class XmlAssetLoaderFactory : IAssetFileLoaderFactory
             rootName = rootName.Remove(rootName.Length - 1);
         }
 
+        Type type = GetTypeFrom(element);
+
+        XmlAsset? xmlAsset = null;
+        XElement? foundElement = null;
+
+        if (isPlural)
+        {
+            // Each sub element is a separate asset
+            foreach (XElement subElement in element.Elements())
+            {
+                if (subElement.Attribute("id")?.Value == assetPath.Id)
+                {
+                    xmlAsset = (XmlAsset)Activator.CreateInstance(type);
+                    foundElement = subElement;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            xmlAsset = (XmlAsset)Activator.CreateInstance(type);
+            foundElement = element;
+        }
+
+        if (xmlAsset == null)
+        {
+            throw new Exception("No xml asset found");
+        }
+
+        xmlAsset.Load(foundElement);
+
+        return xmlAsset;
+    }
+
+    public bool IsCompatible(AssetPath assetPath)
+    {
+        return assetPath.Extension == ".xml";
+    }
+
+    public IEnumerable<string> GetSubIds(AssetPath assetPath)
+    {
+        throw new NotImplementedException();
+    }
+
+    private Type GetTypeFrom(XElement element)
+    {
         // Search all types in all assemblies for a type with the same name as the root element
         Type? type = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(s => s.GetTypes())
-            .FirstOrDefault(p => p.Name == rootName);
+            .FirstOrDefault(p => p.Name == element.Name);
 
         if (type == null)
         {
-            throw new Exception($"No type found with name {rootName}");
+            throw new Exception($"No type found with name {element.Name}");
         }
 
         if (!type.IsSubclassOf(typeof(XmlAsset)))
@@ -39,46 +96,7 @@ public class XmlAssetLoaderFactory : IAssetFileLoaderFactory
             throw new Exception($"Type {type.Name} does not inherit from XmlAsset");
         }
 
-        if (isPlural)
-        {
-            // Each sub element is a separate asset
-            List<IAssetFileLoader> loaders = new List<IAssetFileLoader>();
-
-            foreach (XElement subElement in element.Elements())
-            {
-                loaders.Add(new XmlAssetLoader(new AssetPath(file), type, subElement));
-            }
-
-            return loaders.ToArray();
-        }
-        else
-        {
-            return new IAssetFileLoader[] { new XmlAssetLoader(new AssetPath(file), type, element) };
-        }
+        return type;
     }
 }
 
-public class XmlAssetLoader : AssetFileLoader
-{
-    private Type assetType;
-    public override Type AssetType => assetType;
-
-    private XElement elementToLoad;
-
-    public XmlAssetLoader(AssetPath assetPath, Type type, XElement element) : base(assetPath)
-    {
-        elementToLoad = element;
-        assetType = type;
-    }
-
-    public override IAsset Load()
-    {
-        XmlAsset asset = (XmlAsset)Activator.CreateInstance(assetType);
-
-        asset.Load(elementToLoad);
-
-        return (IAsset)asset;
-    }
-}
-
-*/
