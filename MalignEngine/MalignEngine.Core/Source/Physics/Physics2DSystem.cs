@@ -13,7 +13,7 @@ namespace MalignEngine
         private Dictionary<PhysicsSimId, Body> simBodies = new Dictionary<PhysicsSimId, Body>();
 
         [Dependency(true)]
-        protected EditorPerformanceSystem EditorPerformanceSystem = default!;
+        protected IPerformanceProfiler _performanceProfiler = default!;
 
         private World physicsWorld;
 
@@ -192,11 +192,10 @@ namespace MalignEngine
 
         public void OnPostUpdate(float deltaTime)
         {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-            physicsWorld.Step(deltaTime);
-            stopwatch.Stop();
-            EditorPerformanceSystem?.AddElapsedTicks("PhysicsSystem2D", new StopWatchPerformanceLogData(stopwatch.ElapsedTicks));
+            using (_performanceProfiler?.BeginSample("PhysicsSystem2D"))
+            {
+                physicsWorld.Step(deltaTime);
+            }
 
             var query = EntityManager.World.CreateQuery().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
             EntityManager.World.Query(in query, (EntityRef entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>

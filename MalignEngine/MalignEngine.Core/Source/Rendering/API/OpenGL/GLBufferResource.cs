@@ -58,7 +58,7 @@ public class GLBufferResource : IBufferResource
         });
     }
 
-    public void BufferData<TDataType>(byte[] data) where TDataType : unmanaged
+    public void BufferData<TDataType>(TDataType[] data) where TDataType : unmanaged
     {
         _renderAPI.Submit(ctx =>
         {
@@ -73,7 +73,7 @@ public class GLBufferResource : IBufferResource
         });
     }
 
-    public void BufferData<TDataType>(byte[] data, int offset, uint length) where TDataType : unmanaged
+    public void BufferData<TDataType>(TDataType[] data, int offset, uint length) where TDataType : unmanaged
     {
         _renderAPI.Submit(ctx =>
         {

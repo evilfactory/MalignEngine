@@ -15,6 +15,6 @@ public enum BufferUsageType
 
 public interface IBufferResource : IGpuResource
 {
-    void BufferData<TDataType>(byte[] data) where TDataType : unmanaged;
-    void BufferData<TDataType>(byte[] data, int offset, uint length) where TDataType : unmanaged;
+    void BufferData<TDataType>(TDataType[] data) where TDataType : unmanaged;
+    void BufferData<TDataType>(TDataType[] data, int offset, uint length) where TDataType : unmanaged;
 }

@@ -1,33 +1,37 @@
-namespace MalignEngine
+namespace MalignEngine;
+
+public interface IMaterial
 {
-    public class Material : IAsset
+    IShaderResource Shader { get; }
+    void SetProperty(string name, object value);
+    object? GetProperty(string name);
+    IEnumerable<KeyValuePair<string, object>> Properties { get; }
+}
+
+public class Material : IMaterial
+{
+    public IShaderResource Shader { get; private set; }
+    public IEnumerable<KeyValuePair<string, object>> Properties => _properties;
+
+    private Dictionary<string, object> _properties = new Dictionary<string, object>();
+
+    public Material(IShaderResource shader)
     {
-        /*
-        public Shader Shader { get; set; }
-        public bool UseTextureBatching { get; set; } = true;
-        public string AssetPath { get; set; }
+        Shader = shader;
+    }
 
-        private Dictionary<string, object> properties = new Dictionary<string, object>();
+    public void SetProperty(string name, object value)
+    {
+        _properties[name] = value;
+    }
 
-        public Material(Shader shader)
+    public object? GetProperty(string name)
+    {
+        if (_properties.TryGetValue(name, out var value))
         {
-            Shader = shader;
+            return value;
         }
 
-        public IEnumerable<KeyValuePair<string, object>> GetProperties()
-        {
-            return properties;
-        }
-
-        public void SetProperty(string name, object value)
-        {
-            properties[name] = value;
-        }
-
-        public void GetProperty(string name, out object value)
-        {
-            properties.TryGetValue(name, out value);
-        }
-        */
+        return null;
     }
 }

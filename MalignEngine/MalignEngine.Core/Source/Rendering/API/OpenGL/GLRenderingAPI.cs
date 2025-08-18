@@ -25,6 +25,9 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
 
     private IRenderContext _context;
 
+    [Dependency]
+    protected IPerformanceProfiler _performanceProfiler;
+
     public GLRenderingAPI(WindowService window, ILoggerService loggerService)
     {
         _running = true;
@@ -98,16 +101,19 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
         {
             _frameReady.WaitOne();
 
-            _context = new GLRenderContext(_gl);
-
-            while (_commandQueue.TryDequeue(out Delegate command))
+            using (_performanceProfiler.BeginSample("renderthread.frame"))
             {
-                ExecuteRenderCommand(command);
-            }
+                _context = new GLRenderContext(_gl);
 
-            if (_window.window.IsInitialized)
-            {
-                _window.SwapBuffers();
+                while (_commandQueue.TryDequeue(out Delegate command))
+                {
+                    ExecuteRenderCommand(command);
+                }
+
+                if (_window.window.IsInitialized)
+                {
+                    _window.SwapBuffers();
+                }
             }
 
             _frameComplete.Set();

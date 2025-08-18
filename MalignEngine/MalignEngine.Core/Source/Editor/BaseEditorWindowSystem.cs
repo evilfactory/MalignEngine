@@ -1,19 +1,19 @@
 namespace MalignEngine
 {
-    public abstract class BaseEditorWindowSystem : EntitySystem
+    public abstract class BaseEditorWindowSystem : BaseSystem
     {
         public abstract string WindowName { get; }
         public bool Active = true;
 
-        //[Dependency]
-        //protected EditorSystem EditorSystem = default!;
+        protected EditorSystem EditorSystem;
+        protected ImGuiService ImGuiService;
 
-        //[Dependency]
-        //protected ImGuiSystem ImGuiSystem = default!;
-
-        public override void OnInitialize()
+        public BaseEditorWindowSystem(EditorSystem editorSystem, ImGuiService imGuiService)
         {
-            //EditorSystem.AddWindow(this);
+            EditorSystem = editorSystem;
+            ImGuiService = imGuiService;
+
+            EditorSystem.AddWindow(this);
         }
 
         public virtual void DrawWindow(float delta) { }

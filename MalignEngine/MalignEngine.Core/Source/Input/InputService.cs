@@ -66,9 +66,11 @@ public class Keyboard : IKeyboard
 
     public void Update()
     {
-        for (int i = 0; i < _prevKeys.Length; i++)
+        foreach (int key in Enum.GetValues(typeof(Silk.NET.Input.Key)))
         {
-            _prevKeys[i] = _keyboard.IsKeyPressed((Silk.NET.Input.Key)i);
+            if (key <= 0) { continue; }
+
+            _prevKeys[key] = _keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
         }
     }
 }
@@ -78,7 +80,8 @@ public interface ISilkInputContextProvider
     IInputContext InputContext { get; }
 }
 
-public class InputService : IInputService, ISilkInputContextProvider
+[Stage<IUpdate, HighestPriorityStage>]
+public class InputService : IInputService, IUpdate, ISilkInputContextProvider
 {
     public IInputContext InputContext => _inputContext;
 
@@ -106,7 +109,7 @@ public class InputService : IInputService, ISilkInputContextProvider
         }
     }
 
-    public void Update()
+    public void OnUpdate(float delta)
     {
         foreach (var mouse in _mice)
         {

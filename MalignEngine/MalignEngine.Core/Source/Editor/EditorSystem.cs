@@ -22,7 +22,7 @@ namespace MalignEngine
 
         public override void OnUpdate(float deltaTime)
         {
-            if (InputSystem.Keyboard.IsKeyPressed(Key.F1))
+            if (InputSystem.Keyboard.WasKeyPressed(Key.F1))
             {
                 hideAllWindows = !hideAllWindows;
             }

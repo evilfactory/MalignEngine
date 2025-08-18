@@ -4,6 +4,7 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+/*
 public class EditorConsole : BaseEditorWindowSystem, ILogHandler
 {
     [Dependency]
@@ -183,3 +184,4 @@ public class EditorConsole : BaseEditorWindowSystem, ILogHandler
         NewLog(logEvent.LogType, $"{sawmill.Name}: {logEvent.Message}");
     }
 }
+*/

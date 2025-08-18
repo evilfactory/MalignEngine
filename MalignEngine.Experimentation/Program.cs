@@ -13,9 +13,12 @@ class Program
         application.Add<DrawLoopBefore>();
         application.Add<DrawLoopAfter>();
         application.Add<InputService>();
+        application.Add<Renderer2D>();
         application.Add<Experimentation>();
         application.Add<ImGuiService>();
+        application.Add<PerformanceProfiler>();
         application.Add<EditorSystem>();
+        application.Add<EditorPerformanceSystem>();
 
         application.Run();
     }

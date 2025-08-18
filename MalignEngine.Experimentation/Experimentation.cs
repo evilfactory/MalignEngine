@@ -1,10 +1,14 @@
 ﻿using System.Runtime.InteropServices;
+using System.Numerics;
 
 namespace MalignEngine.Experimentation;
 
 class Experimentation : IService, IDraw
 {
     private IRenderingAPI _renderAPI;
+    private IRenderer2D _render2D;
+    private IWindowService _windowService;
+
     private IShaderResource _shaderResource;
     private IShaderResource _shaderResource2;
     private ITextureResource _textureResource;
@@ -12,9 +16,11 @@ class Experimentation : IService, IDraw
     private IVertexArrayResource _vertexArrayResource;
     private IFrameBufferResource _frameBufferResource;
 
-    public Experimentation(IRenderingAPI renderAPI)
+    public Experimentation(IRenderingAPI renderAPI, IRenderer2D render2D, IWindowService windowService)
     {
         _renderAPI = renderAPI;
+        _render2D = render2D;
+        _windowService = windowService;
 
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
@@ -28,7 +34,7 @@ class Experimentation : IService, IDraw
             VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
         });
 
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/light.png"));
+        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/player.png"));
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Color", 0, VertexAttributeType.Float, 3, false);
@@ -47,21 +53,27 @@ class Experimentation : IService, IDraw
             -1,  1, 0f,     0f, 1f  // Top-left
         };
 
-        ReadOnlySpan<float> floatSpan = imageData;
-        ReadOnlySpan<byte> byteSpan = MemoryMarshal.AsBytes(floatSpan);
-        byte[] bytes = byteSpan.ToArray();
-
-        _bufferResource = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Static, bytes));
-
+        _bufferResource = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Static, MemoryMarshal.AsBytes(imageData.AsSpan()).ToArray()));
+        
         _frameBufferResource = _renderAPI.CreateFrameBuffer(new FrameBufferDescriptor(1, 1280, 800));
     }
 
     public void OnDraw(float deltaTime)
     {
+        var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, 0, _windowService.FrameSize.Y, 0.0001f, 100f);
+
         _renderAPI.Submit((IRenderContext ctx) =>
         {
-            ctx.SetFrameBuffer(_frameBufferResource);
+            ctx.SetFrameBuffer(null, _windowService.FrameSize.X, _windowService.FrameSize.Y);
             ctx.Clear(Color.Red);
+
+            ctx.SetBlendingMode(BlendingMode.AlphaBlend);
+            _render2D.SetMatrix(matrix);
+            _render2D.Begin(ctx);
+            _render2D.DrawTexture2D(_textureResource, new Vector2(_windowService.FrameSize.X, _windowService.FrameSize.Y) / 2f, new Vector2(200f, 200f), 0f);
+            _render2D.End();
+
+            /*
             ctx.SetShader(_shaderResource);
             ctx.SetTexture(0, _textureResource);
             ctx.DrawArrays(_bufferResource, _vertexArrayResource, 6);
@@ -71,6 +83,7 @@ class Experimentation : IService, IDraw
             ctx.SetShader(_shaderResource2);
             ctx.SetTexture(0, _frameBufferResource.GetColorAttachment(0));
             ctx.DrawArrays(_bufferResource, _vertexArrayResource, 6);
+            */
         });
 
     }
