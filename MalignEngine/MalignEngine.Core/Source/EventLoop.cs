@@ -44,17 +44,18 @@ public class EventLoop : IService, IEventLoop, IApplicationRun
             updateAccumulator += frameDelta;
             drawAccumulator += frameDelta;
 
-            while (updateAccumulator >= TargetUpdateDelta)
+            if (updateAccumulator >= TargetUpdateDelta)
             {
                 _scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate((float)TargetUpdateDelta));
                 _scheduleManager.Run<IUpdate>(e => e.OnUpdate((float)TargetUpdateDelta));
                 _scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate((float)TargetUpdateDelta));
 
-                updateAccumulator -= TargetUpdateDelta;
+                updateAccumulator = 0;
             }
 
             if (drawAccumulator >= TargetDrawDelta)
             {
+                Application.Main.ServiceContainer.GetInstance<ILogger>().LogVerbose(TargetDrawDelta + " > " + drawAccumulator);
                 _scheduleManager.Run<IDraw>(x => x.OnDraw((float)drawAccumulator));
                 drawAccumulator = 0;
             }

@@ -23,7 +23,7 @@ public class EditorPerformanceSystem : BaseEditorWindowSystem
 
         if (_lag)
         {
-            for (int i = 0; i < 10000000; i++) { }
+            for (int i = 0; i < 20000000; i++) { }
         }
     }
 

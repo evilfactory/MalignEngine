@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace MalignEngine;
 
@@ -95,8 +96,22 @@ public class PerformanceProfiler : IService, IPerformanceProfiler
         public int Depth;
     }
 
-    private readonly Stack<ActiveSample> _stack = new();
-    private readonly Dictionary<string, ProfileStats> _stats = new();
+    private readonly Dictionary<int, Stack<ActiveSample>> _stack = new();
+    private readonly ConcurrentDictionary<string, ProfileStats> _stats = new();
+
+    private Stack<ActiveSample> GetThreadStack()
+    {
+        int id = Thread.CurrentThread.ManagedThreadId;
+        Stack<ActiveSample> stack;
+        if (_stack.TryGetValue(id, out stack))
+        {
+            return stack;
+        }
+
+        stack = new Stack<ActiveSample>();
+        _stack.Add(id, stack);
+        return stack;
+    }
 
     public IDisposable BeginSample(string name)
     {
@@ -106,13 +121,13 @@ public class PerformanceProfiler : IService, IPerformanceProfiler
             Stopwatch = Stopwatch.StartNew(),
             Depth = _stack.Count
         };
-        _stack.Push(sample);
+        GetThreadStack().Push(sample);
         return new SampleScope(this);
     }
 
     public void EndSample()
     {
-        var sample = _stack.Pop();
+        var sample = GetThreadStack().Pop();
         sample.Stopwatch.Stop();
 
         double ms = sample.Stopwatch.Elapsed.TotalMilliseconds;

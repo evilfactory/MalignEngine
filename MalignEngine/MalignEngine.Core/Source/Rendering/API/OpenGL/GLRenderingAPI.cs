@@ -18,10 +18,10 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
     private bool _running;
 
     private readonly AutoResetEvent _frameReady = new(false);
-    private readonly AutoResetEvent _frameComplete = new(false);
+    private readonly AutoResetEvent _frameComplete = new(true);
 
-    private readonly Queue<Delegate> _commandQueue = new();
-    private readonly object _lock = new();
+    private Queue<Delegate> _frontQueue = new();
+    private Queue<Delegate> _backQueue = new();
 
     private IRenderContext _context;
 
@@ -99,13 +99,16 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
 
         while (_running)
         {
-            _frameReady.WaitOne();
+            using (_performanceProfiler.BeginSample("rendering.api.renderthread.waiting.frame"))
+            {
+                _frameReady.WaitOne();
+            }
 
-            using (_performanceProfiler.BeginSample("renderthread.frame"))
+            using (_performanceProfiler.BeginSample("rendering.api.renderthread.frame"))
             {
                 _context = new GLRenderContext(_gl);
 
-                while (_commandQueue.TryDequeue(out Delegate command))
+                while (_frontQueue.TryDequeue(out Delegate command))
                 {
                     ExecuteRenderCommand(command);
                 }
@@ -118,6 +121,8 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
 
             _frameComplete.Set();
         }
+
+        _logger.LogInfo("render thread ran to completion");
     }
 
     public void BeginFrame()
@@ -145,7 +150,7 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
             return;
         }
 
-        _commandQueue.Enqueue(command);
+        _backQueue.Enqueue(command);
     }
 
     public void Submit(RenderCommand command)
@@ -160,8 +165,15 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
 
     public void EndFrame()
     {
+        using (_performanceProfiler.BeginSample("rendering.api.waiting.prevframe"))
+        {
+            _frameComplete.WaitOne();
+        }
+
+        _frontQueue = _backQueue;
+        _backQueue = new Queue<Delegate>();
+
         _frameReady.Set();
-        _frameComplete.WaitOne();
     }
 
     public bool IsInRenderingThread()
@@ -199,5 +211,7 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
         _running = false;
         _frameReady.Set();
         _renderThread.Join();
+
+        _logger.LogInfo("disposing");
     }
 }

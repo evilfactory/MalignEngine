@@ -70,7 +70,16 @@ class Experimentation : IService, IDraw
             ctx.SetBlendingMode(BlendingMode.AlphaBlend);
             _render2D.SetMatrix(matrix);
             _render2D.Begin(ctx);
-            _render2D.DrawTexture2D(_textureResource, new Vector2(_windowService.FrameSize.X, _windowService.FrameSize.Y) / 2f, new Vector2(200f, 200f), 0f);
+
+            Vector2 scale = new Vector2(_windowService.FrameSize.X / 32f, _windowService.FrameSize.X / 32f);
+
+            for (int x = 0; x < 32; x++)
+            {
+                for (int y = 0; y < 32; y++)
+                {
+                    _render2D.DrawTexture2D(_textureResource, new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
+                }
+            }
             _render2D.End();
 
             /*

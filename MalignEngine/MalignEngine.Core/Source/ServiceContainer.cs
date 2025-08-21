@@ -273,7 +273,7 @@ public class ServiceContainer : IServiceContainer
 
     public void Dispose()
     {
-        foreach (ILifeTime lifeTime in lifeTimes)
+        foreach (ILifeTime lifeTime in lifeTimes.Reverse())
         {
             lifeTime.Dispose();
         }

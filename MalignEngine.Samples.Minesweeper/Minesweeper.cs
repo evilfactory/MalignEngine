@@ -178,6 +178,21 @@ internal class Minesweeper : IService, IUpdate, IDraw
         _bufferResource = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Static, bytes));
     }
 
+    private bool IsMouseInsideRectangle(Vector2 mousePosition, Vector2 position, Vector2 size, bool center = true)
+    {
+        if (center)
+        {
+            size = size / 2f;
+            return mousePosition.X >= position.X - size.X && mousePosition.X < position.X + size.X &&
+                mousePosition.Y >= position.Y - size.Y && mousePosition.Y < position.Y + size.Y;
+        }
+        else
+        {
+            return mousePosition.X >= position.X && mousePosition.X < position.X + size.X &&
+                mousePosition.Y >= position.Y && mousePosition.Y < position.Y + size.Y;
+        }
+    }
+
     private void RevealNearby(int x, int y)
     {
         if (x < 0 || y < 0) { return; }
@@ -228,7 +243,7 @@ internal class Minesweeper : IService, IUpdate, IDraw
                     matrix = matrix * Matrix4x4.CreateTranslation(x * scale.X, y * scale.Y, 0);
                     _shaderResource.Set("uModel", matrix);
 
-                    if (_inputSystem.IsMouseInsideRectangle(new Vector2(x * scale.X, y * scale.Y), scale, false) && _state == GameState.Playing)
+                    if (IsMouseInsideRectangle(_inputSystem.Mouse.Position, new Vector2(x * scale.X, y * scale.Y), scale, false) && _state == GameState.Playing)
                     {
                         _shaderResource.Set("uColor", Color.LightGray);
 
@@ -284,7 +299,7 @@ internal class Minesweeper : IService, IUpdate, IDraw
 
     public void OnUpdate(float deltaTime)
     {
-        if (_inputSystem.IsKeyHeld(Key.R))
+        if (_inputSystem.Keyboard.WasKeyPressed(Key.R))
         {
             GenerateTiles();
             _state = GameState.Playing;
@@ -295,12 +310,12 @@ internal class Minesweeper : IService, IUpdate, IDraw
         int x = _selectedTileX;
         int y = _selectedTileY;
 
-        if (_inputSystem.IsMouseButtonHeld(1))
+        if (_inputSystem.Mouse.WasButtonPressed(MouseButton.Right))
         {
             _tiles[x, y].IsFlagged = !_tiles[x, y].IsFlagged;
         }
 
-        if (_inputSystem.IsMouseButtonHeld(0) && !_tiles[x, y].IsFlagged)
+        if (_inputSystem.Mouse.WasButtonPressed(MouseButton.Left) && !_tiles[x, y].IsFlagged)
         {
             if (_firstMove)
             {
