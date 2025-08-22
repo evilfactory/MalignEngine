@@ -26,7 +26,14 @@ public enum StencilFunction
 
 public enum BlendingMode
 {
-    AlphaBlend, Additive
+    None, AlphaBlend, Additive
+}
+
+public enum CullMode
+{
+    None,
+    Back,
+    Front
 }
 
 public enum PrimitiveType
@@ -60,8 +67,8 @@ public interface IRenderContext
     void DrawArrays(IBufferResource vertexBuffer, IVertexArrayResource vertexArray, uint count, PrimitiveType primitiveType = PrimitiveType.Triangles);
 
     // Binding commands
+    void SetPipeline(IPipelineResource pipeline);
     void SetFrameBuffer(IFrameBufferResource framebuffer, int width = 0, int height = 0);
     void SetShader(IShaderResource shader);
-    void SetBlendingMode(BlendingMode mode);
     void SetTexture(int slot, ITextureResource texture);
 }

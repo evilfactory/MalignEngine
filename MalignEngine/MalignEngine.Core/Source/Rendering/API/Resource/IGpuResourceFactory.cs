@@ -7,4 +7,5 @@ public interface IGpuResourceFactory
     ITextureResource CreateTexture(ITextureDescriptor descriptor);
     IShaderResource CreateShader(IShaderResourceDescriptor descriptor);
     IFrameBufferResource CreateFrameBuffer(IFrameBufferDescriptor descriptor);
+    IPipelineResource CreatePipeline(IPipelineResourceDescriptor descriptor);
 }

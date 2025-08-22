@@ -18,22 +18,24 @@ public class EventLoop : IService, IEventLoop, IApplicationRun
 
     private bool _running = true;
     private IScheduleManager _scheduleManager;
+    private IPerformanceProfiler? _performanceProfiler;
 
-    public EventLoop(IScheduleManager scheduleManager)
+    public EventLoop(IScheduleManager scheduleManager, IPerformanceProfiler? performanceProfiler = null)
     {
         _scheduleManager = scheduleManager;
+        _performanceProfiler = performanceProfiler;
     }
 
     public void Run()
     {
         _scheduleManager.Run<IInit>(x => x.OnInitialize());
-
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 
         double previousTime = stopwatch.Elapsed.TotalSeconds;
         double updateAccumulator = 0.0;
         double drawAccumulator = 0.0;
+        const double maxFrameTime = 0.025;
 
         while (_running)
         {
@@ -41,26 +43,31 @@ public class EventLoop : IService, IEventLoop, IApplicationRun
             double frameDelta = currentTime - previousTime;
             previousTime = currentTime;
 
+            frameDelta = Math.Min(frameDelta, maxFrameTime);
+
             updateAccumulator += frameDelta;
             drawAccumulator += frameDelta;
 
-            if (updateAccumulator >= TargetUpdateDelta)
+
+            while (updateAccumulator >= TargetUpdateDelta)
             {
+                _performanceProfiler?.BeginSample("update");
                 _scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate((float)TargetUpdateDelta));
                 _scheduleManager.Run<IUpdate>(e => e.OnUpdate((float)TargetUpdateDelta));
                 _scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate((float)TargetUpdateDelta));
-
-                updateAccumulator = 0;
+                _performanceProfiler?.EndSample();
+                updateAccumulator -= TargetUpdateDelta;
             }
 
             if (drawAccumulator >= TargetDrawDelta)
             {
-                Application.Main.ServiceContainer.GetInstance<ILogger>().LogVerbose(TargetDrawDelta + " > " + drawAccumulator);
+                _performanceProfiler?.BeginSample("draw");
                 _scheduleManager.Run<IDraw>(x => x.OnDraw((float)drawAccumulator));
-                drawAccumulator = 0;
+                _performanceProfiler?.EndSample();
+                drawAccumulator = 0.0;
             }
 
-            Thread.Sleep(1);
+            Thread.SpinWait(1);
         }
     }
     public void Stop() => _running = false;

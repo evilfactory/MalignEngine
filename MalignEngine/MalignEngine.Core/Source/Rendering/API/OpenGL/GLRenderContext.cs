@@ -86,77 +86,8 @@ public class GLRenderContext : IRenderContext
         ((GLTextureResource)texture).Bind(TextureUnit.Texture0 + slot);
     }
 
-    public void SetStencil(StencilFunction function, int reference, uint mask, StencilOperation fail, StencilOperation zfail, StencilOperation zpass)
+    public void SetPipeline(IPipelineResource pipeline)
     {
-        GLEnum functiongl = GLEnum.Always;
-
-        switch (function)
-        {
-            case StencilFunction.Equal:
-                functiongl = GLEnum.Equal;
-                break;
-            case StencilFunction.NotEqual:
-                functiongl = GLEnum.Notequal;
-                break;
-            case StencilFunction.Less:
-                functiongl = GLEnum.Less;
-                break;
-            case StencilFunction.LessThanOrEqual:
-                functiongl = GLEnum.Lequal;
-                break;
-            case StencilFunction.Greater:
-                functiongl = GLEnum.Greater;
-                break;
-            case StencilFunction.GreaterThanOrEqual:
-                functiongl = GLEnum.Gequal;
-                break;
-            case StencilFunction.Always:
-                functiongl = GLEnum.Always;
-                break;
-            case StencilFunction.Never:
-                functiongl = GLEnum.Never;
-                break;
-        }
-
-        GLEnum OperationToGl(StencilOperation operation)
-        {
-            switch (operation)
-            {
-                case StencilOperation.Keep:
-                    return GLEnum.Keep;
-                case StencilOperation.Zero:
-                    return GLEnum.Zero;
-                case StencilOperation.Replace:
-                    return GLEnum.Replace;
-                case StencilOperation.Increment:
-                    return GLEnum.Incr;
-                case StencilOperation.IncrementWrap:
-                    return GLEnum.IncrWrap;
-                case StencilOperation.Decrement:
-                    return GLEnum.Decr;
-                case StencilOperation.DecrementWrap:
-                    return GLEnum.DecrWrap;
-                case StencilOperation.Invert:
-                    return GLEnum.Invert;
-                default:
-                    return GLEnum.Keep;
-            }
-        }
-
-        _gl.StencilOp(OperationToGl(fail), OperationToGl(zfail), OperationToGl(zpass));
-        _gl.StencilFunc(functiongl, reference, mask);
-    }
-
-    public void SetBlendingMode(BlendingMode mode)
-    {
-        switch (mode)
-        {
-            case BlendingMode.AlphaBlend:
-                _gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-                break;
-            case BlendingMode.Additive:
-                _gl.BlendFunc(GLEnum.One, GLEnum.One);
-                break;
-        }
+        ((GLPipelineResource)pipeline).Bind();
     }
 }

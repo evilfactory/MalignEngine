@@ -244,27 +244,27 @@ public class Renderer2D : IRenderer2D
 
     public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)
     {
-        Vector3 topRightPos = new Vector3(0.0f + size.X / 2f, 0.0f + size.Y / 2f, 0f);
-        topRightPos = Vector3.Transform(topRightPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-        topRightPos = Vector3.Transform(topRightPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+        var rotationQ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation);
+        var rotationMatrix = Matrix4x4.CreateFromQuaternion(rotationQ);
+        var translationMatrix = Matrix4x4.CreateTranslation(new Vector3(position, layerDepth));
+        var transform = rotationMatrix * translationMatrix;
 
-        Vector3 bottomRightPos = new Vector3(0.0f + size.X / 2f, 0.0f - size.Y / 2f, 0f);
-        bottomRightPos = Vector3.Transform(bottomRightPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-        bottomRightPos = Vector3.Transform(bottomRightPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+        var halfSize = size / 2f;
+        Vector3 topRight = new Vector3(halfSize.X, halfSize.Y, 0f);
+        Vector3 bottomRight = new Vector3(halfSize.X, -halfSize.Y, 0f);
+        Vector3 bottomLeft = new Vector3(-halfSize.X, -halfSize.Y, 0f);
+        Vector3 topLeft = new Vector3(-halfSize.X, halfSize.Y, 0f);
 
-        Vector3 bottomLeftPos = new Vector3(0.0f - size.X / 2f, 0.0f - size.Y / 2f, 0f);
-        bottomLeftPos = Vector3.Transform(bottomLeftPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-        bottomLeftPos = Vector3.Transform(bottomLeftPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
-
-        Vector3 topLeftPos = new Vector3(0.0f - size.X / 2f, 0.0f + size.Y / 2f, 0f);
-        topLeftPos = Vector3.Transform(topLeftPos, Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation));
-        topLeftPos = Vector3.Transform(topLeftPos, Matrix4x4.CreateTranslation(new Vector3(position, layerDepth)));
+        topRight = Vector3.Transform(topRight, transform);
+        bottomRight = Vector3.Transform(bottomRight, transform);
+        bottomLeft = Vector3.Transform(bottomLeft, transform);
+        topLeft = Vector3.Transform(topLeft, transform);
 
         DrawQuad(texture,
-            new VertexPositionColorTexture(topRightPos, color, new Vector2(uv2.X, uv2.Y)), // top right 1f, 1f
-            new VertexPositionColorTexture(bottomRightPos, color, new Vector2(uv2.X, uv1.Y)), // bottom right 1f, 0f
-            new VertexPositionColorTexture(bottomLeftPos, color, new Vector2(uv1.X, uv1.Y)), // bottom left 0f, 0f
-            new VertexPositionColorTexture(topLeftPos, color, new Vector2(uv1.X, uv2.Y)) // top left 0f, 1f
+            new VertexPositionColorTexture(topRight, color, new Vector2(uv2.X, uv2.Y)), // top right 1,1
+            new VertexPositionColorTexture(bottomRight, color, new Vector2(uv2.X, uv1.Y)), // bottom right 1,0
+            new VertexPositionColorTexture(bottomLeft, color, new Vector2(uv1.X, uv1.Y)), // bottom left 0,0
+            new VertexPositionColorTexture(topLeft, color, new Vector2(uv1.X, uv2.Y))  // top left 0,1
         );
     }
 

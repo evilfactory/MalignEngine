@@ -71,11 +71,6 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
     {
         _window.MakeContextCurrent();
 
-        _gl.Enable(GLEnum.Blend);
-        _gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-        //_gl.Enable(GLEnum.DepthTest);
-        //gl.Enable(GLEnum.CullFace);
-        //gl.CullFace(GLEnum.Back);
         //_gl.Enable(GLEnum.StencilTest);
 
         _gl.DepthFunc(GLEnum.Lequal);
@@ -204,6 +199,11 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
     public IFrameBufferResource CreateFrameBuffer(IFrameBufferDescriptor descriptor)
     {
         return new GLFrameBufferResource(_gl, this, descriptor);
+    }
+
+    public IPipelineResource CreatePipeline(IPipelineResourceDescriptor descriptor)
+    {
+        return new GLPipelineResource(_gl, descriptor);
     }
 
     public void Dispose()

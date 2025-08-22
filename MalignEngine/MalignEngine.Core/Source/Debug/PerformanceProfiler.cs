@@ -99,18 +99,23 @@ public class PerformanceProfiler : IService, IPerformanceProfiler
     private readonly Dictionary<int, Stack<ActiveSample>> _stack = new();
     private readonly ConcurrentDictionary<string, ProfileStats> _stats = new();
 
+    private object _lock = new object();
+
     private Stack<ActiveSample> GetThreadStack()
     {
-        int id = Thread.CurrentThread.ManagedThreadId;
-        Stack<ActiveSample> stack;
-        if (_stack.TryGetValue(id, out stack))
+        lock (_lock)
         {
+            int id = Thread.CurrentThread.ManagedThreadId;
+            Stack<ActiveSample> stack;
+            if (_stack.TryGetValue(id, out stack))
+            {
+                return stack;
+            }
+
+            stack = new Stack<ActiveSample>();
+            _stack.Add(id, stack);
             return stack;
         }
-
-        stack = new Stack<ActiveSample>();
-        _stack.Add(id, stack);
-        return stack;
     }
 
     public IDisposable BeginSample(string name)

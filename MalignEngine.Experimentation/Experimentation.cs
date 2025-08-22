@@ -73,9 +73,9 @@ class Experimentation : IService, IDraw
 
             Vector2 scale = new Vector2(_windowService.FrameSize.X / 32f, _windowService.FrameSize.X / 32f);
 
-            for (int x = 0; x < 32; x++)
+            for (int x = 0; x < 512; x++)
             {
-                for (int y = 0; y < 32; y++)
+                for (int y = 0; y < 512; y++)
                 {
                     _render2D.DrawTexture2D(_textureResource, new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
                 }
