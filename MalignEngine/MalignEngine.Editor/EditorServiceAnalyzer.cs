@@ -1,7 +1,7 @@
 using ImGuiNET;
 using System.Numerics;
 
-namespace MalignEngine;
+namespace MalignEngine.Editor;
 
 /*
 public class EditorServiceAnalyzer : BaseEditorWindowSystem

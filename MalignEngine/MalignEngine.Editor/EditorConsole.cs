@@ -2,7 +2,7 @@ using ImGuiNET;
 using Lidgren.Network;
 using System.Numerics;
 
-namespace MalignEngine;
+namespace MalignEngine.Editor;
 
 public class EditorConsole : BaseEditorWindowSystem, ILogHandler
 {

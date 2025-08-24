@@ -2,7 +2,7 @@ using ImGuiNET;
 using Silk.NET.Maths;
 using System.Numerics;
 
-namespace MalignEngine;
+namespace MalignEngine.Editor;
 
 /*
 public class EditorTile : BaseEditorWindowSystem

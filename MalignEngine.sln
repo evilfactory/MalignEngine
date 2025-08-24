@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MalignEngine.Samples.Minesw
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MalignEngine.Samples.Cubes", "MalignEngine.Samples.Cubes\MalignEngine.Samples.Cubes.csproj", "{537025F0-EFB6-481F-AA06-AECFBA95F711}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MalignEngine.Editor", "MalignEngine\MalignEngine.Editor\MalignEngine.Editor.csproj", "{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -162,6 +164,20 @@ Global
 		{537025F0-EFB6-481F-AA06-AECFBA95F711}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
 		{537025F0-EFB6-481F-AA06-AECFBA95F711}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
 		{537025F0-EFB6-481F-AA06-AECFBA95F711}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Debug-Events|Any CPU.ActiveCfg = Debug|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Debug-Events|Any CPU.Build.0 = Debug|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Debug-PureECS|Any CPU.ActiveCfg = Debug|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Debug-PureECS|Any CPU.Build.0 = Debug|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-Events|Any CPU.ActiveCfg = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-Events|Any CPU.Build.0 = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-Pure|Any CPU.ActiveCfg = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -173,6 +189,7 @@ Global
 		{CE87A8E8-9D28-4EA0-A521-B951B057BDF0} = {0233806C-C951-4B11-AEB1-A52AF5243C3B}
 		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
 		{6278BE85-0794-4F22-B701-D132BA9A99DB} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
+		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B174E1E-125E-48EE-8E30-F3793965839D}

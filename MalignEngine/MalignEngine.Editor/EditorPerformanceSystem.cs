@@ -2,7 +2,7 @@ using ImGuiNET;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace MalignEngine;
+namespace MalignEngine.Editor;
 
 public class EditorPerformanceSystem : BaseEditorWindowSystem
 {

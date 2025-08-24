@@ -59,24 +59,6 @@ public class ServiceSet
         }
     }
 
-    public static ServiceSet EditorServices
-    {
-        get
-        {
-            ServiceSet serviceSet = new ServiceSet(new Type[]
-            {
-                typeof(ImGuiService),
-                typeof(EditorSystem),
-                //typeof(EditorInspectorSystem),
-                typeof(EditorPerformanceSystem),
-                //typeof(EditorSceneViewSystem),
-                //typeof(EditorAssetViewer),
-                //typeof(EditorServiceAnalyzer),
-            });
-            return serviceSet;
-        }
-    }
-
     public ServiceSet(Type[] services)
     {
         Services.AddRange(services);

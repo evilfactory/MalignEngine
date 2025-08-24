@@ -6,6 +6,11 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+public interface IWindowContextProvider
+{
+    public IWindow GetWindow();
+}
+
 public interface IWindowService
 {
     string Title { get; set; }
@@ -16,7 +21,7 @@ public interface IWindowService
     void SwapBuffers();
 }
 
-public class WindowService : IWindowService, IService, IPreUpdate, IDisposable
+public class WindowService : IWindowService, IWindowContextProvider, IService, IPreUpdate, IDisposable
 {
     public string Title
     {
@@ -74,6 +79,8 @@ public class WindowService : IWindowService, IService, IPreUpdate, IDisposable
 
         _logger.LogInfo($"Window \"{Title}\" initialized {options.Size.X}x{options.Size.Y}");
     }
+
+    public IWindow GetWindow() => window;
 
     public void ClearContext()
     {

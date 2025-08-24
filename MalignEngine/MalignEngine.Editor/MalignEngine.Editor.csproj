@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.21.0" />
+		<ProjectReference Include="..\MalignEngine.Core\MalignEngine.Core.csproj" />
+	</ItemGroup>
+
+</Project>

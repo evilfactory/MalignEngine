@@ -14,7 +14,6 @@
         <PackageReference Include="QuikGraph" Version="2.5.0" />
         <PackageReference Include="Silk.NET.OpenAL" Version="2.22.0" />
         <PackageReference Include="Silk.NET.OpenAL.Soft.Native" Version="1.23.1" />
-        <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.21.0" />
         <PackageReference Include="Silk.NET.GLFW" Version="2.21.0" />
         <PackageReference Include="Silk.NET.Input" Version="2.21.0" />
         <PackageReference Include="Silk.NET.OpenGLES" Version="2.21.0" />
