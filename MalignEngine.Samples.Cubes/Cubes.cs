@@ -89,9 +89,9 @@ class Cubes : IService, IDraw
             MemoryMarshal.AsBytes(vertices.AsSpan()).ToArray()
         ));
 
-        _cubeTransforms = new Matrix4x4[10000];
+        _cubeTransforms = new Matrix4x4[50000];
         var rng = new Random();
-        for (int i = 0; i < 10000; i++)
+        for (int i = 0; i < 50000; i++)
         {
             float x = (float)(rng.NextDouble() * 100 - 50);
             float y = (float)(rng.NextDouble() * 100 - 50);
@@ -143,7 +143,7 @@ class Cubes : IService, IDraw
             {
                 _shaderResource.Set("uModel", _cubeTransforms[i]);
                 _shaderResource.Set("uViewProj", viewProj);
-                ctx.DrawArrays(_bufferResource, _vertexArrayResource, 36);
+                ctx.DrawArrays(_bufferResource, _vertexArrayResource, 36, PrimitiveType.Triangles);
             }
         });
     }

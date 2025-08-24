@@ -13,4 +13,5 @@ public interface ITextureResource : IGpuResource
     void Resize(int width, int height);
     void SubmitData(Color[] data);
     void SubmitData(System.Drawing.Rectangle bounds, Color[] data);
+    void SubmitData(System.Drawing.Rectangle bounds, byte[] data);
 }

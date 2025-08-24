@@ -1,9 +1,6 @@
 namespace MalignEngine
-{
-    /*
-    public abstract class PostProcessBaseSystem : BaseSystem
+{    public abstract class PostProcessBaseSystem : BaseSystem
     {
-        public abstract void Process(RenderTexture source);
+        public abstract void Process(IFrameBufferResource source);
     }
-    */
 }

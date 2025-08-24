@@ -6,13 +6,18 @@ using System.Reflection;
 
 namespace MalignEngine
 {
-    /*
     public class EditorInspectorSystem : BaseEditorWindowSystem
     {
-        [Dependency]
-        protected ParentSystem ParentSystem = default!;
+        private IEntityManager _entityManager;
+        private ParentSystem _parentSystem;
 
         public override string WindowName => "Inspector";
+
+        public EditorInspectorSystem(EditorSystem editorSystem, ImGuiService imGuiService, IEntityManager entityManager, ParentSystem parentSystem) : base(editorSystem, imGuiService)
+        {
+            _entityManager = entityManager;
+            _parentSystem = parentSystem;
+        }
 
         private void RecursiveEntityTree(EntityRef[] entities)
         {
@@ -95,7 +100,7 @@ namespace MalignEngine
 
                 if (ImGui.TreeNodeEx("Entities", ImGuiTreeNodeFlags.Selected))
                 {
-                    RecursiveEntityTree(ParentSystem.RootEntities.ToArray());
+                    RecursiveEntityTree(_parentSystem.RootEntities.ToArray());
                 }
 
                 ImGui.EndChild();
@@ -104,13 +109,13 @@ namespace MalignEngine
 
                 ImGui.BeginChild("scrolling2", new Vector2(0, 0), false);
 
-                if (EntityManager.World.IsValid(EditorSystem.SelectedEntity))
+                if (_entityManager.World.IsValid(EditorSystem.SelectedEntity))
                 {
                     EntityRef entity = EditorSystem.SelectedEntity;
 
                     if (ImGui.Button("Delete"))
                     {
-                        EntityManager.World.Destroy(entity);
+                        _entityManager.World.Destroy(entity);
                         ImGui.EndChild();
                         ImGui.EndTable();
                         ImGui.End();
@@ -282,5 +287,4 @@ namespace MalignEngine
             }
         }
     }
-    */
 }

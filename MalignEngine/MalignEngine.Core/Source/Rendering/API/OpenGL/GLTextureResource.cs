@@ -20,6 +20,9 @@ public class GLTextureResource : ITextureResource, IGLGpuHandle
         _descriptor = descriptor;
         _renderAPI = renderAPI;
 
+        Width = _descriptor.Width;
+        Height = _descriptor.Height;
+
         _renderAPI.Submit(ctx =>
         {
             _handle = gl.GenTexture();
@@ -79,6 +82,36 @@ public class GLTextureResource : ITextureResource, IGLGpuHandle
                     _gl.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, (uint)Width, (uint)Height, formatInfo.PixelFormat, formatInfo.PixelType, d);
                 }
             }
+        });
+    }
+
+    public void SubmitData(System.Drawing.Rectangle bounds, byte[] data)
+    {
+        _renderAPI.Submit(ctx =>
+        {
+
+            unsafe
+            {
+                GLFormatInfo formatInfo = _descriptor.Format.ToGLFormat();
+
+                Bind();
+                Span<byte> dataSpan = data.AsSpan();
+                fixed (void* ptr = dataSpan)
+                {
+                    _gl.TexSubImage2D(
+                        target: TextureTarget.Texture2D,
+                        level: 0,
+                        xoffset: bounds.Left,
+                        yoffset: bounds.Top,
+                        width: (uint)bounds.Width,
+                        height: (uint)bounds.Height,
+                        format: formatInfo.PixelFormat,
+                        type: formatInfo.PixelType,
+                        pixels: ptr
+                    );
+                }
+            }
+
         });
     }
 

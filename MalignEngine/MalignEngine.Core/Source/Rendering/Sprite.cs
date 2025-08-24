@@ -23,8 +23,9 @@ namespace MalignEngine
             return typeof(Sprite) == type;
         }
     }
+    */
 
-    public class Sprite : XmlAsset<Sprite>, IAssetWithId
+    public class Sprite : XmlAsset
     {
         public Texture2D Texture { get; private set; }
         public Vector2 Origin { get; private set; }
@@ -32,8 +33,6 @@ namespace MalignEngine
 
         public Vector2 UV1 { get; private set; }
         public Vector2 UV2 { get; private set; }
-
-        public string AssetId { get; private set; }
 
         public Sprite() { }
 
@@ -68,13 +67,11 @@ namespace MalignEngine
 
         public override void Load(XElement element)
         {
-            AssetId = element.GetAttributeString("AssetId");
-
             string texturePath = element.GetAttributeString("Texture");
 
             if (texturePath == null) { throw new Exception("No Texture attribute found"); }
 
-            Texture = Application.Main.ServiceContainer.GetInstance<AssetService>().FromFile<Texture2D>(texturePath);
+            //Texture = Application.Main.ServiceContainer.GetInstance<AssetService>().FromFile<Texture2D>(texturePath);
 
             Rect = element.GetAttributeRectangle("Rectangle", new Rectangle(0, 0, (int)Texture.Width, (int)Texture.Height));
             Origin = element.GetAttributeVector2("Origin", Origin);
@@ -87,5 +84,4 @@ namespace MalignEngine
             throw new Exception("Not implemented");
         }
     }
-    */
 }

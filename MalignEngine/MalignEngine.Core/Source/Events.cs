@@ -1,3 +1,5 @@
+using MalignEngine;
+
 namespace MalignEngine
 {    public interface IApplicationRun : ISchedule
     {
@@ -19,9 +21,17 @@ namespace MalignEngine
     {
         public void OnPostUpdate(float deltaTime);
     }
+    public interface IPreDraw : ISchedule
+    {
+        public void OnPreDraw(float deltaTime);
+    }
     public interface IDraw : ISchedule
     {
         public void OnDraw(float deltaTime);
+    }
+    public interface IPostDraw : ISchedule
+    {
+        public void OnPostDraw(float deltaTime);
     }
     public interface IDrawGUI : ISchedule
     {
@@ -35,4 +45,9 @@ namespace MalignEngine
     {
         public void OnPostDrawGUI(float deltaTime);
     }
+}
+
+public class BeforeEndFrame : Stage
+{
+    public override float Priority => 0.99f;
 }

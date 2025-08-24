@@ -1,50 +1,58 @@
-namespace MalignEngine
+namespace MalignEngine;
+
+public abstract class EventArgs { }
+
+public interface IEventChannel<T>
 {
-    public abstract class EventArgs { }
 
-    public interface IEventChannel<T> { }
+}
 
-    public class EventChannel<T> : IEventChannel<T> where T : EventArgs
+public class EventChannel<T> : IEventChannel<T> where T : EventArgs
+{
+    private List<Action<T>> eventSubscriptions = new();
+
+    public void Subscribe(Action<T> handler)
     {
-        private List<Action<T>> eventSubscriptions = new();
+        eventSubscriptions.Add(handler);
+    }
 
-        public void Subscribe(Action<T> handler)
+    public void Raise(T args)
+    {
+        foreach (var subscription in eventSubscriptions)
         {
-            eventSubscriptions.Add(handler);
-        }
-
-        public void Raise(T args)
-        {
-            foreach (var subscription in eventSubscriptions)
+            if (subscription is Action<T> handler)
             {
-                if (subscription is Action<T> handler)
-                {
-                    handler(args);
-                }
+                handler(args);
             }
         }
     }
+}
 
-    public class EventService : IService
+public interface IEventService
+{
+    void Register<T>(IEventChannel<T> eventChannel);
+    T Get<T>() where T : class;
+}
+
+public class EventService : IEventService, IService
+{
+    private List<object> eventChannels = new();
+
+    public void Register<T>(IEventChannel<T> eventChannel)
     {
-        private List<object> eventChannels = new();
+        eventChannels.Add(eventChannel);
+    }
 
-        public void Register<T>(IEventChannel<T> eventChannel)
+    public T Get<T>() where T : class
+    {
+        foreach (var channel in eventChannels)
         {
-            eventChannels.Add(eventChannel);
-        }
-
-        public T Get<T>() where T : class
-        {
-            foreach (var channel in eventChannels)
+            if (channel is T eventChannel)
             {
-                if (channel is T eventChannel)
-                {
-                    return eventChannel;
-                }
+                return eventChannel;
             }
-
-            return null;
         }
+
+        return null;
     }
 }

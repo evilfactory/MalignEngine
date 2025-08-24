@@ -123,10 +123,15 @@ public class ComponentEventChannel<T> : IEventChannel<T> where T : ComponentEven
     }
 }
 
-public sealed class EntityManager : IService, IPostUpdate
+public interface IEntityManager
 {
-    private ILogger Logger;
-    private EventService eventService;
+    WorldRef World { get; }
+}
+
+public sealed class EntityManager : IEntityManager, IService, IPostUpdate
+{
+    private ILogger _logger;
+    private IEventService _eventService;
 
     public WorldRef World
     {
@@ -135,9 +140,9 @@ public sealed class EntityManager : IService, IPostUpdate
 
     private WorldRef world = default!;
 
-    public EntityManager(ILoggerService LoggerService, EventService eventService)
+    public EntityManager(ILoggerService LoggerService, IEventService eventService)
     {
-        Logger = LoggerService.GetSawmill("ents");
+        _logger = LoggerService.GetSawmill("ents");
 
         eventService.Register(new EventChannel<EntityCreatedEvent>());
         eventService.Register(new EventChannel<EntityDestroyedEvent>());
@@ -148,9 +153,9 @@ public sealed class EntityManager : IService, IPostUpdate
         eventService.Register(new ComponentEventChannel<ComponentRemovedEvent>());
         eventService.Register(new ComponentEventChannel<ComponentDeletedEvent>());
 
-        this.eventService = eventService;
+        _eventService = eventService;
 
-        world = new WorldRef(Logger, eventService);
+        world = new WorldRef(_logger, _eventService);
     }
 
     public void OnPostUpdate(float deltaTime)

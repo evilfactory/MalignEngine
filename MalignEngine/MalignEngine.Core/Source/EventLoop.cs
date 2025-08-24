@@ -62,7 +62,9 @@ public class EventLoop : IService, IEventLoop, IApplicationRun
             if (drawAccumulator >= TargetDrawDelta)
             {
                 _performanceProfiler?.BeginSample("draw");
+                _scheduleManager.Run<IPreDraw>(x => x.OnPreDraw((float)drawAccumulator));
                 _scheduleManager.Run<IDraw>(x => x.OnDraw((float)drawAccumulator));
+                _scheduleManager.Run<IPostDraw>(x => x.OnPostDraw((float)drawAccumulator));
                 _performanceProfiler?.EndSample();
                 drawAccumulator = 0.0;
             }

@@ -19,7 +19,7 @@ public class Mouse : IMouse
         _lastPosition = mouse.Position;
     }
 
-    public Vector2 Position => _mouse.Position;
+    public Vector2 Position { get; private set; }
     public Vector2 Delta { get; private set; }
     public float ScrollDelta { get; private set; }
 
@@ -34,8 +34,9 @@ public class Mouse : IMouse
 
     public void Update()
     {
-        Delta = _mouse.Position - _lastPosition;
-
+        Position = _mouse.Position;
+        ScrollDelta = _mouse.ScrollWheels[0].Y;
+        Delta = Position - _lastPosition;
         _lastPosition = _mouse.Position;
 
         for (int i = 0; i < _prevButtons.Length; i++)

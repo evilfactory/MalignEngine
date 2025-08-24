@@ -4,7 +4,6 @@ using System.Numerics;
 
 namespace MalignEngine;
 
-/*
 public class EditorConsole : BaseEditorWindowSystem, ILogHandler
 {
     [Dependency]
@@ -31,11 +30,9 @@ public class EditorConsole : BaseEditorWindowSystem, ILogHandler
     private bool autoScroll = true;
     private string command = "";
 
-    public override void OnInitialize()
+    public EditorConsole(EditorSystem editorSystem, ImGuiService imGuiService, ILoggerService loggerService) : base(editorSystem, imGuiService)
     {
-        LoggerService.Root.AddHandler(this);
-    
-        base.OnInitialize();
+        loggerService.Root.AddHandler(this);
     }
 
     public override void DrawWindow(float delta)
@@ -184,4 +181,3 @@ public class EditorConsole : BaseEditorWindowSystem, ILogHandler
         NewLog(logEvent.LogType, $"{sawmill.Name}: {logEvent.Message}");
     }
 }
-*/

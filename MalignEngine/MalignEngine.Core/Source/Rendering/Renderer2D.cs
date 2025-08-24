@@ -227,6 +227,11 @@ public class Renderer2D : IRenderer2D
 
     public void Begin(IRenderContext renderContext, Matrix4x4 matrix, Material material = null)
     {
+        if (_drawing)
+        {
+            throw new Exception("Called Begin() while drawing");
+        }
+
         _drawing = true;
         _drawingMaterial = material ?? _basicMaterial;
         _drawingMatrix = matrix;

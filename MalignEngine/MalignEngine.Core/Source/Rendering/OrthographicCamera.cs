@@ -1,21 +1,16 @@
-using Silk.NET.OpenGLES;
 using System.Numerics;
 
-/*
-namespace MalignEngine
+namespace MalignEngine;
+
+public struct OrthographicCamera : IComponent
 {
-    // Post processing
-    public struct OrthographicCamera : IComponent
-    {
-        public float ViewSize;
-        public bool IsMain;
-        public Color ClearColor;
+    public float ViewSize;
+    public bool IsMain;
+    public Color ClearColor;
 
-        [Access(typeof(CameraSystem))]
-        public Matrix4x4 Matrix;
+    [Access(typeof(CameraSystem))]
+    public Matrix4x4 Matrix;
 
-        public RenderTexture RenderTexture;
-        public PostProcessBaseSystem[] PostProcessingSteps;
-    }
+    public IFrameBufferResource Output;
+    public PostProcessBaseSystem[] PostProcessingSteps;
 }
-*/

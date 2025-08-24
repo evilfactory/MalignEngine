@@ -77,6 +77,8 @@ public class GLFrameBufferResource : IFrameBufferResource
                 textureColorAttachments[i].Resize(width, height);
             }
 
+            depthAttachment.Resize(width, height);
+
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, _frameHandle);
 
             _gl.FramebufferTexture2D(GLEnum.Framebuffer, GLEnum.DepthStencilAttachment, GLEnum.Texture2D, depthAttachment.GetHandle(), 0);

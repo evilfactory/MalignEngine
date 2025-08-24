@@ -11,12 +11,12 @@ public interface ISchedule { }
 
 public class ScheduleMetaData
 {
-    public float Priority { get; set; }
+    public float Priority { get; set; } = 0.5f;
     public Func<bool>? RunCondition { get; set; }
 
     public ScheduleMetaData()
     {
-        Priority = 0;
+        Priority = 0.5f;
     }
 
     public ScheduleMetaData(Func<bool> runCondition)
@@ -116,7 +116,7 @@ public class ScheduleManager : IScheduleManager, IService
     }
 }
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class StageAttribute : Attribute
 {
     /// <summary>

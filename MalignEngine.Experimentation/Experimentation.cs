@@ -3,11 +3,14 @@ using System.Numerics;
 
 namespace MalignEngine.Experimentation;
 
-class Experimentation : IService, IDraw
+class Experimentation : IService, IDraw, ICameraDraw
 {
     private IRenderingAPI _renderAPI;
     private IRenderer2D _render2D;
+    private IFontRenderer _fontRenderer;
     private IWindowService _windowService;
+    private IInputService _inputService;
+    private IEntityManager _entityManager;
 
     private IShaderResource _shaderResource;
     private IShaderResource _shaderResource2;
@@ -16,11 +19,14 @@ class Experimentation : IService, IDraw
     private IVertexArrayResource _vertexArrayResource;
     private IFrameBufferResource _frameBufferResource;
 
-    public Experimentation(IRenderingAPI renderAPI, IRenderer2D render2D, IWindowService windowService)
+    private Font _font;
+
+    public Experimentation(IRenderingAPI renderAPI, IRenderer2D render2D, IWindowService windowService, IFontRenderer fontRenderer, IInputService inputService, IEntityManager entityManager)
     {
         _renderAPI = renderAPI;
         _render2D = render2D;
         _windowService = windowService;
+        _fontRenderer = fontRenderer;
 
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
@@ -54,30 +60,67 @@ class Experimentation : IService, IDraw
         };
 
         _bufferResource = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Static, MemoryMarshal.AsBytes(imageData.AsSpan()).ToArray()));
-        
+
         _frameBufferResource = _renderAPI.CreateFrameBuffer(new FrameBufferDescriptor(1, 1280, 800));
+
+        _font = new Font();
+        _font.LoadFromPath("Content/Roboto-Regular.ttf");
+        _inputService = inputService;
+        _entityManager = entityManager;
+
+        EntityRef camera = _entityManager.World.CreateEntity();
+        camera.Add(new Transform()
+        {
+            Scale = Vector3.One
+        });
+        camera.Add(new OrthographicCamera()
+        {
+            IsMain = true,
+            ViewSize = 20f,
+            ClearColor = Color.BlueViolet,
+        });
+        camera.Add(new SpriteRenderer()
+        {
+            Color = Color.Red,
+            Sprite = new Sprite(new Texture2D(_textureResource))
+        });
+    }
+
+    public void OnCameraDraw(float delta, OrthographicCamera camera)
+    {
+        return;
+
+        _renderAPI.Submit(ctx =>
+        {
+            _render2D.Begin(ctx);
+            _render2D.DrawTexture2D(_textureResource, new Vector2(-10f, -3f), new Vector2(15f, 15f), 0f);
+            _render2D.End();
+        });
     }
 
     public void OnDraw(float deltaTime)
     {
-        var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, 0, _windowService.FrameSize.Y, 0.0001f, 100f);
+        return;
+
+        var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, _windowService.FrameSize.Y, 0, 0.0001f, 100f);
 
         _renderAPI.Submit((IRenderContext ctx) =>
         {
             ctx.SetFrameBuffer(null, _windowService.FrameSize.X, _windowService.FrameSize.Y);
-            ctx.Clear(Color.Red);
+            ctx.Clear(Color.LightGray);
 
-            ctx.SetBlendingMode(BlendingMode.AlphaBlend);
             _render2D.SetMatrix(matrix);
+
+
             _render2D.Begin(ctx);
 
             Vector2 scale = new Vector2(_windowService.FrameSize.X / 32f, _windowService.FrameSize.X / 32f);
 
-            for (int x = 0; x < 512; x++)
+            for (int x = 0; x < 128; x++)
             {
-                for (int y = 0; y < 512; y++)
+                for (int y = 0; y < 128; y++)
                 {
-                    _render2D.DrawTexture2D(_textureResource, new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
+                    _render2D.DrawTexture2D(_textureResource, _inputService.Mouse.Position + new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
                 }
             }
             _render2D.End();

@@ -7,7 +7,9 @@ using System.Text;
 
 namespace MalignEngine;
 
-public class GLRenderingAPI : IRenderingAPI, IDisposable
+[Stage<IPreDraw, LowestPriorityStage>]
+[Stage<IPostDraw, HighestPriorityStage>]
+public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 {
     public GL InternalAPI => _gl;
 
@@ -213,5 +215,15 @@ public class GLRenderingAPI : IRenderingAPI, IDisposable
         _renderThread.Join();
 
         _logger.LogInfo("disposing");
+    }
+
+    public void OnPreDraw(float deltaTime)
+    {
+        BeginFrame();
+    }
+
+    public void OnPostDraw(float deltaTime)
+    {
+        EndFrame();
     }
 }
