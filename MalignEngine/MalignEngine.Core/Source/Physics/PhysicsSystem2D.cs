@@ -7,37 +7,47 @@ using nkast.Aether.Physics2D.Collision.Shapes;
 
 namespace MalignEngine;
 
-public class PhysicsSystem2D : EntitySystem, IPostUpdate
+public interface IPhysicsSystem2D : IService
 {
-    private Dictionary<PhysicsSimId, Body> simBodies = new Dictionary<PhysicsSimId, Body>();
+    Vector2 Gravity { get; }
+    void RayCast(Func<EntityRef, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end);
+    void QueryAABB(Func<EntityRef, bool> action, Vector2 min, Vector2 max);
+    void SetPosition(in EntityRef entity, Vector2 position);
+    void ApplyForce(in EntityRef entity, Vector2 force);
+    void ApplyImpulse(in EntityRef entity, Vector2 impulse);
+    void ApplyTorque(in EntityRef entity, float torque);
+    void SetLinearVelocity(in EntityRef entity, Vector2 velocity);
+    void SetAngularVelocity(in EntityRef entity, float velocity);
+}
+
+public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
+{
+    private Dictionary<PhysicsSimId, Body> _simBodies = new Dictionary<PhysicsSimId, Body>();
 
     [Dependency(true)]
     protected IPerformanceProfiler _performanceProfiler = default!;
 
-    private World physicsWorld;
+    private IEntityManager _entityManager;
+    private World _physicsWorld;
 
     public Vector2 Gravity
     {
-        get => new Vector2(physicsWorld.Gravity.X, physicsWorld.Gravity.Y);
-        set => physicsWorld.Gravity = new AVector2(value.X, value.Y);
+        get => new Vector2(_physicsWorld.Gravity.X, _physicsWorld.Gravity.Y);
+        set => _physicsWorld.Gravity = new AVector2(value.X, value.Y);
     }
 
-    public PhysicsSystem2D(EventService eventService)
+    public PhysicsSystem2D(IEventService eventService, IEntityManager entityManager)
     {
-        physicsWorld = new World(new AVector2(0, -9.81f));
+        _physicsWorld = new World(new AVector2(0, -9.81f));
 
         eventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyAdded);
         eventService.Get<ComponentEventChannel<ComponentRemovedEvent>>().Subscribe<PhysicsBody2D>(PhysicsBodyRemoved);
-    }
-
-    public override void OnUpdate(float deltaTime)
-    {
-
+        _entityManager = entityManager;
     }
 
     public void RayCast(Func<EntityRef, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)
     {
-        physicsWorld.RayCast((Fixture fixture, AVector2 point, AVector2 normal, float fraction) =>
+        _physicsWorld.RayCast((Fixture fixture, AVector2 point, AVector2 normal, float fraction) =>
         {
             return callback((EntityRef)fixture.Tag, new Vector2(point.X, point.Y), new Vector2(point.X, point.Y), fraction);
         }, new AVector2(start.X, start.Y), new AVector2(end.X, end.Y));
@@ -45,7 +55,7 @@ public class PhysicsSystem2D : EntitySystem, IPostUpdate
 
     public void QueryAABB(Func<EntityRef, bool> action, Vector2 min, Vector2 max)
     {
-        physicsWorld.QueryAABB((Fixture fixture) =>
+        _physicsWorld.QueryAABB((Fixture fixture) =>
         {
             return action((EntityRef)fixture.Tag);
         }, new nkast.Aether.Physics2D.Collision.AABB(new AVector2(min.X, min.Y), new AVector2(max.X, max.Y)));
@@ -142,12 +152,12 @@ public class PhysicsSystem2D : EntitySystem, IPostUpdate
         }
 
         // Create Body
-        Body body = physicsWorld.CreateBody(new AVector2(startPosition.X, startPosition.Y), startRotation, (BodyType)physicsBody.BodyType);
+        Body body = _physicsWorld.CreateBody(new AVector2(startPosition.X, startPosition.Y), startRotation, (BodyType)physicsBody.BodyType);
         body.Mass = physicsBody.Mass;
 
         uint id = GetFreeId();
         entity.Add(new PhysicsSimId() { Id = id });
-        simBodies.Add(new PhysicsSimId() { Id = id }, body);
+        _simBodies.Add(new PhysicsSimId() { Id = id }, body);
 
         // Create Fixtures
         UpdateFixtures(entity);
@@ -159,14 +169,14 @@ public class PhysicsSystem2D : EntitySystem, IPostUpdate
 
         PhysicsSimId id = entity.Get<PhysicsSimId>();
 
-        physicsWorld.Remove(GetBody(id));
-        simBodies.Remove(id);
+        _physicsWorld.Remove(GetBody(id));
+        _simBodies.Remove(id);
     }
 
     private uint GetFreeId()
     {
         uint id = 1;
-        while (simBodies.ContainsKey(new PhysicsSimId() { Id = id }))
+        while (_simBodies.ContainsKey(new PhysicsSimId() { Id = id }))
         {
             id++;
             if (id == uint.MaxValue)
@@ -179,7 +189,7 @@ public class PhysicsSystem2D : EntitySystem, IPostUpdate
 
     private Body GetBody(PhysicsSimId id)
     {
-        if (simBodies.TryGetValue(id, out Body body))
+        if (_simBodies.TryGetValue(id, out Body body))
         {
             return body;
         }
@@ -193,11 +203,11 @@ public class PhysicsSystem2D : EntitySystem, IPostUpdate
     {
         using (_performanceProfiler?.BeginSample("PhysicsSystem2D"))
         {
-            physicsWorld.Step(deltaTime);
+            _physicsWorld.Step(deltaTime);
         }
 
-        var query = EntityManager.World.CreateQuery().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
-        EntityManager.World.Query(in query, (EntityRef entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
+        var query = _entityManager.World.CreateQuery().WithAll<PhysicsSimId, PhysicsBody2D, Transform>();
+        _entityManager.World.Query(in query, (EntityRef entity, ref PhysicsBody2D physicsBody, ref Transform transform, ref PhysicsSimId physicsSimId) =>
         {
             Body body = GetBody(physicsSimId);
 
