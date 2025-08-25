@@ -9,17 +9,15 @@ public struct SceneComponent : IComponent
     public string SceneId;
 }
 
-/*
 public class SceneSystem : EntitySystem
 {
-    [Dependency]
-    protected ParentSystem ParentSystem = default!;
+    private ParentSystem _parentSystem;
+    private ILogger _logger;
 
-    protected ILogger Logger;
-
-    public override void OnInitialize()
+    public SceneSystem(ParentSystem parentSystem, ILogger logger)
     {
-        Logger = LoggerService.GetSawmill("scenes");
+        _parentSystem = parentSystem;
+        _logger = logger;
     }
 
     public EntityRef Instantiate(Scene scene)
@@ -56,9 +54,9 @@ public class SceneSystem : EntitySystem
             CopyEntity(otherEntities[i], otherNewEntities[i], remap);
         }
 
-        if (scene.AssetId != null)
+        if (scene.SceneId != null)
         {
-            newRoot.Add(new SceneComponent() { SceneId = scene.AssetId });
+            newRoot.Add(new SceneComponent() { SceneId = scene.SceneId });
         }
 
         return newRoot;
@@ -109,5 +107,3 @@ public class SceneSystem : EntitySystem
         }
     }
 }
-
-*/

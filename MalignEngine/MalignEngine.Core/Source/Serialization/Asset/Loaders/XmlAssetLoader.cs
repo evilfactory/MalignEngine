@@ -1,11 +1,23 @@
+using QuikGraph;
 using System.Xml.Linq;
 
 namespace MalignEngine;
 
+public interface IXmlLoader : IService
+{
+    string RootName { get; }
+    Type GetAssetType();
+    IAsset Load(XElement element);
+    void Save(XElement element, IAsset asset);
+}
+
 public class XmlAssetLoader : IAssetLoader
 {
-    public XmlAssetLoader()
+    private List<IXmlLoader> _xmlLoaders;
+
+    public XmlAssetLoader(IEnumerable<IXmlLoader> xmlLoaders)
     {
+        _xmlLoaders = xmlLoaders.ToList();
     }
 
     public Type GetAssetType(AssetPath assetPath)
@@ -14,8 +26,11 @@ public class XmlAssetLoader : IAssetLoader
 
         StreamReader reader = new StreamReader(source.GetStream());
         string text = reader.ReadToEnd();
-        XElement element = XElement.Parse(reader.ReadToEnd());
-        return GetTypeFrom(element);
+        XElement element = XElement.Parse(text);
+
+        source.Dispose();
+
+        return GetLoader(element).GetAssetType();
     }
 
     public IAsset Load(AssetPath assetPath)
@@ -24,7 +39,7 @@ public class XmlAssetLoader : IAssetLoader
 
         StreamReader reader = new StreamReader(source.GetStream());
         string text = reader.ReadToEnd();
-        XElement element = XElement.Parse(reader.ReadToEnd());
+        XElement element = XElement.Parse(text);
 
         string rootName = element.Name.LocalName;
 
@@ -35,68 +50,64 @@ public class XmlAssetLoader : IAssetLoader
             rootName = rootName.Remove(rootName.Length - 1);
         }
 
-        Type type = GetTypeFrom(element);
+        IXmlLoader? xmlLoader = GetLoader(element);
 
-        XmlAsset? xmlAsset = null;
-        XElement? foundElement = null;
+        if (xmlLoader == null)
+        {
+            throw new Exception("XML asset loader not found");
+        }
 
         if (isPlural)
         {
-            // Each sub element is a separate asset
+            XElement? targetElement = null;
             foreach (XElement subElement in element.Elements())
             {
                 if (subElement.Attribute("id")?.Value == assetPath.Id)
                 {
-                    xmlAsset = (XmlAsset)Activator.CreateInstance(type);
-                    foundElement = subElement;
+                    targetElement = subElement;
                     break;
                 }
             }
+
+            if (targetElement == null)
+            {
+                throw new Exception("Invalid id");
+            }
+
+            return xmlLoader.Load(targetElement);
         }
         else
         {
-            xmlAsset = (XmlAsset)Activator.CreateInstance(type);
-            foundElement = element;
+            return xmlLoader.Load(element);
         }
-
-        if (xmlAsset == null)
-        {
-            throw new Exception("No xml asset found");
-        }
-
-        xmlAsset.Load(foundElement);
-
-        return xmlAsset;
     }
 
     public bool IsCompatible(AssetPath assetPath)
     {
-        return assetPath.Extension == ".xml";
+        return assetPath.Extension == "xml";
     }
 
     public IEnumerable<string> GetSubIds(AssetPath assetPath)
     {
-        throw new NotImplementedException();
+        var source = AssetSource.Get(assetPath);
+
+        StreamReader reader = new StreamReader(source.GetStream());
+        string text = reader.ReadToEnd();
+        XElement element = XElement.Parse(text);
+
+        source.Dispose();
+
+        return Enumerable.Empty<string>();
     }
 
-    private Type GetTypeFrom(XElement element)
+    private IXmlLoader? GetLoader(XElement element)
     {
-        // Search all types in all assemblies for a type with the same name as the root element
-        Type? type = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .FirstOrDefault(p => p.Name == element.Name);
+        return _xmlLoaders.Where(x => x.RootName == element.Name).FirstOrDefault();
+    }
 
-        if (type == null)
-        {
-            throw new Exception($"No type found with name {element.Name}");
-        }
-
-        if (!type.IsSubclassOf(typeof(XmlAsset)))
-        {
-            throw new Exception($"Type {type.Name} does not inherit from XmlAsset");
-        }
-
-        return type;
+    public void Save(AssetPath assetPath, IAsset asset)
+    {
+        throw new NotImplementedException();
     }
 }
 

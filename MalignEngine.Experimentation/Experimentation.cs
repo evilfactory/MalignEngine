@@ -1,16 +1,19 @@
 ﻿using System.Runtime.InteropServices;
 using System.Numerics;
+using System.Xml.Linq;
 
 namespace MalignEngine.Experimentation;
 
 class Experimentation : IService, IDraw, ICameraDraw
 {
+    private ILogger _logger;
     private IRenderingAPI _renderAPI;
     private IRenderer2D _render2D;
     private IFontRenderer _fontRenderer;
     private IWindowService _windowService;
     private IInputService _inputService;
     private IEntityManager _entityManager;
+    private IAssetService _assetService;
 
     private IShaderResource _shaderResource;
     private IShaderResource _shaderResource2;
@@ -19,14 +22,34 @@ class Experimentation : IService, IDraw, ICameraDraw
     private IVertexArrayResource _vertexArrayResource;
     private IFrameBufferResource _frameBufferResource;
 
+    private SceneSystem _sceneSystem;
+    private SceneXmlLoader _sceneXmlLoader;
+
     private Font _font;
 
-    public Experimentation(IRenderingAPI renderAPI, IRenderer2D render2D, IWindowService windowService, IFontRenderer fontRenderer, IInputService inputService, IEntityManager entityManager)
+    public Experimentation(
+        ILoggerService loggerService,
+        IRenderingAPI renderAPI,
+        IAssetService assetService,
+        IRenderer2D render2D,
+        IWindowService windowService,
+        IFontRenderer fontRenderer,
+        IInputService inputService,
+        IEntityManager entityManager,
+        SceneXmlLoader sceneXmlLoader,
+        SceneSystem sceneSystem
+        )
     {
+        _logger = loggerService.GetSawmill("experimentation");
         _renderAPI = renderAPI;
         _render2D = render2D;
         _windowService = windowService;
         _fontRenderer = fontRenderer;
+        _inputService = inputService;
+        _entityManager = entityManager;
+        _assetService = assetService;
+        _sceneXmlLoader = sceneXmlLoader;
+        _sceneSystem = sceneSystem;
 
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
@@ -63,10 +86,12 @@ class Experimentation : IService, IDraw, ICameraDraw
 
         _frameBufferResource = _renderAPI.CreateFrameBuffer(new FrameBufferDescriptor(1, 1280, 800));
 
-        _font = new Font();
-        _font.LoadFromPath("Content/Roboto-Regular.ttf");
+        _font = _assetService.FromPath<Font>("file:Content/Roboto-Regular.ttf");
         _inputService = inputService;
         _entityManager = entityManager;
+
+        /*
+        AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>("file:Content/FooSprite.xml");
 
         EntityRef camera = _entityManager.World.CreateEntity();
         camera.Add(new Transform()
@@ -82,8 +107,20 @@ class Experimentation : IService, IDraw, ICameraDraw
         camera.Add(new SpriteRenderer()
         {
             Color = Color.Red,
-            Sprite = new Sprite(new Texture2D(_textureResource))
+            Sprite = sprite
         });
+
+        Scene scene = new Scene("test");
+
+        scene.CopyEntities(new EntityRef[] { camera });
+
+        XElement test = new XElement("Scene");
+        sceneXmlLoader.Save(test, scene);
+        _logger.LogInfo(test.ToString());
+        */
+
+        AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
+        _sceneSystem.Instantiate(scene);
     }
 
     public void OnCameraDraw(float delta, OrthographicCamera camera)
@@ -113,6 +150,8 @@ class Experimentation : IService, IDraw, ICameraDraw
 
 
             _render2D.Begin(ctx);
+
+            _fontRenderer.DrawFont(_font, 120, "hello wawawawawawa", _inputService.Mouse.Position, Color.Red);
 
             Vector2 scale = new Vector2(_windowService.FrameSize.X / 32f, _windowService.FrameSize.X / 32f);
 

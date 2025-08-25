@@ -10,7 +10,7 @@ public struct AssetPath
     public string Source => FullPath.Split(":")[0];
     public string AbsolutePath => FullPath.Split('#')[0].Split(":")[1];
     public string Id => FullPath.Split('#')[1];
-    public string Extension => Path.GetExtension(AbsolutePath);
+    public string Extension => Path.GetExtension(AbsolutePath).Substring(1);
 
     public AssetPath(string path)
     {

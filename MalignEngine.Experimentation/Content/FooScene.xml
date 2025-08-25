@@ -1,0 +1,7 @@
+<Scene Id="test">
+	<Entity Id="0">
+		<Transform EulerAngles="0,0,0" Position="0,0,0" Scale="1,1,1" />
+		<SpriteRenderer Sprite="file:Content/FooSprite.xml" Color="255,0,0,255" Layer="0" />
+		<OrthographicCamera ViewSize="20" IsMain="True" ClearColor="0.7,0.7,1,1" />
+	</Entity>
+</Scene>

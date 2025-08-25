@@ -17,7 +17,7 @@ public class TextureAssetLoader : IService, IAssetLoader
 
     public bool IsCompatible(AssetPath assetPath)
     {
-        return assetPath.Extension == "png";
+        return assetPath.Extension == "png" || assetPath.Extension == "jpg" || assetPath.Extension == "jpeg";
     }
 
     public IEnumerable<string> GetSubIds(AssetPath assetPath)
@@ -33,5 +33,10 @@ public class TextureAssetLoader : IService, IAssetLoader
         ITextureResource resource = _renderingAPI.CreateTexture(descriptor);
         Texture2D texture = new Texture2D(resource);
         return texture;
+    }
+
+    public void Save(AssetPath assetPath, IAsset asset)
+    {
+        throw new NotImplementedException();
     }
 }

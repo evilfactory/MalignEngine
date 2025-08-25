@@ -3,12 +3,6 @@ namespace MalignEngine;
 
 public class FontAssetLoader : IAssetLoader
 {
-    public Type AssetType => typeof(Font);
-
-    public FontAssetLoader()
-    { 
-    }
-
     public Type GetAssetType(AssetPath assetPath) => typeof(Font); 
 
     public IEnumerable<string> GetSubIds(AssetPath assetPath)
@@ -23,8 +17,18 @@ public class FontAssetLoader : IAssetLoader
 
     public IAsset Load(AssetPath assetPath)
     {
-        Font font = new Font();
-        font.LoadFromPath(assetPath);
-        return font;
+        AssetSource source = AssetSource.Get(assetPath);
+
+        using (var memoryStream = new MemoryStream())
+        {
+            source.GetStream().CopyTo(memoryStream);
+
+            return new Font(memoryStream.GetBuffer());
+        }
+    }
+
+    public void Save(AssetPath assetPath, IAsset asset)
+    {
+        throw new NotImplementedException();
     }
 }

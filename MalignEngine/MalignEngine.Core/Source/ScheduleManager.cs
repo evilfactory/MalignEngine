@@ -54,7 +54,7 @@ public class ScheduleManager : IScheduleManager, IService
 
     public void Run<T>(Action<T> action) where T : ISchedule
     {
-        var sortedSchedules = serviceContainer.GetInstances<T>().ToList();
+        var sortedSchedules = serviceContainer.GetInstance<IEnumerable<T>>().ToList();
         sortedSchedules.Sort((x, y) => 
         {
             var px = GetMetaData(typeof(T), x.GetType()).Priority;

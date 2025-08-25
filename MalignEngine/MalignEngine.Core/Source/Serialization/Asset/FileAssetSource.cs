@@ -13,6 +13,8 @@ public class FileAssetSource : AssetSource
             openFile = File.Open(AssetPath.AbsolutePath, FileMode.Open);
         }
 
+        openFile.Position = 0;
+
         return openFile;
     }
 

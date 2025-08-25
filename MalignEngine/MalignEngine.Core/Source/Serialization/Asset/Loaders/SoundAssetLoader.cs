@@ -38,4 +38,9 @@ public class SoundAssetLoader : IAssetLoader
             return new SoundAsset(_audioService.CreateResource(new SoundResourceDescriptor(memoryStream.GetBuffer())));
         }
     }
+
+    public void Save(AssetPath assetPath, IAsset asset)
+    {
+        throw new NotImplementedException();
+    }
 }

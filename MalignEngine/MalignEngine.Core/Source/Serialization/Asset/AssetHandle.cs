@@ -36,7 +36,7 @@ namespace MalignEngine
         {
             get
             {
-                if (IsLoading) { return _loader.GetType(); }
+                if (IsLoading) { return _loader.GetAssetType(AssetPath); }
 
                 return Asset.GetType();
             }
@@ -78,6 +78,23 @@ namespace MalignEngine
             }
 
             return new AssetHandle<T>(this);
+        }
+
+        /// <summary>
+        /// Upgrades the handle to a more specific type
+        /// </summary>
+        /// <typeparam name="T">Asset Type</typeparam>
+        /// <returns>Upgraded handle</returns>
+        public IAssetHandle Upgrade(Type type)
+        {
+            if (!AssetType.IsAssignableTo(type))
+            {
+                throw new InvalidCastException($"Cannot cast {AssetType} to {type}");
+            }
+
+            var genericType = typeof(AssetHandle<>).MakeGenericType(type);
+
+            return (IAssetHandle)Activator.CreateInstance(genericType, this);
         }
     }
 

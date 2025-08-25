@@ -69,13 +69,6 @@ public interface IServiceContainer : IDisposable
     /// </summary>
     /// <typeparam name="T">Interface Type</typeparam>
     /// <returns></returns>
-    public IEnumerable<T> GetInstances<T>();
-    /// <summary>
-    /// Registers an implementation type to a interface type
-    /// </summary>
-    /// <param name="interfaceType"></param>
-    /// <param name="implementationType"></param>
-    /// <param name="lifetime"></param>
     public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime);
     /// <summary>
     /// Registers all interfaces present in the implementation type
@@ -230,8 +223,16 @@ public class ServiceContainer : IServiceContainer
 
             if (serviceInterfaces.ContainsKey(elementType))
             {
-                IEnumerable instances = serviceInterfaces[elementType].Select(x => x.LifeTime.GetInstance(MakeInstanceFactory(x.Implementation)));
-                return instances;
+                List<object> instances = serviceInterfaces[elementType].Select(x => x.LifeTime.GetInstance(MakeInstanceFactory(x.Implementation))).ToList();
+
+                Array array = Array.CreateInstance(elementType, instances.Count);
+                
+                for (int i = 0; i < instances.Count; i++)
+                {
+                    array.SetValue(instances[i], i);
+                }
+
+                return array;
             }
             else
             {
@@ -254,21 +255,7 @@ public class ServiceContainer : IServiceContainer
 
     public T GetInstance<T>()
     {
-        object instance = GetInstance(typeof(T));
-
-        if (instance is IEnumerable)
-        {
-            throw new Exception("Tried to get instance but there's multiple instances");
-        }
-
-        return (T)instance;
-    }
-
-    public IEnumerable<T> GetInstances<T>()
-    {
-        IEnumerable instance = (IEnumerable)GetInstance(typeof(IEnumerable<T>));
-
-        return instance.Cast<T>();
+        return (T)GetInstance(typeof(T));
     }
 
     public void Dispose()

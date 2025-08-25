@@ -1,26 +1,20 @@
-using Arch.Core;
-using nkast.Aether.Physics2D.Dynamics;
-using System.Reflection;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
 namespace MalignEngine;
 
-/*
-
-/// <summary>
-/// A scene holds a list of entities that can be used to create copies of the scene.
-/// </summary>
-public class Scene : XmlAsset<Scene>, IAssetWithId
+public class SceneXmlLoader : IXmlLoader
 {
-    public string? AssetId { get; private set; }
-    public EntityRef Root { get; private set; }
-    public WorldRef SceneWorld { get; private set; }
+    public string RootName => "Scene";
 
-    public Scene()
+    public Type GetAssetType() => typeof(Scene);
+
+    private IAssetService _assetService;
+    private EntitySerializer _entitySerializer;
+
+    public SceneXmlLoader(IAssetService assetService, EntitySerializer entitySerializer)
     {
-        SceneWorld = new WorldRef();
-
-        Root = SceneWorld.CreateEntity();
+        _assetService = assetService;
+        _entitySerializer = entitySerializer;
     }
 
     private static XElement MergeXElements(XElement baseElement, XElement overlayElement)
@@ -63,24 +57,26 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         return result;
     }
 
-    public override void Load(XElement element)
+    public IAsset Load(XElement element)
     {
-        // Destroy all entities
-        foreach (var entity in SceneWorld.AllEntities())
+        var id = element.Attribute("Id")?.Value ?? null;
+
+        if (id == null)
         {
-            SceneWorld.Destroy(entity);
+            throw new InvalidOperationException();
         }
 
-        AssetId = element.Attribute("Id")?.Value ?? null;
+        WorldRef world = new WorldRef();
 
         if (element.Attribute("From") != null)
         {
-            Scene originalScene = Application.Main.ServiceContainer.GetInstance<AssetService>().GetFromId<Scene>(element.GetAttributeString("From"));
+            // TODO: Reimplement
+            //Scene originalScene = _assetService.FromPath<Scene>(element.Attribute("From").Value);
 
-            XElement originalElement = new XElement(originalScene.OriginalElement);
+            //XElement originalElement = new XElement(originalScene.OriginalElement);
 
-            MergeXElements(originalElement, element);
-            element = originalElement;
+            //MergeXElements(originalElement, element);
+            //element = originalElement;
         }
 
         EntityIdRemap remap = new EntityIdRemap();
@@ -90,7 +86,7 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         // Create all entities first
         foreach (var entityElement in element.Elements())
         {
-            EntityRef entity = SceneWorld.CreateEntity();
+            EntityRef entity = world.CreateEntity();
             remap.AddEntity(int.Parse(entityElement.Attribute("Id")?.Value), entity);
             entities.Add((entity, entityElement));
         }
@@ -98,53 +94,33 @@ public class Scene : XmlAsset<Scene>, IAssetWithId
         // Then deserialize them
         foreach (var (entity, entityElement) in entities)
         {
-            EntitySerializer.DeserializeEntity(entity, entityElement, remap);
+            _entitySerializer.DeserializeEntity(entity, entityElement, remap);
         }
 
         // The first entity is the root
-        Root = entities[0].Item1;
+        return new Scene(id, world, entities[0].Item1);
     }
 
-    public override void Save(XElement element)
+    public void Save(XElement element, IAsset asset)
     {
+        Scene scene = (Scene)asset;
         // Go through all entities in the scene and serialize them
 
-        element.SetAttributeValue("Id", AssetId);
+        element.SetAttributeValue("Id", scene.SceneId);
 
-        if (Root.Has<SceneComponent>())
+        if (scene.Root.Has<SceneComponent>())
         {
-            element.SetAttributeString("From", Root.Get<SceneComponent>().SceneId);
+            element.SetAttributeString("From", scene.Root.Get<SceneComponent>().SceneId);
         }
 
-        foreach (var entity in SceneWorld.AllEntities())
+        foreach (var entity in scene.SceneWorld.AllEntities())
         {
             XElement entityElement = new XElement("Entity");
             entityElement.SetAttributeValue("Id", entity.Id.ToString());
 
-            EntitySerializer.SerializeEntity(entity, entityElement);
+            _entitySerializer.SerializeEntity(entity, entityElement);
 
             element.Add(entityElement);
         }
     }
-
-    public void CopyEntities(EntityRef[] entities)
-    {
-        EntityIdRemap idRemap = new EntityIdRemap();
-
-        EntityRef[] copyEntities = new EntityRef[entities.Length];
-
-        for (int i = 0; i < entities.Length; i++)
-        {
-            copyEntities[i] = SceneWorld.CreateEntity();
-
-            idRemap.AddEntity(entities[i].Id, copyEntities[i]);
-        }
-
-        for (int i = 0; i < entities.Length; i++)
-        {
-            SceneSystem.CopyEntity(entities[i], copyEntities[i], idRemap);
-        }
-    }
 }
-
-*/

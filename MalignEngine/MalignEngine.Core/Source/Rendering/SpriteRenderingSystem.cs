@@ -59,9 +59,9 @@ public class SpriteRenderingSystem : IService, ICameraDraw
 [Serializable]
 public struct SpriteRenderer : IComponent
 {
-    [DataField("Sprite")] public Sprite Sprite;
+    [DataField("Sprite", save: true)] public AssetHandle<Sprite> Sprite;
     [DataField("Color", save: true)] public Color Color;
-    [DataField("Layer")] public float Layer;
+    [DataField("Layer", save: true)] public float Layer;
 
     public SpriteRenderer()
     {

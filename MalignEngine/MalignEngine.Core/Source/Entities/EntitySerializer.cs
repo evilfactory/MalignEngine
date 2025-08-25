@@ -33,12 +33,16 @@ public class EntityIdRemap
 
 }
 
-public class EntitySerializer
+public class EntitySerializer : IService
 {
-    private static Dictionary<string, Type> components;
+    private Dictionary<string, Type> components;
 
-    static EntitySerializer()
+    private XmlSerializer _xmlSerializer;
+
+    public EntitySerializer(XmlSerializer xmlSerializer)
     {
+        _xmlSerializer = xmlSerializer;
+
         // Search for all types that implement IComponent, very slow
         components = new Dictionary<string, Type>();
         foreach (Type type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(ass => ass.GetTypes()))
@@ -50,7 +54,7 @@ public class EntitySerializer
         }
     }
 
-    public static void SerializeEntity(EntityRef entity, XElement data, bool saveAll = false)
+    public void SerializeEntity(EntityRef entity, XElement data, bool saveAll = false)
     {
         data.SetAttributeValue("Id", entity.Id.ToString());
 
@@ -63,13 +67,13 @@ public class EntitySerializer
 
             XElement componentElement = new XElement(component.GetType().Name);
 
-            XmlSerializer.SerializeObject(component, componentElement, saveAll);
+            _xmlSerializer.SerializeObject(component, componentElement, saveAll);
 
             data.Add(componentElement);
         }
     }
 
-    public static void DeserializeEntity(EntityRef entity, XElement data, EntityIdRemap idRemap)
+    public void DeserializeEntity(EntityRef entity, XElement data, EntityIdRemap idRemap)
     {
         foreach (XElement componentElement in data.Elements())
         {
@@ -92,7 +96,7 @@ public class EntitySerializer
                 throw new Exception($"Failed to create component {componentType}");
             }
 
-            XmlSerializer.DeserializeObject(component, componentElement, idRemap);
+            _xmlSerializer.DeserializeObject(component, componentElement, idRemap);
 
             entity.Add(component);
         }
