@@ -8,7 +8,7 @@ public class TileNeighbourChangedEvent : ComponentEventArgs { }
 public interface ITileSystem : IService
 {
     EntityRef CreateTileMap(IEnumerable<TileLayer> layers);
-    EntityRef CreateTile(EntityRef tileMap, string layer, Vector2D<int> position);
+    EntityRef CreateTile(EntityRef tileMap, TileData tileData, Vector2D<int> position);
     bool RemoveTile(EntityRef tileMap, string layer, Vector2D<int> position);
     bool TryGetTile(EntityRef tileMap, string layer, Vector2D<int> position, out EntityRef tile);
     IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layer);
@@ -82,14 +82,14 @@ public class TileSystem : ITileSystem
         return false;
     }
 
-    public EntityRef CreateTile(EntityRef tileMap, string layer, Vector2D<int> position)
+    public EntityRef CreateTile(EntityRef tileMap, TileData tileData, Vector2D<int> position)
     {
         if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
             throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
+        if (!tileMapComponent.layers.TryGetValue(tileData.LayerId, out TileLayer tileLayer))
         {
             throw new ArgumentException("Tile Layer not found");
         }
@@ -100,8 +100,8 @@ public class TileSystem : ITileSystem
             entity.Destroy();
         }
 
-        entity = _entityManager.World.CreateEntity();
-        entity.Add(new TilePosition() { X = position.X, Y = position.Y, Layer = tileLayer.Order });
+        entity = _sceneSystem.Instantiate(tileData.Scene);
+        entity.Add(new TilePosition() { X = position.X, Y = position.Y });
         tileLayer.SetTile(position, entity);
 
         return entity;

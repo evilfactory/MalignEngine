@@ -3,15 +3,17 @@ using System.Numerics;
 
 namespace MalignEngine.Editor;
 
-/*
 public class EditorAssetViewer : BaseEditorWindowSystem
 {
-    [Dependency]
-    protected AssetService AssetSystem = default!;
-
-    private object selectedAsset;
+    private IAssetService _assetService;
+    private object? selectedAsset;
 
     public override string WindowName => "Asset Viewer";
+
+    public EditorAssetViewer(EditorSystem editorSystem, ImGuiService imGuiService, IAssetService assetService) : base(editorSystem, imGuiService)
+    {
+        _assetService = assetService;
+    }
 
     public override void DrawWindow(float delta)
     {
@@ -28,7 +30,7 @@ public class EditorAssetViewer : BaseEditorWindowSystem
 
                 ImGui.TextColored(new Vector4(0.8f, 0.8f, 0.1f, 1f), "Texture2D");
 
-                foreach (AssetHandle<Texture2D> handle in AssetSystem.GetOfType<Texture2D>())
+                foreach (AssetHandle<Texture2D> handle in _assetService.GetHandles<Texture2D>())
                 {
                     if (ImGui.Selectable(handle.AssetPath, selectedAsset == handle))
                     {
@@ -56,7 +58,7 @@ public class EditorAssetViewer : BaseEditorWindowSystem
                     else
                     {
                         ImGui.Text($"Size: {asset.Width}x{asset.Height}");
-                        ImGuiSystem.Image(asset, new Vector2(asset.Width, asset.Height));
+                        ImGuiService.Image(asset.Resource, new Vector2(asset.Width, asset.Height));
                     }
                 }
 
@@ -69,4 +71,3 @@ public class EditorAssetViewer : BaseEditorWindowSystem
         ImGui.End();
     }
 }
-*/

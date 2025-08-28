@@ -4,23 +4,26 @@ using System.Numerics;
 
 namespace MalignEngine.Editor;
 
-/*
-public class EditorTile : BaseEditorWindowSystem
+public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 {
     [Dependency]
-    protected AssetService AssetService = default!;
+    protected IAssetService AssetService = default!;
     [Dependency]
     protected EditorSceneViewSystem EditorSceneViewSystem = default!;
     [Dependency]
-    protected IRenderer2D IRenderingService = default!;
+    protected IRenderingAPI RenderingAPI = default!;
+    [Dependency]
+    protected IRenderer2D Renderer2D = default!;
     [Dependency]
     protected SpriteRenderingSystem SpriteRenderingSystem = default!;
     [Dependency]
     protected TileSystem TileSystem = default!;
     [Dependency]
-    protected InputSystem InputSystem = default!;
+    protected IInputService InputService = default!;
     [Dependency]
     protected SceneSystem SceneSystem = default!;
+    [Dependency]
+    protected IEntityManager EntityManager = default!;
 
     public override string WindowName => "Tile Editor";
 
@@ -28,6 +31,11 @@ public class EditorTile : BaseEditorWindowSystem
     private TileData selectedTileData;
 
     private string fileName = "Content/tilemap.xml";
+
+    public EditorTile(EditorSystem editorSystem, ImGuiService imGuiService) : base(editorSystem, imGuiService)
+    {
+
+    }
 
     private string GetTileName(EntityRef tilemap)
     {
@@ -41,7 +49,7 @@ public class EditorTile : BaseEditorWindowSystem
 
     public override void DrawWindow(float delta)
     {
-        AssetHandle<TileList>[] tilelists = AssetService.GetOfType<TileList>().ToArray();
+        AssetHandle<TileList>[] tilelists = AssetService.GetHandles<TileList>().ToArray();
 
         ImGui.Begin(WindowName, ImGuiWindowFlags.NoScrollbar);
 
@@ -95,11 +103,11 @@ public class EditorTile : BaseEditorWindowSystem
 
         foreach (TileData tile in selectedTileList.Tiles)
         {
-            if (ImGuiSystem.ImageButton(tile.SceneId, tile.Icon.Texture, new Vector2(100, 100), tile.Icon.UV1, tile.Icon.UV2))
+            if (ImGuiService.ImageButton(tile.Scene.SceneId, tile.Icon.Asset.Texture.Resource, new Vector2(100, 100), tile.Icon.UV1, tile.Icon.UV2))
             {
                 selectedTileData = tile;
             }
-            ImGui.Text(tile.SceneId);
+            ImGui.Text(tile.Scene.SceneId);
 
             ImGui.NextColumn();
         }
@@ -115,29 +123,30 @@ public class EditorTile : BaseEditorWindowSystem
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
         if (!selectedTileMap.IsValid() || selectedTileData == null) { return; }
 
-        if (InputSystem.IsMouseButtonPressed(0))
+        if (InputService.Mouse.IsButtonPressed(MouseButton.Left))
         {
             Vector2 mousePosition = EditorSceneViewSystem.WorldMousePosition;
-            int xTilePosition = (int)MathF.Round(mousePosition.X);
-            int yTilePosition = (int)MathF.Round(mousePosition.Y);
+            Vector2D<int> tilePosition = new Vector2D<int>((int)MathF.Round(mousePosition.X), (int)MathF.Round(mousePosition.Y));
 
-            if (lastPlacePosition != new Vector2D<int>(xTilePosition, yTilePosition) || lastPlacedTile != selectedTileData)
+            if (lastPlacePosition != tilePosition || lastPlacedTile != selectedTileData)
             {
-                TileSystem.SetTile(selectedTileMap, AssetService.GetFromId<Scene>(selectedTileData.SceneId), xTilePosition, yTilePosition);
-                lastPlacePosition = new Vector2D<int>(xTilePosition, yTilePosition);
+                EntityRef tile = TileSystem.CreateTile(selectedTileMap, selectedTileData.LayerId, tilePosition);
+                lastPlacePosition = tilePosition;
                 lastPlacedTile = selectedTileData;
             }
         }
     }
 
-    public override void OnDraw(float deltaTime)
+    public void OnCameraDraw(float delta, OrthographicCamera camera)
     {
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
         if (!selectedTileMap.IsValid() || selectedTileData == null) { return; }
 
-        IRenderingService.Begin();
-        SpriteRenderingSystem.DrawSprite(selectedTileData.Icon, new Vector2(MathF.Round(EditorSceneViewSystem.WorldMousePosition.X), MathF.Round(EditorSceneViewSystem.WorldMousePosition.Y)), Vector2.One, Color.White);
-        IRenderingService.End();
+        RenderingAPI.Submit(ctx =>
+        {
+            Renderer2D.Begin(ctx);
+            SpriteRenderingSystem.DrawSprite(selectedTileData.Icon, new Vector2(MathF.Round(EditorSceneViewSystem.WorldMousePosition.X), MathF.Round(EditorSceneViewSystem.WorldMousePosition.Y)), Vector2.One, Color.White);
+            Renderer2D.End();
+        });
     }
 }
-*/

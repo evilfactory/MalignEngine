@@ -36,6 +36,7 @@ class Program
         application.Add<EditorSceneViewSystem>();
         application.Add<EditorInspectorSystem>();
         application.Add<EditorPerformanceSystem>();
+        application.Add<EditorAssetViewer>();
 
         application.Run();
     }

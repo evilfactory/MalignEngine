@@ -12,6 +12,7 @@ public interface IAssetService
     AssetHandle FromPath(AssetPath assetPath);
     /// <inheritdoc cref="FromPath" />
     AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
+    IEnumerable<AssetHandle<T>> GetHandles<T>() where T : class, IAsset;
     void Save(AssetPath assetPath, IAsset asset);
 }
 
@@ -117,5 +118,16 @@ public class AssetService : IAssetService, IService
         }
 
         throw new NotImplementedException();
+    }
+
+    IEnumerable<AssetHandle<T>> IAssetService.GetHandles<T>()
+    {
+        foreach (var handle in _assetHandles.Values)
+        {
+            if (handle.AssetType == typeof(T))
+            {
+                yield return handle.Upgrade<T>();
+            }
+        }
     }
 }

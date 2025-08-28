@@ -5,12 +5,14 @@ namespace MalignEngine;
 
 public class TileData
 {
-    public string SceneId { get; private set; }
+    public Scene Scene { get; private set; }
+    public string LayerId { get; private set; }
     public AssetHandle<Sprite> Icon { get; private set; }
 
-    public TileData(string sceneId, AssetHandle<Sprite> icon)
+    public TileData(Scene scene, string layerId, AssetHandle<Sprite> icon)
     {
-        SceneId = sceneId;
+        Scene = scene;
+        LayerId = layerId;
         Icon = icon;
     }
 }

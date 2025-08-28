@@ -10,9 +10,9 @@ public class TileMapComponent : IComponent
     public bool ColliderNeedsUpdate;
 }
 
+[Serializable]
 public struct TilePosition : IComponent
 {
     public int X;
     public int Y;
-    public byte Layer;
 }
