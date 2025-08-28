@@ -11,6 +11,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\MalignEngine\MalignEngine.Core\MalignEngine.Core.csproj" />
+		<ProjectReference Include="..\MalignEngine\MalignEngine.Editor\MalignEngine.Editor.csproj" />
 	</ItemGroup>
 
 </Project>

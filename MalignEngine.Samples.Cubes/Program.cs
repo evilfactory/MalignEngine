@@ -1,4 +1,5 @@
 ﻿using MalignEngine;
+using MalignEngine.Editor;
 
 namespace MalignEngine.Samples.Cubes;
 
@@ -10,8 +11,6 @@ class Program
         application.Add<EventLoop>();
         application.Add<WindowService>();
         application.Add<GLRenderingAPI>();
-        application.Add<DrawLoopBefore>();
-        application.Add<DrawLoopAfter>();
         application.Add<InputService>();
         application.Add<Renderer2D>();
         application.Add<Cubes>();

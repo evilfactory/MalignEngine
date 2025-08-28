@@ -26,7 +26,7 @@ class Cubes : IService, IDraw
             FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl")
         });
 
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/he.png"));
+        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/wolfgang.jpg"));
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
@@ -89,9 +89,9 @@ class Cubes : IService, IDraw
             MemoryMarshal.AsBytes(vertices.AsSpan()).ToArray()
         ));
 
-        _cubeTransforms = new Matrix4x4[50000];
+        _cubeTransforms = new Matrix4x4[10000];
         var rng = new Random();
-        for (int i = 0; i < 50000; i++)
+        for (int i = 0; i < 10000; i++)
         {
             float x = (float)(rng.NextDouble() * 100 - 50);
             float y = (float)(rng.NextDouble() * 100 - 50);

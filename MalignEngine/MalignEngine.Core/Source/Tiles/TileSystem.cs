@@ -2,160 +2,132 @@ using Silk.NET.Maths;
 using System.Numerics;
 
 namespace MalignEngine;
-/*
-public class TileLayer
-{
-    public string LayerName;
-    public int Order;
-    public bool HasCollision;
-
-    internal Dictionary<Vector2D<int>, EntityRef> tiles = new Dictionary<Vector2D<int>, EntityRef>();
-
-    public TileLayer(string layerName, int order, bool hasCollision)
-    {
-        LayerName = layerName;
-        Order = order;
-        HasCollision = hasCollision;
-    }
-}
 
 public class TileNeighbourChangedEvent : ComponentEventArgs { }
 
-public class TileSystem : EntitySystem
+public interface ITileSystem : IService
 {
-    [Dependency]
-    private IRenderer2D IRenderingService = default!;
-    [Dependency]
-    private SceneSystem SceneSystem = default!;
+    EntityRef CreateTileMap(IEnumerable<TileLayer> layers);
+    EntityRef CreateTile(EntityRef tileMap, string layer, Vector2D<int> position);
+    bool RemoveTile(EntityRef tileMap, string layer, Vector2D<int> position);
+    bool TryGetTile(EntityRef tileMap, string layer, Vector2D<int> position, out EntityRef tile);
+    IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layer);
+}
 
-    public EntityRef CreateTileMap(WorldRef world, TileLayer[] layers)
+public class TileSystem : ITileSystem
+{
+    private IEventService _eventService;
+    private IEntityManager _entityManager;
+    private SceneSystem _sceneSystem;
+
+    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem)
     {
-        EntityRef entity = world.CreateEntity();
+        _entityManager = entityManager;
+        _eventService = eventService;
+        _sceneSystem = sceneSystem;
+    }
 
-        Dictionary<string, TileLayer> layerData = new Dictionary<string, TileLayer>();
-        foreach (TileLayer layer in layers) 
+    public EntityRef CreateTileMap(IEnumerable<TileLayer> layers)
+    {
+        Dictionary<string, TileLayer> dLayers = new Dictionary<string, TileLayer>();
+        foreach (var layer in layers)
         {
-            layerData.Add(layer.LayerName, layer);
+            dLayers[layer.Id] = layer;
         }
 
-        entity.Add(new TileMapComponent() { layers = layerData });
+        EntityRef entity = _entityManager.World.CreateEntity();
+        entity.Add(new TileMapComponent()
+        {
+            layers = dLayers
+        });
+
         return entity;
     }
 
-    public EntityRef SetTile(EntityRef tileMap, Scene scene, int x, int y, TileMapComponent tileMapComponent = default)
+    public IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layer)
     {
-        Resolve(tileMap, ref tileMapComponent);
-
-        EntityRef tile = SceneSystem.Instantiate(scene);
-        tile.Add(new ParentOf() { Parent = tileMap });
-        tile.Add(new Transform(new Vector2(x, y)));
-        tile.Add(new TileComponent { X = x, Y = y });
-
-        if (!tile.Has<TileLayerComponent>())
+        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
-            tile.Add(new TileLayerComponent() { Layer = tileMapComponent.layers.First().Key });
+            throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        string layerName = tile.Get<TileLayerComponent>().Layer;
-        TileLayer layer = tileMapComponent.layers[layerName];
-
-        if (tile.Has<SpriteRenderer>())
+        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
         {
-            tile.Get<SpriteRenderer>().Layer = layer.Order;
+            throw new ArgumentException("Tile Layer not found");
         }
 
-        if (HasTile(tileMap, x, y, layerName, tileMapComponent))
-        {
-            RemoveTile(tileMap, x, y, layerName, tileMapComponent);
-        }
-
-        layer.tiles.Add(new Vector2D<int>(x, y), tile);
-     
-        tileMapComponent.ColliderNeedsUpdate = true;
-
-        foreach (EntityRef neighbour in GetNeighbourTiles(tileMap, x, y, layerName, tileMapComponent))
-        {
-            EventService.Get<ComponentEventChannel<TileNeighbourChangedEvent>>().Raise(neighbour, new TileNeighbourChangedEvent());
-        }
-
-        return tile;
+        return tileLayer.Tiles.Values;
     }
 
-    public void RemoveTile(EntityRef tileMap, int x, int y, string layerName, TileMapComponent tileMapComponent = default)
+    public bool RemoveTile(EntityRef tileMap, string layer, Vector2D<int> position)
     {
-        Resolve(tileMap, ref tileMapComponent);
-
-        TileLayer layer = tileMapComponent.layers[layerName];
-
-        EntityRef entity = layer.tiles[new Vector2D<int>(x, y)];
-        layer.tiles.Remove(new Vector2D<int>(x, y));
-        EntityManager.World.Destroy(entity);
-
-        tileMapComponent.ColliderNeedsUpdate = true;
-    }
-
-    public EntityRef[] GetNeighbourTiles(EntityRef tilemMap, int x, int y, string layerName, TileMapComponent tileMapComponent = default)
-    {
-        Resolve(tilemMap, ref tileMapComponent);
-
-        List<EntityRef> neighbours = new List<EntityRef>();
-
-        if (HasTile(tilemMap, x - 1, y, layerName, tileMapComponent))
+        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
-            neighbours.Add(GetTile(tilemMap, x - 1, y, layerName, tileMapComponent));
+            throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        if (HasTile(tilemMap, x + 1, y, layerName, tileMapComponent))
+        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
         {
-            neighbours.Add(GetTile(tilemMap, x + 1, y, layerName, tileMapComponent));
+            throw new ArgumentException("Tile Layer not found");
         }
 
-        if (HasTile(tilemMap, x, y - 1, layerName, tileMapComponent))
+        if (tileLayer.TryGetTile(position, out EntityRef entity))
         {
-            neighbours.Add(GetTile(tilemMap, x, y - 1, layerName, tileMapComponent));
+            entity.Destroy();
+            tileLayer.RemoveTile(position);
+
+            return true;
         }
 
-        if (HasTile(tilemMap, x, y + 1, layerName, tileMapComponent))
+        return false;
+    }
+
+    public EntityRef CreateTile(EntityRef tileMap, string layer, Vector2D<int> position)
+    {
+        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
-            neighbours.Add(GetTile(tilemMap, x, y + 1, layerName, tileMapComponent));
+            throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        return neighbours.ToArray();
+        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
+        {
+            throw new ArgumentException("Tile Layer not found");
+        }
+
+        if (tileLayer.TryGetTile(position, out EntityRef entity))
+        {
+            tileLayer.RemoveTile(position);
+            entity.Destroy();
+        }
+
+        entity = _entityManager.World.CreateEntity();
+        entity.Add(new TilePosition() { X = position.X, Y = position.Y, Layer = tileLayer.Order });
+        tileLayer.SetTile(position, entity);
+
+        return entity;
     }
 
-    public EntityRef GetTile(EntityRef tileMap, int x, int y, string layerName, TileMapComponent tileMapComponent = default)
+    public bool TryGetTile(EntityRef tileMap, string layer, Vector2D<int> position, out EntityRef tile)
     {
-        Resolve(tileMap, ref tileMapComponent);
+        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
+        {
+            throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
+        }
 
-        TileLayer layer = tileMapComponent.layers[layerName];
+        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
+        {
+            throw new ArgumentException("Tile Layer not found");
+        }
 
-        return layer.tiles[new Vector2D<int>(x, y)];
+        return tileLayer.TryGetTile(position, out tile);
     }
 
-    public bool HasTile(EntityRef tileMap, int x, int y, string layerName, TileMapComponent tileMapComponent = default)
-    {
-        Resolve(tileMap, ref tileMapComponent);
-
-        TileLayer layer = tileMapComponent.layers[layerName];
-
-        return layer.tiles.ContainsKey(new Vector2D<int>(x, y));
-    }
-
-    public IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layerName, TileMapComponent tileMapComponent = default)
-    {
-        Resolve(tileMap, ref tileMapComponent);
-
-        TileLayer layer = tileMapComponent.layers[layerName];
-
-        return layer.tiles.Values;
-    }
-
-    public override void OnUpdate(float deltaTime)
+    public void OnUpdate(float deltaTime)
     {
         List<EntityRef> tilemapsToUpdate = new List<EntityRef>();
 
-        var query = EntityManager.World.CreateQuery().WithAll<TileMapComponent, Transform>();
-        EntityManager.World.Query(in query, (EntityRef entity, ref TileMapComponent tileMap, ref Transform transform) =>
+        var query = _entityManager.World.CreateQuery().WithAll<TileMapComponent, Transform>();
+        _entityManager.World.Query(in query, (EntityRef entity, ref TileMapComponent tileMap, ref Transform transform) =>
         {
             if (tileMap.ColliderNeedsUpdate)
             {
@@ -176,7 +148,7 @@ public class TileSystem : EntitySystem
 
             List<FixtureData2D> fixtures = new List<FixtureData2D>();
 
-            foreach ((Vector2D<int> position, EntityRef tile) in tilemap.Get<TileMapComponent>().layers.SelectMany(x => x.Value.tiles))
+            foreach ((Vector2D<int> position, EntityRef tile) in tilemap.Get<TileMapComponent>().layers.SelectMany(x => x.Value.Tiles))
             {
                 fixtures.Add(new FixtureData2D(new RectangleShape2D(1, 1, new Vector2(position.X, position.Y)), 0, 0.5f, 0));
             }
@@ -185,4 +157,3 @@ public class TileSystem : EntitySystem
         }
     }
 }
-*/
