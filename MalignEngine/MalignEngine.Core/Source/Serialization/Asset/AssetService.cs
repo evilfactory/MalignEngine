@@ -14,6 +14,7 @@ public interface IAssetService
     AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
     AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset;
     IEnumerable<AssetHandle<T>> GetHandles<T>() where T : class, IAsset;
+    void PreLoad(string directory, bool loadNow = false);
     void Save(AssetPath assetPath, IAsset asset);
 }
 
@@ -140,6 +141,31 @@ public class AssetService : IAssetService, IService
             {
                 yield return handle.Upgrade<T>();
             }
+        }
+    }
+
+    public void PreLoad(string directory, bool loadNow = false)
+    {
+        IEnumerable<IAssetLoader> loaders = _container.GetInstance<IEnumerable<IAssetLoader>>();
+
+        var files = Directory.EnumerateFiles(directory, "*", new EnumerationOptions() { RecurseSubdirectories = true });
+
+        foreach (var file in files)
+        {
+            AssetPath assetPath = new AssetPath("file:" + file.Replace("\\", "/"));
+
+            var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
+
+            if (loader == null)
+            {
+                _logger.LogVerbose($"preload: ignoring {assetPath}, no loader");
+                continue;
+            }
+
+            var handle = FromPath(assetPath);
+            if (loadNow) { handle.LoadNow(); }
+
+            _logger.LogVerbose($"preload: added {assetPath}");
         }
     }
 }

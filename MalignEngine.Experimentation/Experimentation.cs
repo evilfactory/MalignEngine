@@ -124,6 +124,8 @@ class Experimentation : IService, IDraw, ICameraDraw
         _logger.LogInfo(test.ToString());
         */
 
+        assetService.PreLoad("Content");
+
         AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
         EntityRef entity = _sceneSystem.Instantiate(scene);
         assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));

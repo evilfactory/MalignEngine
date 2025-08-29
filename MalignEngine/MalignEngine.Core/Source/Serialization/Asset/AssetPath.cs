@@ -19,4 +19,9 @@ public struct AssetPath
 
     public static implicit operator AssetPath(string path) => new AssetPath(path);
     public static implicit operator string(AssetPath path) => path.FullPath;
+
+    public override string ToString()
+    {
+        return FullPath;
+    }
 }
