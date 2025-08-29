@@ -14,7 +14,7 @@ public interface ITileSystem : IService
     IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layer);
 }
 
-public class TileSystem : ITileSystem
+public class TileSystem : ITileSystem, IUpdate
 {
     private IEventService _eventService;
     private IEntityManager _entityManager;
@@ -106,6 +106,11 @@ public class TileSystem : ITileSystem
         transform.Scale = Vector3.One;
         transform.Position = new Vector3(position.X, position.Y, tileLayer.Order);
         tileLayer.SetTile(position, entity);
+
+        if (tileLayer.HasCollision)
+        {
+            tileMapComponent.ColliderNeedsUpdate = true;
+        }
 
         return entity;
     }
