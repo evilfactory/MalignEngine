@@ -17,14 +17,16 @@ public interface ITileSystem : IService
 public class TileSystem : ITileSystem, IUpdate
 {
     private IEventService _eventService;
+    private IPhysicsSystem2D _physicsSystem;
     private IEntityManager _entityManager;
     private SceneSystem _sceneSystem;
 
-    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem)
+    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem)
     {
         _entityManager = entityManager;
         _eventService = eventService;
         _sceneSystem = sceneSystem;
+        _physicsSystem = physicsSystem;
     }
 
     public EntityRef CreateTileMap(IEnumerable<TileLayer> layers)
@@ -152,7 +154,7 @@ public class TileSystem : ITileSystem, IUpdate
                 tilemap.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
             }
 
-            PhysicsBody2D body = tilemap.Get<PhysicsBody2D>();
+            ref PhysicsBody2D body = ref tilemap.Get<PhysicsBody2D>();
 
             List<FixtureData2D> fixtures = new List<FixtureData2D>();
 
@@ -162,6 +164,8 @@ public class TileSystem : ITileSystem, IUpdate
             }
 
             body.Fixtures = fixtures.ToArray();
+
+            _physicsSystem.UpdateFixtures(tilemap);
         }
     }
 }

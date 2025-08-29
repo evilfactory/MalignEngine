@@ -18,6 +18,7 @@ public interface IPhysicsSystem2D : IService
     void ApplyTorque(in EntityRef entity, float torque);
     void SetLinearVelocity(in EntityRef entity, Vector2 velocity);
     void SetAngularVelocity(in EntityRef entity, float velocity);
+    void UpdateFixtures(in EntityRef entity);
 }
 
 public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
@@ -103,10 +104,12 @@ public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
 
         ref PhysicsBody2D physicsBody = ref entity.Get<PhysicsBody2D>();
 
-        foreach (var fixture in simBody.FixtureList)
+        foreach (var fixture in simBody.FixtureList.ToList())
         {
             simBody.Remove(fixture);
         }
+
+        if (physicsBody.Fixtures == null) { return; }
 
         foreach (var fixtureData in physicsBody.Fixtures)
         {
