@@ -1,13 +1,15 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿	<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MalignEngine.Core\MalignEngine.Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\MalignEngine.Core\MalignEngine.Core.csproj" />
+		<PackageReference Include="SpaceWizards.Lidgren.Network" Version="0.3.1" />
+		<ProjectReference Include="..\Libraries\netserializer\NetSerializer\NetSerializer.csproj" />
+	</ItemGroup>
 
-</Project>
+	</Project>

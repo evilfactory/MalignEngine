@@ -71,7 +71,7 @@ class Experimentation : IService, IDraw, ICameraDraw
         _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/player.png"));
 
         var desc = new VertexArrayDescriptor();
-        desc.AddAttribute("Color", 0, VertexAttributeType.Float, 3, false);
+        desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
         desc.AddAttribute("UV", 1, VertexAttributeType.Float, 2, false);
         _vertexArrayResource = _renderAPI.CreateVertexArray(desc);
 
