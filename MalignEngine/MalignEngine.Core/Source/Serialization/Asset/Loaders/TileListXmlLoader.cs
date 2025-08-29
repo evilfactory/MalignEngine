@@ -8,13 +8,15 @@ public class TileListXmlLoader : IXmlLoader
     public string RootName => "TileList";
 
     private IAssetService _assetService;
+    private ILogger _logger;
 
-    public TileListXmlLoader(IAssetService assetService)
+    public TileListXmlLoader(IAssetService assetService, ILoggerService loggerService)
     {
+        _logger = loggerService.GetSawmill("loader.tilelist");
         _assetService = assetService;
     }
 
-    public Type GetAssetType() => typeof(Sprite);
+    public Type GetAssetType() => typeof(TileList);
 
     public IAsset Load(XElement element)
     {
@@ -22,14 +24,20 @@ public class TileListXmlLoader : IXmlLoader
 
         foreach (XElement child in element.Elements())
         {
-            string? sceneId = child.Attribute("Scene")?.Value;
+            string? scenePath = child.Attribute("Scene")?.Value;
             string? iconPath = child.Attribute("Icon")?.Value;
+            string? layerId = child.Attribute("Layer")?.Value;
 
-            if (sceneId == null || iconPath == null) { continue; }
+            if (scenePath == null || iconPath == null || layerId == null)
+            {
+                _logger.LogWarning($"missing attribute {scenePath} {iconPath} {layerId}");
+                continue;
+            }
 
             AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>(iconPath);
+            AssetHandle<Scene> scene = _assetService.FromPath<Scene>(scenePath);
 
-            tiles.Add(new TileData(sceneId, sprite));
+            tiles.Add(new TileData(scene, layerId, sprite));
         }
 
         TileList tileList = new TileList(tiles);

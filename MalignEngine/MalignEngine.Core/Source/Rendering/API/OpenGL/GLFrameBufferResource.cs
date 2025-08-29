@@ -28,27 +28,27 @@ public class GLFrameBufferResource : IFrameBufferResource
 
         textureColorAttachments = new GLTextureResource[ColorAttachmentCount];
 
-        _renderAPI.Submit(() =>
+        for (int i = 0; i < ColorAttachmentCount; i++)
         {
-            _frameHandle = gl.GenFramebuffer();
-
-            for (int i = 0; i < ColorAttachmentCount; i++)
-            {
-                textureColorAttachments[i] = new GLTextureResource(gl, renderAPI, new TextureDescriptor()
-                {
-                    GenerateMipmaps = false,
-                    Width = descriptor.Width,
-                    Height = descriptor.Height,
-                });
-            }
-
-            depthAttachment = new GLTextureResource(gl, renderAPI, new TextureDescriptor()
+            textureColorAttachments[i] = (GLTextureResource)renderAPI.CreateTexture(new TextureDescriptor()
             {
                 GenerateMipmaps = false,
                 Width = descriptor.Width,
                 Height = descriptor.Height,
-                Format = TextureFormat.Depth24Stencil8
             });
+        }
+
+        depthAttachment = (GLTextureResource)renderAPI.CreateTexture(new TextureDescriptor()
+        {
+            GenerateMipmaps = false,
+            Width = descriptor.Width,
+            Height = descriptor.Height,
+            Format = TextureFormat.Depth24Stencil8
+        });
+
+        _renderAPI.Submit(() =>
+        {
+            _frameHandle = gl.GenFramebuffer();
         });
 
         Resize(descriptor.Width, descriptor.Height);

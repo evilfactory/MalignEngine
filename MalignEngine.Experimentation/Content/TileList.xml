@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TileList>
+	<TileData Icon="file:Content/FooSprite.xml" Scene="file:Content/FooScene.xml" Layer="Wall" />
+</TileList>

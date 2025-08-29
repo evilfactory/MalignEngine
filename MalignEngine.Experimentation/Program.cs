@@ -31,12 +31,15 @@ class Program
         application.Add<PerformanceProfiler>();
         application.Add<XmlAssetLoader>();
         application.Add<SpriteXmlAssetLoader>();
+        application.Add<TileListXmlLoader>();
         application.Add<EditorSystem>();
         application.Add<EditorConsole>();
         application.Add<EditorSceneViewSystem>();
         application.Add<EditorInspectorSystem>();
         application.Add<EditorPerformanceSystem>();
         application.Add<EditorAssetViewer>();
+        application.Add<EditorTile>();
+        application.Add<TileSystem>();
 
         application.Run();
     }

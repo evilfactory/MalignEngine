@@ -102,6 +102,9 @@ public class TileSystem : ITileSystem
 
         entity = _sceneSystem.Instantiate(tileData.Scene);
         entity.Add(new TilePosition() { X = position.X, Y = position.Y });
+        ref Transform transform = ref entity.AddOrGet<Transform>();
+        transform.Scale = Vector3.One;
+        transform.Position = new Vector3(position.X, position.Y, tileLayer.Order);
         tileLayer.SetTile(position, entity);
 
         return entity;

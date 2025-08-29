@@ -12,6 +12,7 @@ public interface IAssetService
     AssetHandle FromPath(AssetPath assetPath);
     /// <inheritdoc cref="FromPath" />
     AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
+    AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset;
     IEnumerable<AssetHandle<T>> GetHandles<T>() where T : class, IAsset;
     void Save(AssetPath assetPath, IAsset asset);
 }
@@ -104,6 +105,17 @@ public class AssetService : IAssetService, IService
     public AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset
     {
         return FromPath(assetPath).Upgrade<T>();
+    }
+
+    public AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset
+    {
+        AssetPath assetPath = new AssetPath("none:" + Guid.NewGuid().ToString("N"));
+
+        var handle = new AssetHandle(assetPath, asset);
+
+        _assetHandles[assetPath] = handle;
+
+        return handle.Upgrade<T>();
     }
 
     public void Save(AssetPath assetPath, IAsset asset)
