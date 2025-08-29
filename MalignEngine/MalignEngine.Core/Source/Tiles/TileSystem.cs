@@ -134,8 +134,8 @@ public class TileSystem : ITileSystem, IUpdate
     {
         List<EntityRef> tilemapsToUpdate = new List<EntityRef>();
 
-        var query = _entityManager.World.CreateQuery().WithAll<TileMapComponent, Transform>();
-        _entityManager.World.Query(in query, (EntityRef entity, ref TileMapComponent tileMap, ref Transform transform) =>
+        var query = _entityManager.World.CreateQuery().WithAll<TileMapComponent>();
+        _entityManager.World.Query(in query, (EntityRef entity, ref TileMapComponent tileMap) =>
         {
             if (tileMap.ColliderNeedsUpdate)
             {
