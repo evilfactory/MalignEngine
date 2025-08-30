@@ -70,13 +70,12 @@ public class SceneXmlLoader : IXmlLoader
 
         if (element.Attribute("From") != null)
         {
-            // TODO: Reimplement
-            //Scene originalScene = _assetService.FromPath<Scene>(element.Attribute("From").Value);
+            AssetHandle<Scene>? originalScene = _assetService.GetHandles<Scene>().FirstOrDefault(x => x.Asset.SceneId == element.Attribute("From").Value);
 
-            //XElement originalElement = new XElement(originalScene.OriginalElement);
+            XElement originalElement = new XElement(originalScene.Asset.OriginalElement);
 
-            //MergeXElements(originalElement, element);
-            //element = originalElement;
+            MergeXElements(originalElement, element);
+            element = originalElement;
         }
 
         EntityIdRemap remap = new EntityIdRemap();
@@ -98,7 +97,7 @@ public class SceneXmlLoader : IXmlLoader
         }
 
         // The first entity is the root
-        return new Scene(id, world, entities[0].Item1);
+        return new Scene(id, world, entities[0].Item1) { OriginalElement = element };
     }
 
     public void Save(XElement element, IAsset asset)

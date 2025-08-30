@@ -77,17 +77,17 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
         if (ImGui.Button("Save"))
         {
-            //Scene scene = SceneSystem.SaveScene(selectedTileMap);
-            //scene.Save(fileName);
+            Scene scene = SceneSystem.SaveScene(selectedTileMap);
+            scene.Save(fileName);
         }
 
         ImGui.SameLine();
 
         if (ImGui.Button("Load"))
         {
-            //Scene scene = Scene.Load(fileName);
-            //EntityRef tilemap = SceneSystem.LoadScene(scene);
-            //selectedTileMap = tilemap;
+            Scene scene = AssetService.FromPath<Scene>(_fileName);
+            EntityRef tilemap = SceneSystem.Instantiate(scene);
+            _selectedTileMap = tilemap;
         }
 
         ImGui.SameLine();

@@ -25,10 +25,10 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
     private Queue<Delegate> _frontQueue = new();
     private Queue<Delegate> _backQueue = new();
 
-    private IRenderContext _context;
+    private IRenderContext? _context;
 
     [Dependency]
-    protected IPerformanceProfiler _performanceProfiler;
+    protected IPerformanceProfiler? _performanceProfiler;
 
     public GLRenderingAPI(WindowService window, ILoggerService loggerService)
     {

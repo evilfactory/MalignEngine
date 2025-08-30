@@ -14,6 +14,8 @@ public class Scene : IAsset
     public EntityRef Root { get; private set; }
     public WorldRef SceneWorld { get; private set; }
 
+    public XElement? OriginalElement { get; set; } // Remove in the future
+
     public Scene(string sceneId)
     {
         SceneId = sceneId;

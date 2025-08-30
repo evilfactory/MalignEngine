@@ -34,10 +34,17 @@ public class TileListXmlLoader : IXmlLoader
                 continue;
             }
 
-            AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>(iconPath);
-            AssetHandle<Scene> scene = _assetService.FromPath<Scene>(scenePath);
+            AssetHandle<Scene>? originalScene = _assetService.GetHandles<Scene>().FirstOrDefault(x => x.Asset.SceneId == scenePath);
 
-            tiles.Add(new TileData(scene, layerId, sprite));
+            if (originalScene == null)
+            {
+                _logger.LogWarning($"scene not found {scenePath}");
+                continue;
+            }
+
+            AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>(iconPath);
+
+            tiles.Add(new TileData(originalScene, layerId, sprite));
         }
 
         TileList tileList = new TileList(tiles);
