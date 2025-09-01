@@ -13,6 +13,8 @@ public class TileMapComponent : IComponent
 [Serializable]
 public struct TilePosition : IComponent
 {
+    [DataField("X", save: true)]
     public int X;
+    [DataField("Y", save: true)]
     public int Y;
 }

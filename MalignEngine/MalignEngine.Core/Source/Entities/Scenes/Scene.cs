@@ -24,6 +24,15 @@ public class Scene : IAsset
         Root = SceneWorld.CreateEntity();
     }
 
+    public Scene(string sceneId, EntityRef[] entities)
+    {
+        SceneId = sceneId;
+        SceneWorld = new WorldRef();
+
+        EntityRef[] copied = CopyEntities(entities);
+        Root = copied[0];
+    }
+
     public Scene (string sceneId, WorldRef world, EntityRef root)
     {
         SceneId = sceneId;
@@ -31,7 +40,7 @@ public class Scene : IAsset
         Root = root;
     }
 
-    public void CopyEntities(EntityRef[] entities)
+    public EntityRef[] CopyEntities(EntityRef[] entities)
     {
         EntityIdRemap idRemap = new EntityIdRemap();
 
@@ -48,5 +57,7 @@ public class Scene : IAsset
         {
             SceneSystem.CopyEntity(entities[i], copyEntities[i], idRemap);
         }
+
+        return copyEntities;
     }
 }

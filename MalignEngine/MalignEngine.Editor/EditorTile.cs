@@ -1,6 +1,7 @@
 using ImGuiNET;
 using Silk.NET.Maths;
 using System.Numerics;
+using System.Xml.Linq;
 
 namespace MalignEngine.Editor;
 
@@ -24,6 +25,10 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
     protected SceneSystem SceneSystem = default!;
     [Dependency]
     protected IEntityManager EntityManager = default!;
+    [Dependency]
+    protected SceneXmlLoader SceneXmlLoader = default!;
+    [Dependency]
+    protected ParentSystem ParentSystem = default!;
 
     public override string WindowName => "Tile Editor";
 
@@ -77,8 +82,24 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
         if (ImGui.Button("Save"))
         {
-            Scene scene = SceneSystem.SaveScene(selectedTileMap);
-            scene.Save(fileName);
+            XElement element = new XElement("Scene");
+
+            var children = _selectedTileMap.Get<Children>();
+
+            EntityRef[] entitiesToCopy = new EntityRef[children.Childs.Count + 1];
+
+            entitiesToCopy[0] = _selectedTileMap;
+
+            int index = 1;
+            foreach (EntityRef entity in children.Childs)
+            {
+                entitiesToCopy[index] = entity;
+                index++;
+            }
+
+            var scene = new Scene("savedmap", entitiesToCopy);
+            SceneXmlLoader.Save(element, scene);
+            element.Save(_fileName);
         }
 
         ImGui.SameLine();

@@ -2,15 +2,22 @@
 
 public class FileAssetSource : AssetSource
 {
-    public FileAssetSource(AssetPath assetPath) : base(assetPath) { }
+    private static Dictionary<AssetPath, FileStream> openFileMap = new Dictionary<AssetPath, FileStream>();
 
-    private FileStream? openFile;
+    public FileAssetSource(AssetPath assetPath) : base(assetPath) { }
 
     public override Stream GetStream()
     {
-        if (openFile == null)
+        FileStream openFile = null;
+
+        if (!openFileMap.ContainsKey(AssetPath))
         {
             openFile = File.Open(AssetPath.AbsolutePath, FileMode.Open);
+            openFileMap.Add(AssetPath, openFile);
+        }
+        else
+        {
+            openFile = openFileMap[AssetPath];
         }
 
         openFile.Position = 0;
@@ -20,6 +27,10 @@ public class FileAssetSource : AssetSource
 
     public override void Dispose()
     {
-        openFile?.Dispose();
+        if (openFileMap.TryGetValue(AssetPath, out FileStream? stream))
+        {
+            stream.Dispose();
+            openFileMap.Remove(AssetPath);
+        }
     }
 }

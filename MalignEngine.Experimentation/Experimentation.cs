@@ -54,8 +54,6 @@ class Experimentation : IService, IDraw, ICameraDraw
 
         tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
-        var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
-
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
             FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl"),
@@ -125,6 +123,8 @@ class Experimentation : IService, IDraw, ICameraDraw
         */
 
         assetService.PreLoad("Content");
+
+        //var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
 
         AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
         EntityRef entity = _sceneSystem.Instantiate(scene);

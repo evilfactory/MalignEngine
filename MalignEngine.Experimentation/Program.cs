@@ -22,6 +22,7 @@ class Program
         application.Add<EntitySerializer>();
         application.Add<SceneSystem>();
         application.Add<SceneXmlLoader>();
+        application.Add<PhysicsSystem2D>();
         application.Add<Experimentation>();
         application.Add<ImGuiService>();
         application.Add<FontRenderer>();

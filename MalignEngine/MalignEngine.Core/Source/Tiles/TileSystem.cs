@@ -19,14 +19,16 @@ public class TileSystem : ITileSystem, IUpdate
     private IEventService _eventService;
     private IPhysicsSystem2D _physicsSystem;
     private IEntityManager _entityManager;
+    private ParentSystem _parentSystem;
     private SceneSystem _sceneSystem;
 
-    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem)
+    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem, ParentSystem parentSystem)
     {
         _entityManager = entityManager;
         _eventService = eventService;
         _sceneSystem = sceneSystem;
         _physicsSystem = physicsSystem;
+        _parentSystem = parentSystem;
     }
 
     public EntityRef CreateTileMap(IEnumerable<TileLayer> layers)
@@ -104,6 +106,7 @@ public class TileSystem : ITileSystem, IUpdate
 
         entity = _sceneSystem.Instantiate(tileData.Scene);
         entity.Add(new TilePosition() { X = position.X, Y = position.Y });
+        entity.Add(new ParentOf() { Parent = tileMap });
         ref Transform transform = ref entity.AddOrGet<Transform>();
         transform.Scale = Vector3.One;
         transform.Position = new Vector3(position.X, position.Y, tileLayer.Order);
