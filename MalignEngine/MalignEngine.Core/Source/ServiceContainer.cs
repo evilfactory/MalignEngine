@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -55,55 +56,45 @@ public interface IServiceContainer : IDisposable
     /// <summary>
     /// Gets a specific instance by supplying the interface type
     /// </summary>
-    /// <param name="type">An instance</param>
-    /// <returns></returns>
     public object GetInstance(Type type);
     /// <summary>
-    /// Generic version of GetInstance(Type type)
+    /// Generic version of <see cref="GetInstance(Type)"/>
     /// </summary>
-    /// <typeparam name="T">Interface Type</typeparam>
-    /// <returns></returns>
     public T GetInstance<T>();
+    /// <summary>
+    /// <see cref="GetInstance"/> that is allowed to fail.
+    /// </summary>
+    public bool TryGetInstance(Type type, [NotNullWhen(returnValue: true)] out object? instance);
+    /// <summary>
+    /// Generic version of <see cref="TryGetInstance(Type, out object?)"/>
+    /// </summary>
+    public bool TryGetInstance<T>([NotNullWhen(returnValue: true)] out object? instance);
     /// <summary>
     /// If there's more than one implementation type for an interface type, this will return all of them
     /// </summary>
-    /// <typeparam name="T">Interface Type</typeparam>
-    /// <returns></returns>
     public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime);
     /// <summary>
     /// Registers all interfaces present in the implementation type
     /// </summary>
-    /// <param name="implementationType"></param>
-    /// <param name="lifetime"></param>
     public void RegisterAll(Type implementationType, ILifeTime lifetime = null);
     /// <summary>
     /// Generic version of Register(Type interfaceType, Type implementationType, ILifeTime lifetime)
     /// </summary>
-    /// <typeparam name="TInterface"></typeparam>
-    /// <typeparam name="TImplementation"></typeparam>
-    /// <param name="lifetime"></param>
     public void Register<TInterface, TImplementation>(ILifeTime lifetime);
     /// <summary>
     /// Generic version of RegisterAll(Type implementationType, ILifeTime lifetime = null)
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="lifetime"></param>
     public void RegisterAll<T>(ILifeTime lifetime);
-    /// <summary>
-    /// Registers a specific instance to all interface types it implements
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="instance"></param>
-    public void RegisterInstance<T>(T instance) where T : notnull;
     /// <summary>
     /// Injects implementations to all [Dependency] attributes in the instance
     /// </summary>
-    /// <param name="obj"></param>
     public void InjectAll(object obj);
 }
 
 public class ServiceContainer : IServiceContainer
 {
+    private readonly IServiceContainer? parent;
+
     private class ServiceImplementation
     {
         public Type Implementation { get; }
@@ -116,17 +107,20 @@ public class ServiceContainer : IServiceContainer
         }
     }
 
-    private Dictionary<Type, List<ServiceImplementation>> serviceInterfaces = new Dictionary<Type, List<ServiceImplementation>>();
-    private HashSet<ILifeTime> lifeTimes = new HashSet<ILifeTime>();
+    private readonly Dictionary<Type, List<ServiceImplementation>> serviceInterfaces = new Dictionary<Type, List<ServiceImplementation>>();
+    private readonly HashSet<ILifeTime> lifeTimes = new HashSet<ILifeTime>();
 
-    public ServiceContainer() { }
+    public ServiceContainer(IServiceContainer? parent = null)
+    {
+        this.parent = parent;
+    }
 
     public void InjectAll(object obj)
     {
         var fields = obj.GetType().GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
         foreach (var field in fields)
         {
-            Dependency dep = field.GetCustomAttribute<Dependency>();
+            Dependency? dep = field.GetCustomAttribute<Dependency>();
             if (dep != null)
             {
                 object value = GetInstance(field.FieldType);
@@ -165,18 +159,13 @@ public class ServiceContainer : IServiceContainer
             }
             catch(TargetInvocationException exception)
             {
-                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
+                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception.InnerException ?? exception).Throw();
             }
 
             InjectAll(obj);
 
             return obj;
         };
-    }
-
-    public void RegisterInstance<T>(T instance) where T : notnull
-    {
-        RegisterAll(typeof(T), new SingletonLifeTime(instance));
     }
 
     public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime)
@@ -236,6 +225,11 @@ public class ServiceContainer : IServiceContainer
             }
             else
             {
+                if (parent != null)
+                {
+                    return parent.GetInstance(serviceType);
+                }
+
                 return Array.CreateInstance(elementType, 0);
             }
         }
@@ -247,8 +241,12 @@ public class ServiceContainer : IServiceContainer
             }
             else
             {
-                return null;
-                //throw new InvalidOperationException($"No service of type {serviceType} has been registered");
+                if (parent != null)
+                {
+                    return parent.GetInstance(serviceType);
+                }
+
+                throw new InvalidOperationException($"No service of type {serviceType} has been registered");
             }
         }
     }
@@ -263,6 +261,34 @@ public class ServiceContainer : IServiceContainer
         foreach (ILifeTime lifeTime in lifeTimes.Reverse())
         {
             lifeTime.Dispose();
+        }
+    }
+
+    public bool TryGetInstance(Type type, [NotNullWhen(true)] out object? instance)
+    {
+        try
+        {
+            instance = GetInstance(type);
+            return true;
+        }
+        catch (Exception)
+        {
+            instance = null;
+            return false;
+        }
+    }
+
+    public bool TryGetInstance<T>([NotNullWhen(true)] out object? instance)
+    {
+        try
+        {
+            instance = (T)GetInstance(typeof(T));
+            return true;
+        }
+        catch (Exception)
+        {
+            instance = null;
+            return false;
         }
     }
 }

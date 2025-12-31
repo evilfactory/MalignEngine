@@ -21,7 +21,7 @@ public class Application : IDisposable, ILogHandler
 
         ServiceContainer = new ServiceContainer();
 
-        ServiceContainer.RegisterInstance(ServiceContainer);
+        ServiceContainer.Register<IServiceContainer, ServiceContainer>(new SingletonLifeTime(ServiceContainer));
 
         ServiceContainer.RegisterAll<LoggerService>(new SingletonLifeTime());
         ServiceContainer.RegisterAll<ScheduleManager>(new SingletonLifeTime());
