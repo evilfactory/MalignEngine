@@ -32,6 +32,7 @@ internal class Minesweeper : IService, IUpdate, IDraw
     private ITextureResource _flagTexture;
     private ITextureResource _mineTexture;
     private ITextureResource _unknownTexture;
+    private ITextureResource _bosnia;
 
     private IInputService _inputSystem;
 
@@ -46,6 +47,9 @@ internal class Minesweeper : IService, IUpdate, IDraw
     private bool _firstMove;
 
     private int _selectedTileX, _selectedTileY;
+
+    private IAudioService _audioService;
+    private ISoundResource _soundResource;
 
     private bool CheckWon()
     {
@@ -111,16 +115,19 @@ internal class Minesweeper : IService, IUpdate, IDraw
                 if (x < _boardSize - 1 && y > 0 && _tiles[x + 1, y - 1].IsMine) { amount++; }
                 if (x > 0 && y < _boardSize - 1 && _tiles[x - 1, y + 1].IsMine) { amount++; }
 
-                _tiles[x, y].Amount = amount;
+                _tiles[x, y].Amount = 9;
             }
         }
     }
 
-    public Minesweeper(IWindowService windowService, IRenderingAPI renderAPI, IInputService inputSystem)
+    public Minesweeper(IWindowService windowService, IRenderingAPI renderAPI, IInputService inputSystem, IAudioService audioService, IAssetService assetService)
     {
+        _audioService = audioService;
         _windowService = windowService;
         _renderAPI = renderAPI;
         _inputSystem = inputSystem;
+
+        _soundResource = assetService.FromPath<SoundAsset>("file:Content/cool.wav").Asset.SoundResource;
 
         _firstMove = true;
 
@@ -144,6 +151,9 @@ internal class Minesweeper : IService, IUpdate, IDraw
         {
             _numberTextures.Add(_renderAPI.CreateTexture(TextureLoader.Load($"Content/Textures/proxTile{i + 1}.png")));
         }
+        _numberTextures.Add(_renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/proxTile9INV.png")));
+
+        _bosnia = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/bosnia.png"));
 
         for (int i = 0; i < 3; i++)
         {
@@ -155,20 +165,20 @@ internal class Minesweeper : IService, IUpdate, IDraw
         _unknownTexture = _renderAPI.CreateTexture(TextureLoader.Load($"Content/Textures/unknownTile.png"));
 
         var desc = new VertexArrayDescriptor();
-        desc.AddAttribute("Color", 0, VertexAttributeType.Float, 3, false);
+        desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
         desc.AddAttribute("UV", 1, VertexAttributeType.Float, 2, false);
         _vertexArrayResource = _renderAPI.CreateVertexArray(desc);
 
         float[] imageData = new float[]
         {
-            0, 0, 0f,     0f, 0f, // Bottom-left
-             1, 0, 0f,     1f, 0f, // Bottom-right
-             1,  1, 0f,     1f, 1f, // Top-right
+            0, 0, 0f,     0f, 1f, // Bottom-left
+             1, 0, 0f,     1f, 1f, // Bottom-right
+             1,  1, 0f,     1f, 0f, // Top-right
 
             // Triangle 2
-            0, 0, 0f,     0f, 0f, // Bottom-left
-             1,  1, 0f,     1f, 1f, // Top-right
-            0,  1, 0f,     0f, 1f  // Top-left
+            0, 0, 0f,     0f, 1f, // Bottom-left
+             1,  1, 0f,     1f, 0f, // Top-right
+            0,  1, 0f,     0f, 0f  // Top-left
         };
 
         ReadOnlySpan<float> floatSpan = imageData;
@@ -219,9 +229,15 @@ internal class Minesweeper : IService, IUpdate, IDraw
         }
     }
 
+    private float bosniaTimer = 0f;
     public void OnDraw(float deltaTime)
     {
         _matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.Size.X, _windowService.Size.Y, 0f, 0.0001f, 100f);
+
+        if (!_firstMove)
+        {
+            bosniaTimer += deltaTime * 0.1f;
+        }
 
         _renderAPI.Submit(ctx =>
         {
@@ -237,7 +253,7 @@ internal class Minesweeper : IService, IUpdate, IDraw
             {
                 for (int y = 0; y < amount; y++)
                 {
-                    Vector2 scale = new Vector2(_windowService.FrameSize.X / amount, _windowService.FrameSize.X / amount);
+                    Vector2 scale = new Vector2(_windowService.FrameSize.X / amount, _windowService.FrameSize.Y / amount);
                     Matrix4x4 matrix = Matrix4x4.Identity;
                     matrix = matrix * Matrix4x4.CreateScale(new Vector3(scale.X, scale.Y, 1f));
                     matrix = matrix * Matrix4x4.CreateTranslation(x * scale.X, y * scale.Y, 0);
@@ -294,11 +310,23 @@ internal class Minesweeper : IService, IUpdate, IDraw
                     ctx.DrawArrays(_bufferResource, _vertexArrayResource, 6);
                 }
             }
+
+            {
+                Vector2 scale = new Vector2(_windowService.FrameSize.X, _windowService.FrameSize.Y);
+                Matrix4x4 matrix = Matrix4x4.Identity;
+                matrix = matrix * Matrix4x4.CreateScale(new Vector3(scale.X, scale.Y, 1f));
+                _shaderResource.Set("uModel", matrix);
+                _shaderResource.Set("uColor", new Color(1f, 1f, 1f, MathF.Min(bosniaTimer, 0.9f)));
+                ctx.SetTexture(0, _bosnia);
+                ctx.DrawArrays(_bufferResource, _vertexArrayResource, 6);
+            }
         });
     }
 
     public void OnUpdate(float deltaTime)
     {
+        if (!_firstMove) { return; }
+
         if (_inputSystem.Keyboard.WasKeyPressed(Key.R))
         {
             GenerateTiles();
@@ -340,6 +368,8 @@ internal class Minesweeper : IService, IUpdate, IDraw
             }
 
             _firstMove = false;
+
+            _audioService.Play(_soundResource).Play();
         }
     }
 }
