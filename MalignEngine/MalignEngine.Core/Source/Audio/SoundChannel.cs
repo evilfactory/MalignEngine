@@ -92,6 +92,7 @@ public class SoundChannel : IDisposable
     {
         this.audioSystem = audioSystem;
         this.buffer = buffer;
+        this.al = audioSystem._al;
 
         source = al.GenSource();
         al.SetSourceProperty(source, SourceInteger.Buffer, buffer);

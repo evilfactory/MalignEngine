@@ -98,7 +98,7 @@ public class AudioService : IAudioService, IUpdate, IDisposable
                 _alc.CloseDevice(_device);
             }
 
-            _soundChannels.ForEach(channel => channel.Dispose());
+            _soundChannels.ToList().ForEach(channel => channel.Dispose());
             _al.Dispose();
             _alc.Dispose();
 

@@ -75,6 +75,8 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
         //_gl.Enable(GLEnum.StencilTest);
 
+        _gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
+        _gl.Enable(GLEnum.Blend);
         _gl.DepthFunc(GLEnum.Lequal);
 
         _gl.Enable(GLEnum.DebugOutput);
