@@ -10,7 +10,7 @@ public interface ICameraDraw : ISchedule
     public void OnCameraDraw(float delta, OrthographicCamera camera);
 }
 
-public class CameraSystem : IService, IDraw
+public class CameraSystem : BaseSystem
 {
     private IScheduleManager _scheduleManager;
     private IWindowService _windowService;
@@ -19,7 +19,8 @@ public class CameraSystem : IService, IDraw
     private IEntityManager _entityManager;
     private IEventService _eventService;
 
-    public CameraSystem(IEntityManager entityManager, IEventService eventService, IRenderingAPI renderApi, IWindowService windowService, IRenderer2D renderer2D, IScheduleManager scheduleManager)
+    public CameraSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, IRenderingAPI renderApi, IWindowService windowService, IRenderer2D renderer2D)
+        : base(loggerService, scheduleManager)
     {
         _renderApi = renderApi;
         _windowService = windowService;
@@ -34,7 +35,7 @@ public class CameraSystem : IService, IDraw
         });
     }
 
-    public void OnDraw(float delta)
+    public override void OnDraw(float delta)
     {
         if (_windowService.FrameSize.X == 0 || _windowService.FrameSize.Y == 0)
         {

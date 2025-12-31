@@ -68,23 +68,23 @@ public interface IServiceContainer : IDisposable
     /// <summary>
     /// Generic version of <see cref="TryGetInstance(Type, out object?)"/>
     /// </summary>
-    public bool TryGetInstance<T>([NotNullWhen(returnValue: true)] out object? instance);
+    public bool TryGetInstance<T>([NotNullWhen(returnValue: true)] out T? instance);
     /// <summary>
     /// If there's more than one implementation type for an interface type, this will return all of them
     /// </summary>
-    public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime);
+    public void Register(Type interfaceType, Type implementationType, ILifeTime? lifetime = null);
     /// <summary>
     /// Registers all interfaces present in the implementation type
     /// </summary>
-    public void RegisterAll(Type implementationType, ILifeTime lifetime = null);
+    public void RegisterAll(Type implementationType, ILifeTime? lifetime = null);
     /// <summary>
     /// Generic version of Register(Type interfaceType, Type implementationType, ILifeTime lifetime)
     /// </summary>
-    public void Register<TInterface, TImplementation>(ILifeTime lifetime);
+    public void Register<TInterface, TImplementation>(ILifeTime? lifetime = null);
     /// <summary>
     /// Generic version of RegisterAll(Type implementationType, ILifeTime lifetime = null)
     /// </summary>
-    public void RegisterAll<T>(ILifeTime lifetime);
+    public void RegisterAll<T>(ILifeTime? lifetime = null);
     /// <summary>
     /// Injects implementations to all [Dependency] attributes in the instance
     /// </summary>
@@ -168,8 +168,10 @@ public class ServiceContainer : IServiceContainer
         };
     }
 
-    public void Register(Type interfaceType, Type implementationType, ILifeTime lifetime)
+    public void Register(Type interfaceType, Type implementationType, ILifeTime? lifetime = null)
     {
+        lifetime = lifetime ?? new SingletonLifeTime();
+
         if (!serviceInterfaces.ContainsKey(interfaceType))
         {
             serviceInterfaces[interfaceType] = new List<ServiceImplementation>();
@@ -183,7 +185,7 @@ public class ServiceContainer : IServiceContainer
         }
     }
 
-    public void Register<TInterface, TImplementation>(ILifeTime lifetime)
+    public void Register<TInterface, TImplementation>(ILifeTime? lifetime = null)
     {
         Register(typeof(TInterface), typeof(TImplementation), lifetime);
     }
@@ -278,7 +280,7 @@ public class ServiceContainer : IServiceContainer
         }
     }
 
-    public bool TryGetInstance<T>([NotNullWhen(true)] out object? instance)
+    public bool TryGetInstance<T>([NotNullWhen(true)] out T? instance)
     {
         try
         {
@@ -287,7 +289,7 @@ public class ServiceContainer : IServiceContainer
         }
         catch (Exception)
         {
-            instance = null;
+            instance = default;
             return false;
         }
     }

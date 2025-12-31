@@ -7,7 +7,6 @@ class Program
     public static void Main(string[] args)
     {
         Application application = new Application();
-        application.Add<EventLoop>();
         application.Add<WindowService>();
         application.Add<EntityManager>();
         application.Add<EventService>();
@@ -24,7 +23,7 @@ class Program
         application.Add<SceneXmlLoader>();
         application.Add<PhysicsSystem2D>();
         application.Add<Experimentation>();
-        application.Add<ImGuiService>();
+        application.Add<ImGuiSystem>();
         application.Add<FontRenderer>();
         application.Add<FontAssetLoader>();
         application.Add<AssetService>();

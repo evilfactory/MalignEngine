@@ -20,7 +20,8 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
 
     private EntityRef _camera;
 
-    public EditorSceneViewSystem(EditorSystem editorSystem, ImGuiService imGuiService, IEntityManager entityManager, IRenderer2D renderer2D, TransformSystem transformSystem, IInputService inputService, CameraSystem cameraSystem) : base(editorSystem, imGuiService)
+    public EditorSceneViewSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, IRenderer2D renderer2D, TransformSystem transformSystem, IInputService inputService, CameraSystem cameraSystem) 
+        : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
         _renderer2D = renderer2D;
         _transformSystem = transformSystem;

@@ -25,15 +25,18 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
     private Queue<Delegate> _frontQueue = new();
     private Queue<Delegate> _backQueue = new();
 
+    private readonly IScheduleManager _scheduleManager;
+
     private IRenderContext? _context;
 
     [Dependency]
     protected IPerformanceProfiler? _performanceProfiler;
 
-    public GLRenderingAPI(WindowService window, ILoggerService loggerService)
+    public GLRenderingAPI(WindowService window, IScheduleManager scheduleManager, ILoggerService loggerService)
     {
         _running = true;
 
+        _scheduleManager = scheduleManager;
         _window = window;
         _logger = loggerService.GetSawmill("rendering.api");
 
@@ -45,6 +48,8 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
         _renderThread.Name = "Render Thread";
 
         _renderThread.Start();
+
+        _scheduleManager.RegisterAll(this);
     }
 
     private void GLDebugMessageCallback(GLEnum source, GLEnum type, int id, GLEnum severity, int length, nint message, nint userParam)
@@ -216,7 +221,9 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
         _frameReady.Set();
         _renderThread.Join();
 
-        _logger.LogInfo("disposing");
+        _scheduleManager.UnregisterAll(this);
+
+        _logger.LogInfo("GLRenderingAPI disposed");
     }
 
     public void OnPreDraw(float deltaTime)

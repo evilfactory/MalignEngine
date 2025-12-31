@@ -8,12 +8,13 @@ namespace MalignEngine.Editor;
 
 public class EditorInspectorSystem : BaseEditorWindowSystem
 {
-    private IEntityManager _entityManager;
-    private ParentSystem _parentSystem;
+    private readonly IEntityManager _entityManager;
+    private readonly ParentSystem _parentSystem;
 
     public override string WindowName => "Inspector";
 
-    public EditorInspectorSystem(EditorSystem editorSystem, ImGuiService imGuiService, IEntityManager entityManager, ParentSystem parentSystem) : base(editorSystem, imGuiService)
+    public EditorInspectorSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, ParentSystem parentSystem)
+    : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
         _entityManager = entityManager;
         _parentSystem = parentSystem;

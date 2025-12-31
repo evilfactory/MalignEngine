@@ -11,7 +11,7 @@ public interface IEventLoop
     void Stop();
 }
 
-public class EventLoop : IService, IEventLoop, IApplicationRun
+public class EventLoop : IEventLoop
 {
     public float TargetUpdateDelta { get; set; } = 1f / 60f;
     public float TargetDrawDelta { get; set; } = 1f / 120f;
@@ -28,7 +28,6 @@ public class EventLoop : IService, IEventLoop, IApplicationRun
 
     public void Run()
     {
-        _scheduleManager.Run<IInit>(x => x.OnInitialize());
         var stopwatch = new Stopwatch();
         stopwatch.Start();
 

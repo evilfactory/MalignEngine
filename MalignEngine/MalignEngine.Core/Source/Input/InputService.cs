@@ -82,7 +82,7 @@ public interface ISilkInputContextProvider
 }
 
 [Stage<IUpdate, HighestPriorityStage>]
-public class InputService : IInputService, IUpdate, ISilkInputContextProvider
+public class InputService : BaseSystem, IInputService, ISilkInputContextProvider
 {
     public IInputContext InputContext => _inputContext;
 
@@ -95,7 +95,8 @@ public class InputService : IInputService, IUpdate, ISilkInputContextProvider
     private readonly List<Mouse> _mice = new();
     private readonly List<Keyboard> _keyboards = new();
 
-    public InputService(WindowService windowService)
+    public InputService(ILoggerService loggerService, IScheduleManager scheduleManager, WindowService windowService)
+        : base(loggerService, scheduleManager)
     {
         _inputContext = windowService.window.CreateInput();
 
@@ -110,7 +111,7 @@ public class InputService : IInputService, IUpdate, ISilkInputContextProvider
         }
     }
 
-    public void OnUpdate(float delta)
+    public override void OnUpdate(float delta)
     {
         foreach (var mouse in _mice)
         {
@@ -122,5 +123,5 @@ public class InputService : IInputService, IUpdate, ISilkInputContextProvider
         }
     }
 
-    public void Dispose() => _inputContext.Dispose();
+    public override void Dispose() => _inputContext.Dispose();
 }

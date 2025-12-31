@@ -10,13 +10,14 @@ public interface IDrawImGui : ISchedule
 }
 
 [Stage<IDraw, BeforeEndFrame>]
-public class ImGuiService : IService, IDraw
+public class ImGuiSystem : BaseSystem
 {
-    private GLRenderingAPI _glRenderAPI;
-    private ScheduleManager _scheduleManager;
-    private ImGuiController _imGuiController;
+    private readonly GLRenderingAPI _glRenderAPI;
+    private readonly IScheduleManager _scheduleManager;
+    private ImGuiController? _imGuiController;
 
-    public ImGuiService(IWindowContextProvider windowContext, GLRenderingAPI glRenderingAPI, ISilkInputContextProvider inputContext, ScheduleManager scheduleManager)
+    public ImGuiSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IWindowContextProvider windowContext, GLRenderingAPI glRenderingAPI, ISilkInputContextProvider inputContext)
+        : base(loggerService, scheduleManager)
     {
         _glRenderAPI = glRenderingAPI;
         _scheduleManager = scheduleManager;
@@ -91,13 +92,13 @@ public class ImGuiService : IService, IDraw
         });
     }
 
-    public void OnDraw(float deltaTime)
+    public override void OnDraw(float deltaTime)
     {
         _glRenderAPI.Submit(() =>
         {
-            _imGuiController.Update(deltaTime);
+            _imGuiController?.Update(deltaTime);
             _scheduleManager.Run<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
-            _imGuiController.Render();
+            _imGuiController?.Render();
         });
     }
 

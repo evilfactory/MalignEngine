@@ -10,12 +10,14 @@ public class EditorPerformanceSystem : BaseEditorWindowSystem
     private bool _lag = false;
     private double _updatesPerSecond;
 
-    public override string WindowName => "Performance Profiler";
-
-    public EditorPerformanceSystem(EditorSystem editorSystem, ImGuiService imGuiService, IPerformanceProfiler performanceProfiler) : base(editorSystem, imGuiService)
+    public EditorPerformanceSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IPerformanceProfiler performanceProfiler) 
+        : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
         _performanceProfiler = performanceProfiler;
     }
+
+    public override string WindowName => "Performance Profiler";
+
 
     public override void OnUpdate(float deltatime)
     {

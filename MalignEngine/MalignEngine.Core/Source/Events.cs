@@ -1,14 +1,7 @@
 using MalignEngine;
 
 namespace MalignEngine
-{    public interface IApplicationRun : ISchedule
-    {
-        public void OnApplicationRun();
-    }
-    public interface IInit : ISchedule
-    {
-        public void OnInitialize();
-    }
+{   
     public interface IPreUpdate : ISchedule
     {
         public void OnPreUpdate(float deltaTime);
@@ -44,6 +37,12 @@ namespace MalignEngine
     public interface IPostDrawGUI : ISchedule
     {
         public void OnPostDrawGUI(float deltaTime);
+    }
+
+    public interface IApplicationClosing : ISchedule
+    {
+        public void OnApplicationClosing();
+
     }
 }
 

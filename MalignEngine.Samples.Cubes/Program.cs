@@ -14,7 +14,7 @@ class Program
         application.Add<InputService>();
         application.Add<Renderer2D>();
         application.Add<Cubes>();
-        application.Add<ImGuiService>();
+        application.Add<ImGuiSystem>();
         application.Add<PerformanceProfiler>();
         application.Add<EditorSystem>();
         application.Add<EditorPerformanceSystem>();

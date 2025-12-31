@@ -33,15 +33,15 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
     public override string WindowName => "Tile Editor";
 
     private EntityRef _selectedTileMap;
-    private TileData _selectedTileData;
+    private TileData? _selectedTileData;
 
-    private AssetHandle<TileList>[] _tileList;
+    private AssetHandle<TileList>[]? _tileList;
 
     private string _fileName = "Content/tilemap.xml";
 
-    public EditorTile(EditorSystem editorSystem, ImGuiService imGuiService) : base(editorSystem, imGuiService)
+    public EditorTile(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
+        : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
-
     }
 
     private string GetTileName(EntityRef tilemap)

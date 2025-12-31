@@ -29,7 +29,8 @@ public class EditorConsole : BaseEditorWindowSystem, ILogHandler
     private bool autoScroll = true;
     private string command = "";
 
-    public EditorConsole(EditorSystem editorSystem, ImGuiService imGuiService, ILoggerService loggerService) : base(editorSystem, imGuiService)
+    public EditorConsole(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
+        : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
         loggerService.Root.AddHandler(this);
     }

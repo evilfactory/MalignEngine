@@ -13,7 +13,8 @@ namespace MalignEngine
 
     public class ParentSystem : EntitySystem
     {
-        public override void OnInitialize()
+        public ParentSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService) 
+            : base(loggerService, scheduleManager, entityManager, eventService)
         {
             EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<ParentOf>(ParentAddedComponent);
             EventService.Get<ComponentEventChannel<ComponentRemovedEvent>>().Subscribe<ParentOf>(ParentRemovedComponent);

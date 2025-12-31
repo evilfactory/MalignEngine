@@ -4,7 +4,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine.Experimentation;
 
-class Experimentation : IService, IDraw, ICameraDraw
+class Experimentation : BaseSystem, ICameraDraw
 {
     private ILogger _logger;
     private IRenderingAPI _renderAPI;
@@ -29,6 +29,7 @@ class Experimentation : IService, IDraw, ICameraDraw
 
     public Experimentation(
         ILoggerService loggerService,
+        IScheduleManager scheduleManager,
         IRenderingAPI renderAPI,
         IAssetService assetService,
         IRenderer2D render2D,
@@ -40,6 +41,7 @@ class Experimentation : IService, IDraw, ICameraDraw
         SceneSystem sceneSystem,
         ITileSystem tileSystem
         )
+    : base (loggerService, scheduleManager)
     {
         _logger = loggerService.GetSawmill("experimentation");
         _renderAPI = renderAPI;
@@ -133,8 +135,6 @@ class Experimentation : IService, IDraw, ICameraDraw
 
     public void OnCameraDraw(float delta, OrthographicCamera camera)
     {
-        return;
-
         _renderAPI.Submit(ctx =>
         {
             _render2D.Begin(ctx);
@@ -146,7 +146,6 @@ class Experimentation : IService, IDraw, ICameraDraw
     public void OnDraw(float deltaTime)
     {
         return;
-
         var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, _windowService.FrameSize.Y, 0, 0.0001f, 100f);
 
         _renderAPI.Submit((IRenderContext ctx) =>

@@ -10,7 +10,8 @@ public class EditorAssetViewer : BaseEditorWindowSystem
 
     public override string WindowName => "Asset Viewer";
 
-    public EditorAssetViewer(EditorSystem editorSystem, ImGuiService imGuiService, IAssetService assetService) : base(editorSystem, imGuiService)
+    public EditorAssetViewer(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IAssetService assetService) 
+        : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
         _assetService = assetService;
     }

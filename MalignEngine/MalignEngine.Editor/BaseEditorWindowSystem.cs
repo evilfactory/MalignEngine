@@ -6,9 +6,10 @@ public abstract class BaseEditorWindowSystem : BaseSystem
     public bool Active = true;
 
     protected EditorSystem EditorSystem;
-    protected ImGuiService ImGuiService;
+    protected ImGuiSystem ImGuiService;
 
-    public BaseEditorWindowSystem(EditorSystem editorSystem, ImGuiService imGuiService)
+    protected BaseEditorWindowSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
+        : base(loggerService, scheduleManager)
     {
         EditorSystem = editorSystem;
         ImGuiService = imGuiService;

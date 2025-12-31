@@ -4,13 +4,12 @@ using System.Reflection;
 
 namespace MalignEngine;
 
-public class Application : IDisposable, ILogHandler
+public class Application : IDisposable, ILogHandler, IApplicationClosing
 {
     public static Application? Main { get; private set; }
 
-    public ServiceContainer ServiceContainer { get; private set; }
-    public ScheduleManager ScheduleManager => ServiceContainer.GetInstance<ScheduleManager>();
-    public StateManager StateManager => ServiceContainer.GetInstance<StateManager>();
+    public IEventLoop? EventLoop { get; private set; }
+    public IServiceContainer ServiceContainer { get; private set; }
 
     public Application()
     {
@@ -22,14 +21,13 @@ public class Application : IDisposable, ILogHandler
         ServiceContainer = new ServiceContainer();
 
         ServiceContainer.Register<IServiceContainer, ServiceContainer>(new SingletonLifeTime(ServiceContainer));
+        ServiceContainer.Register<ILoggerService, LoggerService>(new SingletonLifeTime());
+        ServiceContainer.Register<IScheduleManager, ScheduleManager>(new SingletonLifeTime());
 
-        ServiceContainer.RegisterAll<LoggerService>(new SingletonLifeTime());
-        ServiceContainer.RegisterAll<ScheduleManager>(new SingletonLifeTime());
-        ServiceContainer.RegisterAll<StateManager>(new SingletonLifeTime());
+        ServiceContainer.GetInstance<IScheduleManager>().Register<IApplicationClosing>(this);
 
-        ServiceContainer.GetInstance<LoggerService>().Root.AddHandler(this);
-
-        ServiceContainer.GetInstance<LoggerService>().LogInfo("Hello!");
+        ServiceContainer.GetInstance<ILoggerService>().Root.AddHandler(this);
+        ServiceContainer.GetInstance<ILoggerService>().LogInfo("Hello!");
     }
 
     public void Add(ServiceSet serviceSet)
@@ -43,14 +41,20 @@ public class Application : IDisposable, ILogHandler
     }
 
     /// <summary>
-    /// Registers scheduler subscribers and Executes the IApplicationRun schedule
+    /// Instantiates all systems and creates the event loop
     /// </summary>
     public void Run()
     {
-        ServiceContainer.GetInstance<ScheduleManager>().Run<IApplicationRun>(e => e.OnApplicationRun());
+        ServiceContainer.TryGetInstance(out IPerformanceProfiler? performanceProfiler);
+        EventLoop = new EventLoop(ServiceContainer.GetInstance<IScheduleManager>(), performanceProfiler);
+
+        ServiceContainer.GetInstance<IEnumerable<ISystem>>(); // Instantiate all systems
+
+        // Start the event loop
+        EventLoop.Run();
 
         Dispose();
-        ServiceContainer.GetInstance<LoggerService>().LogInfo("Goodbye!");
+        ServiceContainer.GetInstance<ILoggerService>().LogInfo("Goodbye!");
     }
 
     public void HandleLog(Sawmill sawmill, LogEvent logEvent)
@@ -84,5 +88,10 @@ public class Application : IDisposable, ILogHandler
     public void Dispose()
     {
         ServiceContainer.Dispose();
+    }
+
+    public void OnApplicationClosing()
+    {
+        EventLoop?.Stop();
     }
 }

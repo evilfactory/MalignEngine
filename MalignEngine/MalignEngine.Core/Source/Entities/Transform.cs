@@ -24,11 +24,13 @@ public class TransformMoveEvent : ComponentEventArgs
 
 public class TransformSystem : EntitySystem, IPostUpdate
 {
-    [Dependency]
-    protected ParentSystem ParentSystem = default!;
+    private readonly ParentSystem _parentSystem;
 
-    public override void OnInitialize()
+    public TransformSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, ParentSystem parentSystem) 
+        : base(loggerService, scheduleManager, entityManager, eventService)
     {
+        _parentSystem = parentSystem;
+
         EventService.Register(new ComponentEventChannel<TransformMoveEvent>());
 
         // remove, stupid
@@ -43,7 +45,7 @@ public class TransformSystem : EntitySystem, IPostUpdate
 
     public void OnPostUpdate(float deltaTime)
     {
-        foreach (EntityRef entity in ParentSystem.RootEntities)
+        foreach (EntityRef entity in _parentSystem.RootEntities)
         {
             UpdateTransformTree(entity);
         }

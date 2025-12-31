@@ -1,6 +1,3 @@
-using QuikGraph;
-using QuikGraph.Algorithms;
-using System.Collections.Immutable;
 using System.Data;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -8,6 +5,18 @@ using System.Reflection;
 namespace MalignEngine;
 
 public interface ISchedule { }
+
+public interface IScheduleManager
+{
+    public void Register(Type interfaceType, object listener);
+    public void Unregister(Type interfaceType, object listener);
+    public void Register<T>(object listener) where T : ISchedule;
+    public void Unregister<T>(object listener) where T : ISchedule;
+    public void RegisterAll(object listener);
+    public void UnregisterAll(object listener);
+    public void Run<T>(Action<T> action) where T : ISchedule;
+    public void SetMetaData<TSchedule, TService>(ScheduleMetaData metadata);
+}
 
 public class ScheduleMetaData
 {
@@ -31,40 +40,89 @@ public class ScheduleMetaData
     }
 }
 
-public interface IScheduleManager
-{
-    public void Run<T>(Action<T> action) where T : ISchedule;
-    public void SetMetaData<TSchedule, TService>(ScheduleMetaData metadata);
-}
-
 /// <summary>
-/// Manages the order of execution of all schedules using high-performance topological sorting.
+/// Manages the order of execution of all schedules.
 /// </summary>
 public class ScheduleManager : IScheduleManager, IService
 {
-    private IServiceContainer serviceContainer;
-
     private readonly ConcurrentDictionary<(Type, Type), ScheduleMetaData> _metadata
         = new ConcurrentDictionary<(Type, Type), ScheduleMetaData>();
 
-    public ScheduleManager(IServiceContainer serviceContainer)
+    private ConcurrentDictionary<Type, List<object>> listeners = 
+        new ConcurrentDictionary<Type, List<object>>();
+
+    public ScheduleManager() { }
+
+    public void Register(Type interfaceType, object listener)
     {
-        this.serviceContainer = serviceContainer;
+        if (interfaceType.IsAssignableFrom(typeof(ISchedule)))
+        {
+            throw new InvalidOperationException("Tried to register a type that doesn't implement ISchedule");
+        }
+
+        List<object> interfaceListeners = listeners.GetOrAdd(interfaceType, new List<object>());
+        interfaceListeners.Add(listener);
+    }
+
+    public void Unregister(Type interfaceType, object listener)
+    {
+        if (interfaceType.IsAssignableFrom(typeof(ISchedule)))
+        {
+            throw new InvalidOperationException("Tried to unregister a type that doesn't implement ISchedule");
+        }
+
+
+        List<object> interfaceListeners = listeners.GetOrAdd(interfaceType, new List<object>());
+        interfaceListeners.Remove(listener);
+    }
+
+    public void Register<T>(object listener) where T : ISchedule 
+        => Register(typeof(T), listener);
+
+    public void Unregister<T>(object listener) where T : ISchedule 
+        => Register(typeof(T), listener);
+
+    public void RegisterAll(object listener)
+    {
+        Type type = listener.GetType();
+        IEnumerable<Type> interfaces = type.GetInterfaces().Where(x => x != typeof(ISchedule) && x.IsAssignableTo(typeof(ISchedule)));
+
+        foreach (Type schedule in interfaces)
+        {
+            Register(schedule, listener);
+        }
+    }
+
+    public void UnregisterAll(object listener)
+    {
+        Type type = listener.GetType();
+        IEnumerable<Type> interfaces = type.GetInterfaces().Where(x => x != typeof(ISchedule) && x.IsAssignableTo(typeof(ISchedule)));
+
+        foreach (Type schedule in interfaces)
+        {
+            Unregister(schedule, listener);
+        }
     }
 
     public void Run<T>(Action<T> action) where T : ISchedule
     {
-        var sortedSchedules = serviceContainer.GetInstance<IEnumerable<T>>().ToList();
+        Type scheduleType = typeof(T);
+
+        if (!listeners.TryGetValue(scheduleType, out List<object>? sortedSchedules))
+        {
+            return;
+        }
+
         sortedSchedules.Sort((x, y) => 
         {
-            var px = GetMetaData(typeof(T), x.GetType()).Priority;
-            var py = GetMetaData(typeof(T), y.GetType()).Priority;
+            var px = GetMetaData(scheduleType, x.GetType()).Priority;
+            var py = GetMetaData(scheduleType, y.GetType()).Priority;
             return px.CompareTo(py);
         });
 
         foreach (T schedule in sortedSchedules)
         {
-            var metadata = GetMetaData(typeof(T), schedule.GetType());
+            var metadata = GetMetaData(scheduleType, schedule.GetType());
             if (metadata.RunCondition != null && !metadata.RunCondition())
             {
                 continue;
@@ -101,18 +159,6 @@ public class ScheduleManager : IScheduleManager, IService
     {
         var key = (typeof(TSchedule), typeof(TService));
         _metadata.AddOrUpdate(key, metadata, (k, v) => metadata);
-
-        InvalidateCache();
-    }
-
-    private void InvalidateCache()
-    {
-
-    }
-
-    public void ClearAllCaches()
-    {
-        _metadata.Clear();
     }
 }
 

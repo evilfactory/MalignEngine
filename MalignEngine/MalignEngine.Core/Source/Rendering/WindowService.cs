@@ -21,7 +21,7 @@ public interface IWindowService
     void SwapBuffers();
 }
 
-public class WindowService : IWindowService, IWindowContextProvider, IService, IPreUpdate, IDisposable
+public class WindowService : BaseSystem, IWindowService, IWindowContextProvider, IPreUpdate
 {
     public string Title
     {
@@ -52,14 +52,16 @@ public class WindowService : IWindowService, IWindowContextProvider, IService, I
     public int Width => Size.X;
     public int Height => Size.Y;
 
-    private ILogger _logger;
-    private IEventLoop _eventLoop;
+    private readonly ILogger _logger;
+    private readonly IScheduleManager _scheduleManager;
 
     // for renderer, i need to get rid of this later
     internal IWindow window;
 
-    public WindowService(ILoggerService loggerService, IEventLoop eventLoop)
+    public WindowService(ILoggerService loggerService, IScheduleManager scheduleManager)
+        : base (loggerService, scheduleManager)
     {
+        _scheduleManager = scheduleManager;
         _logger = loggerService.GetSawmill("window");
 
         var options = WindowOptions.Default;
@@ -74,8 +76,6 @@ public class WindowService : IWindowService, IWindowContextProvider, IService, I
         window.VSync = false;
 
         window.Initialize();
-
-        _eventLoop = eventLoop;
 
         _logger.LogInfo($"Window \"{Title}\" initialized {options.Size.X}x{options.Size.Y}");
     }
@@ -97,8 +97,10 @@ public class WindowService : IWindowService, IWindowContextProvider, IService, I
         window.SwapBuffers();
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
+        base.Dispose();
+
         _logger.LogInfo($"Window \"{Title}\" destroyed");
 
         window.Dispose();
@@ -110,7 +112,7 @@ public class WindowService : IWindowService, IWindowContextProvider, IService, I
 
         if (window.IsClosing)
         {
-            _eventLoop.Stop();
+            _scheduleManager.Run<IApplicationClosing>(x => x.OnApplicationClosing());
         }
     }
 }
