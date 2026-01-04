@@ -32,9 +32,11 @@ public class SpriteRenderingSystem : IService, ICameraDraw
     {
         List<RenderData> renderData = new List<RenderData>();
 
-        var query = _entityManager.World.CreateQuery().WithAll<SpriteRenderer, WorldTransform>();
-        _entityManager.World.Query(query, (EntityRef entity, ref WorldTransform transform, ref SpriteRenderer spriteRenderer) =>
+        var query = new Query().WithAll<SpriteRenderer, WorldTransform>();
+        _entityManager.World.Query(query, (Entity entity) =>
         {
+            ref WorldTransform transform = ref entity.Get<WorldTransform>();
+            ref SpriteRenderer spriteRenderer = ref entity.Get<SpriteRenderer>();
             renderData.Add(new RenderData() { Transform = transform, SpriteRenderer = spriteRenderer });
         });
 

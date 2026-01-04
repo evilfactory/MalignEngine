@@ -1,4 +1,3 @@
-using Arch.Core;
 using System.Globalization;
 using System.Reflection;
 
@@ -30,16 +29,6 @@ public class Application : IDisposable, ILogHandler, IApplicationClosing
         ServiceContainer.GetInstance<ILoggerService>().LogInfo("Hello!");
     }
 
-    public void Add(ServiceSet serviceSet)
-    {
-        serviceSet.Put(this);
-    }
-
-    public void Add<T>(ILifeTime? lifetime = null)
-    {
-        ServiceContainer.RegisterAll<T>(lifetime);
-    }
-
     /// <summary>
     /// Instantiates all systems and creates the event loop
     /// </summary>
@@ -49,6 +38,8 @@ public class Application : IDisposable, ILogHandler, IApplicationClosing
         EventLoop = new EventLoop(ServiceContainer.GetInstance<IScheduleManager>(), performanceProfiler);
 
         ServiceContainer.GetInstance<IEnumerable<ISystem>>(); // Instantiate all systems
+
+        ServiceContainer.GetInstance<IScheduleManager>().Run<IApplicationRun>(x => x.OnApplicationRun());
 
         // Start the event loop
         EventLoop.Run();

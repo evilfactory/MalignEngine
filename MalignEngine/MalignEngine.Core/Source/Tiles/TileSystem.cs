@@ -3,26 +3,26 @@ using System.Numerics;
 
 namespace MalignEngine;
 
-public class TileNeighbourChangedEvent : ComponentEventArgs { }
 
 public interface ITileSystem : IService
 {
-    EntityRef CreateTileMap(IEnumerable<TileLayer> layers);
-    EntityRef CreateTile(EntityRef tileMap, TileData tileData, Vector2D<int> position);
-    bool RemoveTile(EntityRef tileMap, string layer, Vector2D<int> position);
-    bool TryGetTile(EntityRef tileMap, string layer, Vector2D<int> position, out EntityRef tile);
-    IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layer);
+    Entity CreateTileMap(IEnumerable<TileLayer> layers);
+    Entity CreateTile(Entity tileMap, TileData tileData, Vector2D<int> position);
+    bool RemoveTile(Entity tileMap, string layer, Vector2D<int> position);
+    bool TryGetTile(Entity tileMap, string layer, Vector2D<int> position, out Entity tile);
+    IEnumerable<Entity> GetTiles(Entity tileMap, string layer);
 }
 
+/*
 public class TileSystem : ITileSystem, IUpdate
 {
     private IEventService _eventService;
     private IPhysicsSystem2D _physicsSystem;
     private IEntityManager _entityManager;
-    private ParentSystem _parentSystem;
+    private HierarchySystem _parentSystem;
     private SceneSystem _sceneSystem;
 
-    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem, ParentSystem parentSystem)
+    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem, HierarchySystem parentSystem)
     {
         _entityManager = entityManager;
         _eventService = eventService;
@@ -31,7 +31,7 @@ public class TileSystem : ITileSystem, IUpdate
         _parentSystem = parentSystem;
     }
 
-    public EntityRef CreateTileMap(IEnumerable<TileLayer> layers)
+    public Entity CreateTileMap(IEnumerable<TileLayer> layers)
     {
         Dictionary<string, TileLayer> dLayers = new Dictionary<string, TileLayer>();
         foreach (var layer in layers)
@@ -39,8 +39,8 @@ public class TileSystem : ITileSystem, IUpdate
             dLayers[layer.Id] = layer;
         }
 
-        EntityRef entity = _entityManager.World.CreateEntity();
-        entity.Add(new TileMapComponent()
+        Entity entity = _entityManager.World.CreateEntity();
+        entity.AddOrSet(new TileMapComponent()
         {
             layers = dLayers
         });
@@ -48,7 +48,7 @@ public class TileSystem : ITileSystem, IUpdate
         return entity;
     }
 
-    public IEnumerable<EntityRef> GetTiles(EntityRef tileMap, string layer)
+    public IEnumerable<Entity> GetTiles(Entity tileMap, string layer)
     {
         if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
@@ -63,7 +63,7 @@ public class TileSystem : ITileSystem, IUpdate
         return tileLayer.Tiles.Values;
     }
 
-    public bool RemoveTile(EntityRef tileMap, string layer, Vector2D<int> position)
+    public bool RemoveTile(Entity tileMap, string layer, Vector2D<int> position)
     {
         if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
@@ -75,7 +75,7 @@ public class TileSystem : ITileSystem, IUpdate
             throw new ArgumentException("Tile Layer not found");
         }
 
-        if (tileLayer.TryGetTile(position, out EntityRef entity))
+        if (tileLayer.TryGetTile(position, out Entity entity))
         {
             entity.Destroy();
             tileLayer.RemoveTile(position);
@@ -86,7 +86,7 @@ public class TileSystem : ITileSystem, IUpdate
         return false;
     }
 
-    public EntityRef CreateTile(EntityRef tileMap, TileData tileData, Vector2D<int> position)
+    public Entity CreateTile(Entity tileMap, TileData tileData, Vector2D<int> position)
     {
         if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
@@ -98,15 +98,15 @@ public class TileSystem : ITileSystem, IUpdate
             throw new ArgumentException("Tile Layer not found");
         }
 
-        if (tileLayer.TryGetTile(position, out EntityRef entity))
+        if (tileLayer.TryGetTile(position, out Entity entity))
         {
             tileLayer.RemoveTile(position);
             entity.Destroy();
         }
 
         entity = _sceneSystem.Instantiate(tileData.Scene);
-        entity.Add(new TilePosition() { X = position.X, Y = position.Y });
-        entity.Add(new ParentOf() { Parent = tileMap });
+        entity.AddOrSet(new TilePosition() { X = position.X, Y = position.Y });
+        entity.AddOrSet(new ParentOf() { Parent = tileMap });
         ref Transform transform = ref entity.AddOrGet<Transform>();
         transform.Scale = Vector3.One;
         transform.Position = new Vector3(position.X, position.Y, tileLayer.Order);
@@ -120,7 +120,7 @@ public class TileSystem : ITileSystem, IUpdate
         return entity;
     }
 
-    public bool TryGetTile(EntityRef tileMap, string layer, Vector2D<int> position, out EntityRef tile)
+    public bool TryGetTile(Entity tileMap, string layer, Vector2D<int> position, out Entity tile)
     {
         if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
         {
@@ -137,10 +137,10 @@ public class TileSystem : ITileSystem, IUpdate
 
     public void OnUpdate(float deltaTime)
     {
-        List<EntityRef> tilemapsToUpdate = new List<EntityRef>();
+        List<Entity> tilemapsToUpdate = new List<Entity>();
 
         var query = _entityManager.World.CreateQuery().WithAll<TileMapComponent>();
-        _entityManager.World.Query(in query, (EntityRef entity, ref TileMapComponent tileMap) =>
+        _entityManager.World.Query(in query, (Entity entity, ref TileMapComponent tileMap) =>
         {
             if (tileMap.ColliderNeedsUpdate)
             {
@@ -150,18 +150,18 @@ public class TileSystem : ITileSystem, IUpdate
             }
         });
 
-        foreach (EntityRef tilemap in tilemapsToUpdate)
+        foreach (Entity tilemap in tilemapsToUpdate)
         {
             if (!tilemap.Has<PhysicsBody2D>())
             {
-                tilemap.Add(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
+                tilemap.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
             }
 
             ref PhysicsBody2D body = ref tilemap.Get<PhysicsBody2D>();
 
             List<FixtureData2D> fixtures = new List<FixtureData2D>();
 
-            foreach ((Vector2D<int> position, EntityRef tile) in tilemap.Get<TileMapComponent>().layers.SelectMany(x => x.Value.Tiles))
+            foreach ((Vector2D<int> position, Entity tile) in tilemap.Get<TileMapComponent>().layers.SelectMany(x => x.Value.Tiles))
             {
                 fixtures.Add(new FixtureData2D(new RectangleShape2D(1, 1, new Vector2(position.X, position.Y)), 0, 0.5f, 0));
             }
@@ -172,3 +172,4 @@ public class TileSystem : ITileSystem, IUpdate
         }
     }
 }
+*/

@@ -38,8 +38,7 @@ class Experimentation : BaseSystem, ICameraDraw
         IInputService inputService,
         IEntityManager entityManager,
         SceneXmlLoader sceneXmlLoader,
-        SceneSystem sceneSystem,
-        ITileSystem tileSystem
+        SceneSystem sceneSystem
         )
     : base (loggerService, scheduleManager)
     {
@@ -54,7 +53,7 @@ class Experimentation : BaseSystem, ICameraDraw
         _sceneXmlLoader = sceneXmlLoader;
         _sceneSystem = sceneSystem;
 
-        tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
+        //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
@@ -129,8 +128,8 @@ class Experimentation : BaseSystem, ICameraDraw
         //var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
 
         AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
-        EntityRef entity = _sceneSystem.Instantiate(scene);
-        assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
+        Entity entity = _sceneSystem.Instantiate(scene);
+        //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
     }
 
     public void OnCameraDraw(float delta, OrthographicCamera camera)

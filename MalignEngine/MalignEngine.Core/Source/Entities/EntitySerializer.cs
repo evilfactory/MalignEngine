@@ -6,22 +6,22 @@ namespace MalignEngine;
 
 public class EntityIdRemap
 {
-    public Dictionary<int, EntityRef> IdRemap
+    public Dictionary<int, Entity> IdRemap
     {
         get; private set;
     }
 
     public EntityIdRemap()
     {
-        IdRemap = new Dictionary<int, EntityRef>();
+        IdRemap = new Dictionary<int, Entity>();
     }
 
-    public void AddEntity(int id, EntityRef entity)
+    public void AddEntity(int id, Entity entity)
     {
         IdRemap.Add(id, entity);
     }
 
-    public EntityRef GetEntity(int id)
+    public Entity GetEntity(int id)
     {
         return IdRemap[id];
     }
@@ -54,11 +54,11 @@ public class EntitySerializer : IService
         }
     }
 
-    public void SerializeEntity(EntityRef entity, XElement data, bool saveAll = false)
+    public void SerializeEntity(Entity entity, XElement data, bool saveAll = false)
     {
         data.SetAttributeValue("Id", entity.Id.ToString());
 
-        foreach (object component in entity.GetComponents())
+        foreach (IComponent component in entity.GetComponents())
         {
             if (component.GetType().GetCustomAttribute<SerializableAttribute>() == null)
             {
@@ -73,7 +73,7 @@ public class EntitySerializer : IService
         }
     }
 
-    public void DeserializeEntity(EntityRef entity, XElement data, EntityIdRemap idRemap)
+    public void DeserializeEntity(Entity entity, XElement data, EntityIdRemap idRemap)
     {
         foreach (XElement componentElement in data.Elements())
         {
@@ -98,7 +98,7 @@ public class EntitySerializer : IService
 
             _xmlSerializer.DeserializeObject(component, componentElement, idRemap);
 
-            entity.Add(component);
+            entity.AddOrSet(component);
         }
     }
 }

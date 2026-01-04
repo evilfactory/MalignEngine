@@ -66,7 +66,7 @@ public class SceneXmlLoader : IXmlLoader
             throw new InvalidOperationException();
         }
 
-        WorldRef world = new WorldRef();
+        World world = new World();
 
         if (element.Attribute("From") != null)
         {
@@ -80,12 +80,12 @@ public class SceneXmlLoader : IXmlLoader
 
         EntityIdRemap remap = new EntityIdRemap();
 
-        List<(EntityRef, XElement)> entities = new List<(EntityRef, XElement)>();
+        List<(Entity, XElement)> entities = new List<(Entity, XElement)>();
 
         // Create all entities first
         foreach (var entityElement in element.Elements())
         {
-            EntityRef entity = world.CreateEntity();
+            Entity entity = world.CreateEntity();
             remap.AddEntity(int.Parse(entityElement.Attribute("Id")?.Value), entity);
             entities.Add((entity, entityElement));
         }
@@ -112,7 +112,7 @@ public class SceneXmlLoader : IXmlLoader
             element.SetAttributeString("From", scene.Root.Get<SceneComponent>().SceneId);
         }
 
-        foreach (var entity in scene.SceneWorld.AllEntities())
+        scene.SceneWorld.Query(new Query(), entity =>
         {
             XElement entityElement = new XElement("Entity");
             entityElement.SetAttributeValue("Id", entity.Id.ToString());
@@ -120,6 +120,6 @@ public class SceneXmlLoader : IXmlLoader
             _entitySerializer.SerializeEntity(entity, entityElement);
 
             element.Add(entityElement);
-        }
+        });
     }
 }

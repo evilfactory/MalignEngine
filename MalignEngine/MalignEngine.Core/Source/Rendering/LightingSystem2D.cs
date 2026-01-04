@@ -1,7 +1,5 @@
-using Arch.Core;
 using Silk.NET.SDL;
 using System.Numerics;
-using Arch.Core.Extensions;
 
 /*
 namespace MalignEngine

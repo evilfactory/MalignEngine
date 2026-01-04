@@ -9,28 +9,28 @@ namespace MalignEngine.Editor;
 public class EditorInspectorSystem : BaseEditorWindowSystem
 {
     private readonly IEntityManager _entityManager;
-    private readonly ParentSystem _parentSystem;
+    private readonly HierarchySystem _parentSystem;
 
     public override string WindowName => "Inspector";
 
-    public EditorInspectorSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, ParentSystem parentSystem)
+    public EditorInspectorSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, HierarchySystem parentSystem)
     : base(loggerService, scheduleManager, editorSystem, imGuiService)
     {
         _entityManager = entityManager;
         _parentSystem = parentSystem;
     }
 
-    private void RecursiveEntityTree(EntityRef[] entities)
+    private void RecursiveEntityTree(Entity[] entities)
     {
-        foreach (EntityRef entity in entities)
+        foreach (Entity entity in entities)
         {
             string name = "Unknown";
-            if (entity.TryGet(out NameComponent nameComponent))
+            if (entity.TryGet(out ComponentRef<NameComponent> nameComponent))
             {
-                name = nameComponent.Name;
+                name = nameComponent.Value.Name;
             }
 
-            if (entity.TryGet(out Children children))
+            if (entity.TryGet(out ComponentRef<Children> children))
             {
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow;
 
@@ -46,7 +46,7 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
                         EditorSystem.SelectedEntity = entity;
                     }
 
-                    RecursiveEntityTree(children.Childs.ToArray());
+                    RecursiveEntityTree(children.Value.Values.ToArray());
                     ImGui.TreePop();
                 }
                 else
@@ -110,13 +110,13 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
 
             ImGui.BeginChild("scrolling2", new Vector2(0, 0), false);
 
-            if (_entityManager.World.IsValid(EditorSystem.SelectedEntity))
+            if (_entityManager.World.IsAlive(EditorSystem.SelectedEntity))
             {
-                EntityRef entity = EditorSystem.SelectedEntity;
+                Entity entity = EditorSystem.SelectedEntity;
 
                 if (ImGui.Button("Delete"))
                 {
-                    _entityManager.World.Destroy(entity);
+                    _entityManager.Destroy(entity);
                     ImGui.EndChild();
                     ImGui.EndTable();
                     ImGui.End();
@@ -127,10 +127,10 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
                 ImGui.Text($"Entity Id: {entity.Id}");
                 ImGui.Text($"Entity Version: {entity.Version}");
 
-                object[] components = entity.GetComponents();
+                IComponent[] components = _entityManager.World.GetComponents(entity).ToArray();
 
                 int i = 0;
-                foreach (object component in components)
+                foreach (IComponent component in components)
                 {
                     ImGui.PushID(i);
 
@@ -171,7 +171,7 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
     {
         if (obj == null) { return "Null"; }
 
-        if (obj is EntityRef entity)
+        if (obj is Entity entity)
         {
             if (entity.Has<NameComponent>())
             {
@@ -191,7 +191,7 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
         return obj.ToString();
     }
 
-    private static void DrawMember(EntityRef entity, MemberInfo member, object obj)
+    private static void DrawMember(Entity entity, MemberInfo member, IComponent component)
     {
         Type type = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
         Func<object, object> getValue = member is PropertyInfo ? ((PropertyInfo)member).GetValue : ((FieldInfo)member).GetValue;
@@ -199,83 +199,83 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
 
         if (type == typeof(float))
         {
-            float v = (float)getValue(obj);
+            float v = (float)getValue(component);
             if (ImGui.InputFloat(member.Name, ref v))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(int))
         {
-            int v = (int)getValue(obj);
+            int v = (int)getValue(component);
             if (ImGui.InputInt(member.Name, ref v))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(string))
         {
-            string v = (string)getValue(obj) ?? "NULL";
+            string v = (string)getValue(component) ?? "NULL";
             if (ImGui.InputText(member.Name, ref v, 100))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(bool))
         {
-            bool v = (bool)getValue(obj);
+            bool v = (bool)getValue(component);
             if (ImGui.Checkbox(member.Name, ref v))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(Vector2))
         {
-            Vector2 v = (Vector2)getValue(obj);
+            Vector2 v = (Vector2)getValue(component);
             if (ImGui.InputFloat2(member.Name, ref v))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(Vector3))
         {
-            Vector3 v = (Vector3)getValue(obj);
+            Vector3 v = (Vector3)getValue(component);
             if (ImGui.InputFloat3(member.Name, ref v))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(Vector4))
         {
-            Vector4 v = (Vector4)getValue(obj);
+            Vector4 v = (Vector4)getValue(component);
             if (ImGui.InputFloat4(member.Name, ref v))
             {
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type == typeof(Color))
         {
-            Color v = (Color)getValue(obj);
+            Color v = (Color)getValue(component);
             Vector4 col = new Vector4(v.R / 255f, v.G / 255f, v.B / 255f, v.A / 255f);
             if (ImGui.ColorPicker4(member.Name, ref col))
             {
                 v = new Color(col.X, col.Y, col.Z, col.W);
-                setValue(obj, v);
-                entity.Set(obj);
+                setValue(component, v);
+                entity.AddOrSet(component);
             }
         }
         else if (type.IsAssignableTo(typeof(IDictionary)))
         {
             ImGui.Text(member.Name);
             ImGui.Indent();
-            IDictionary dict = (IDictionary)getValue(obj);
+            IDictionary dict = (IDictionary)getValue(component);
             foreach (var key in dict.Keys)
             {
                 ImGui.Text($"{FormatObject(key)}: {FormatObject(dict[key])}");
@@ -284,7 +284,7 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
         }
         else
         {
-            ImGui.Text($"{member.Name}: {FormatObject(getValue(obj))}");
+            ImGui.Text($"{member.Name}: {FormatObject(getValue(component))}");
         }
     }
 }

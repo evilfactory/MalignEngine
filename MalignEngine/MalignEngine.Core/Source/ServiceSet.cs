@@ -50,7 +50,7 @@ public class ServiceSet
             {
                 typeof(EntityManager),
                 typeof(AssetService),
-                typeof(ParentSystem),
+                typeof(HierarchySystem),
                 typeof(TransformSystem),
                 typeof(PhysicsSystem2D)
             });

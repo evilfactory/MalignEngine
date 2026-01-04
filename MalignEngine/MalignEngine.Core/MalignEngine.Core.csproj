@@ -21,9 +21,4 @@
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
         <PackageReference Include="FluentResults" Version="3.16.0" />
     </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Libraries\Arch\src\Arch.SourceGen\Arch.SourceGen.csproj" />
-        <ProjectReference Include="..\Libraries\Arch\src\Arch\Arch.csproj" />
-    </ItemGroup>
 </Project>

@@ -1,5 +1,3 @@
-using Arch.Core;
-using Arch.Core.Extensions;
 using System.Numerics;
 
 namespace MalignEngine;
@@ -10,83 +8,49 @@ public static class VectorExtensions
     public static Vector3 ToVector3(this Vector2 vec2, float z = 0) => new Vector3(vec2, z);
 }
 
-public class TransformMoveEvent : ComponentEventArgs
-{
-    EntityRef Entity;
-    public Transform Transform;
-
-    public TransformMoveEvent(EntityRef entity, Transform transform)
-    {
-        Entity = entity;
-        Transform = transform;
-    }
-}
-
 public class TransformSystem : EntitySystem, IPostUpdate
 {
-    private readonly ParentSystem _parentSystem;
+    private readonly HierarchySystem _hierarchySystem;
 
-    public TransformSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, ParentSystem parentSystem) 
+    public TransformSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, HierarchySystem parentSystem) 
         : base(loggerService, scheduleManager, entityManager, eventService)
     {
-        _parentSystem = parentSystem;
-
-        EventService.Register(new ComponentEventChannel<TransformMoveEvent>());
-
-        // remove, stupid
-        EventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<Transform>((entity, args) =>
-        {
-            if (!entity.Has<WorldTransform>())
-            {
-                entity.Add(new WorldTransform());
-            }
-        });
+        _hierarchySystem = parentSystem;
     }
 
     public void OnPostUpdate(float deltaTime)
     {
-        foreach (EntityRef entity in _parentSystem.RootEntities)
+        foreach (Entity entity in _hierarchySystem.RootEntities)
         {
             UpdateTransformTree(entity);
         }
-
-        EntityManager.World.Query(EntityManager.World.CreateQuery().WithAll<Transform, WorldTransform>(), (EntityRef entity, ref Transform transform, ref WorldTransform worldTransform) =>
-        {
-            if (transform.LastPosition != transform.Position)
-            {
-                EventService.Get<ComponentEventChannel<TransformMoveEvent>>().Raise(entity, new TransformMoveEvent(entity, transform));
-            }
-
-            transform.LastPosition = transform.Position;
-            worldTransform.LastPosition = worldTransform.Position;
-        });
     }
 
-    public void UpdateTransformTree(EntityRef root)
+    public void UpdateTransformTree(Entity root)
     {
-        if (root.Has<WorldTransform>() && root.TryGet(out Transform parentTransform))
+        if (root.Has<WorldTransform>() && root.TryGet(out ComponentRef<Transform> parentTransform))
         {
             if (!root.Has<ParentOf>())
             {
-                root.Set(new WorldTransform(parentTransform));
+                root.AddOrSet(new WorldTransform(parentTransform.Value));
             }
         }
 
-        if (root.TryGet(out Children children))
+        if (root.TryGet(out ComponentRef<Children> children))
         {
-            foreach (EntityRef child in children.Childs)
+            foreach (Entity child in children.Value.Values)
             {
                 // Update WorldPosition
-                if (child.TryGet(out Transform transform))
+                if (child.TryGet(out ComponentRef<Transform> transform))
                 {
-                    if (root.TryGet(out WorldTransform parentWorldTransform))
+                    if (root.TryGet(out ComponentRef<WorldTransform> parentWorldTransform))
                     {
                         // put WorldTransform which is the world position/rotation relative to the root entity
-                        child.Set(new WorldTransform(transform.Position + parentWorldTransform.Position, transform.Rotation, transform.Scale));
+                        child.AddOrSet(new WorldTransform(transform.Value.Position + parentWorldTransform.Value.Position, transform.Value.Rotation, transform.Value.Scale));
                     }
                     else
                     {
-                        child.Set(new WorldTransform(transform));
+                        child.AddOrSet(new WorldTransform(transform.Value));
                     }
                 }
 

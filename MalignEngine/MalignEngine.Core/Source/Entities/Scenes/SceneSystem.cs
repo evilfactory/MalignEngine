@@ -11,19 +11,19 @@ public struct SceneComponent : IComponent
 
 public class SceneSystem : EntitySystem
 {
-    private readonly ParentSystem _parentSystem;
+    private readonly HierarchySystem _parentSystem;
 
-    public SceneSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, ParentSystem parentSystem) 
+    public SceneSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, HierarchySystem parentSystem) 
         : base(loggerService, scheduleManager, entityManager, eventService)
     {
         _parentSystem = parentSystem;
     }
 
-    public EntityRef Instantiate(Scene scene)
+    public Entity Instantiate(Scene scene)
     {
-        List<EntityRef> otherEntities = new List<EntityRef>();
+        List<Entity> otherEntities = new List<Entity>();
 
-        scene.SceneWorld.Query(scene.SceneWorld.CreateQuery(), (EntityRef entity) =>
+        scene.SceneWorld.Query(new Query(), (Entity entity) =>
         {
             if (entity.Id == scene.Root.Id)
             {
@@ -35,13 +35,13 @@ public class SceneSystem : EntitySystem
 
         EntityIdRemap remap = new EntityIdRemap();
 
-        EntityRef newRoot = EntityManager.World.CreateEntity();
+        Entity newRoot = EntityManager.World.CreateEntity();
         remap.AddEntity(scene.Root.Id, newRoot);
 
-        List<EntityRef> otherNewEntities = new List<EntityRef>();
-        otherEntities.ForEach((EntityRef entity) =>
+        List<Entity> otherNewEntities = new List<Entity>();
+        otherEntities.ForEach((Entity entity) =>
         {
-            EntityRef newEntity = EntityManager.World.CreateEntity();
+            Entity newEntity = EntityManager.World.CreateEntity();
             remap.AddEntity(entity.Id, newEntity);
             otherNewEntities.Add(newEntity);
         });
@@ -55,13 +55,13 @@ public class SceneSystem : EntitySystem
 
         if (scene.SceneId != null)
         {
-            newRoot.Add(new SceneComponent() { SceneId = scene.SceneId });
+            newRoot.AddOrSet(new SceneComponent() { SceneId = scene.SceneId });
         }
 
         return newRoot;
     }
 
-    public static void CopyComponent(IComponent component, EntityRef from, EntityRef to, EntityIdRemap remap)
+    public static void CopyComponent(IComponent component, Entity from, Entity to, EntityIdRemap remap)
     {
         Type componentType = component.GetType();
 
@@ -79,9 +79,9 @@ public class SceneSystem : EntitySystem
             object value = member is PropertyInfo ? ((PropertyInfo)member).GetValue(component) : ((FieldInfo)member).GetValue(component);
             Action<object, object> setValue = member is PropertyInfo ? ((PropertyInfo)member).SetValue : ((FieldInfo)member).SetValue;
 
-            if (value is EntityRef entityRef)
+            if (value is Entity entityRef)
             {
-                EntityRef newEntityRef = remap.GetEntity(entityRef.Id);
+                Entity newEntityRef = remap.GetEntity(entityRef.Id);
                 setValue(newComponent, newEntityRef);
             }
             else
@@ -90,18 +90,13 @@ public class SceneSystem : EntitySystem
             }
         }
 
-        to.Add(newComponent);
+        to.AddOrSet(newComponent);
     }
 
-    public static void CopyEntity(EntityRef from, EntityRef to, EntityIdRemap remap)
+    public static void CopyEntity(Entity from, Entity to, EntityIdRemap remap)
     {
         foreach (var component in from.GetComponents())
         {
-            if (component is EntityMetaData)
-            {
-                continue;
-            }
-
             CopyComponent(component, from, to, remap);
         }
     }

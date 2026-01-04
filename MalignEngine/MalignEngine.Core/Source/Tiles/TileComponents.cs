@@ -4,7 +4,7 @@ namespace MalignEngine;
 
 public class TileMapComponent : IComponent
 {
-    [Access(typeof(TileSystem), Other = AccessPermissions.None)]
+    //[Access(typeof(TileSystem), Other = AccessPermissions.None)]
     public Dictionary<string, TileLayer> layers;
 
     public bool ColliderNeedsUpdate;

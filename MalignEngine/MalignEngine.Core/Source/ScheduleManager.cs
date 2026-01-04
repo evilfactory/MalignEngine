@@ -71,7 +71,6 @@ public class ScheduleManager : IScheduleManager, IService
             throw new InvalidOperationException("Tried to unregister a type that doesn't implement ISchedule");
         }
 
-
         List<object> interfaceListeners = listeners.GetOrAdd(interfaceType, new List<object>());
         interfaceListeners.Remove(listener);
     }
@@ -80,7 +79,7 @@ public class ScheduleManager : IScheduleManager, IService
         => Register(typeof(T), listener);
 
     public void Unregister<T>(object listener) where T : ISchedule 
-        => Register(typeof(T), listener);
+        => Unregister(typeof(T), listener);
 
     public void RegisterAll(object listener)
     {
@@ -113,6 +112,7 @@ public class ScheduleManager : IScheduleManager, IService
             return;
         }
 
+        sortedSchedules = sortedSchedules.ToList();
         sortedSchedules.Sort((x, y) => 
         {
             var px = GetMetaData(scheduleType, x.GetType()).Priority;

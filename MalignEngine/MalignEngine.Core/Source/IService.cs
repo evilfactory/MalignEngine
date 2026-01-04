@@ -1,5 +1,3 @@
-using Arch.Core;
-
 namespace MalignEngine;
 
 /// <summary>

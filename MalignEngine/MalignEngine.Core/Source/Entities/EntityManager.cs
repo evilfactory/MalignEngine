@@ -1,165 +1,85 @@
-using Arch.Buffer;
-using Arch.Core;
-using Arch.Core.Extensions;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace MalignEngine;
 
-public enum EntityLifeStage
-{
-    Created,
-    Terminating,
-    Deleted,
-}
-
-public enum ComponentLifeStage
-{
-    Adding,
-    Added,
-    Initializing,
-    Initialized,
-    Starting,
-    Running,
-    Stopping,
-    Stopped,
-    Removing,
-    Deleted,
-}
-
-public class EntityMetaData : IComponent
-{
-    public EntityLifeStage LifeStage;
-    public Dictionary<Type, ComponentLifeStage> ComponentLifeStages;
-}
-
-public class EntityCreatedEvent : EventArgs
-{
-    public EntityRef Entity;
-
-    public EntityCreatedEvent(EntityRef entity)
-    {
-        Entity = entity;
-    }
-}
-public class EntityDestroyedEvent : EventArgs
-{
-    public EntityRef Entity;
-
-    public EntityDestroyedEvent(EntityRef entity)
-    {
-        Entity = entity;
-    }
-}
-
-public class ComponentAddedEvent : ComponentEventArgs { }
-public class ComponentInitEvent : ComponentEventArgs { }
-public class ComponentStartEvent : ComponentEventArgs { }
-public class ComponentStopEvent : ComponentEventArgs { }
-public class ComponentRemovedEvent : ComponentEventArgs { }
-public class ComponentDeletedEvent : ComponentEventArgs { }
-
-public delegate void ForEachWithEntity(EntityRef entity);
-public delegate void ForEachWithEntity<T0>(EntityRef entity, ref T0 t0Component);
-public delegate void ForEachWithEntity<T0, T1>(EntityRef entity, ref T0 t0Component, ref T1 t1Component);
-public delegate void ForEachWithEntity<T0, T1, T2>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component);
-public delegate void ForEachWithEntity<T0, T1, T2, T3>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component, ref T3 t3Component);
-public delegate void ForEachWithEntity<T0, T1, T2, T3, T4>(EntityRef entity, ref T0 t0Component, ref T1 t1Component, ref T2 t2Component, ref T3 t3Component, ref T4 t4Component);
-
-public abstract class ComponentEventArgs : EventArgs { }
-
-public class ComponentEventChannel<T> : IEventChannel<T> where T : ComponentEventArgs
-{
-    private class EventSubscription
-    {
-        public Delegate Handler { get; private set; }
-        public Type? ComponentType;
-        public EventSubscription(Delegate handler, Type? componentType = null)
-        {
-            Handler = handler;
-            ComponentType = componentType;
-        }
-    }
-
-    private List<EventSubscription> eventSubscriptions = new();
-
-    public void Raise(EntityRef entity, T args)
-    {
-        var componentTypes = entity.GetComponents().ToList().Select(x => x.GetType());
-
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<EntityRef, T> handler && componentTypes.Contains(subscription.ComponentType))
-            {
-                handler(entity, args);
-            }
-        }
-    }
-
-    public void Raise<TComponent>(EntityRef entity, T args)
-    {
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<EntityRef, T> handler && typeof(TComponent) == subscription.ComponentType)
-            {
-                handler(entity, args);
-            }
-        }
-    }
-
-    public void Raise(EntityRef entity, Type componentType, T args)
-    {
-        foreach (var subscription in eventSubscriptions)
-        {
-            if (subscription.Handler is Action<EntityRef, T> handler && componentType == subscription.ComponentType)
-            {
-                handler(entity, args);
-            }
-        }
-    }
-
-    public void Subscribe<TComponent>(Action<EntityRef, T> handler)
-    {
-        eventSubscriptions.Add(new EventSubscription(handler, typeof(TComponent)));
-    }
-}
-
+/// <summary>
+/// World subsystem, keeps a container that stores a world and all services running on it
+/// </summary>
 public interface IEntityManager
 {
-    WorldRef World { get; }
+    public World World { get; }
+    public IServiceContainer WorldContainer { get; }
+    /// <summary>
+    /// Marks the entity for destruction.
+    /// </summary>
+    public void Destroy(Entity entity);
 }
 
-public sealed class EntityManager : IEntityManager, IService, IPostUpdate
+[Stage<IPostUpdate, HighestPriorityStage>]
+public sealed class EntityManager : IEntityManager, IDisposable, IApplicationRun, IPostUpdate
 {
-    private ILogger _logger;
-    private IEventService _eventService;
+    public World World { get; init; }
+    public IServiceContainer WorldContainer { get; init; }
 
-    public WorldRef World
+    private Queue<Entity> backDestroyBuffer;
+    private Queue<Entity> frontDestroyBuffer;
+
+    private readonly IScheduleManager _scheduleManager;
+
+    private bool disposing = false;
+
+    public EntityManager(IServiceContainer worldContainer, IScheduleManager scheduleManager)
     {
-        get => world;
+        _scheduleManager = scheduleManager;
+
+        World = new World();
+        WorldContainer = worldContainer;
+
+        WorldContainer.Register<IEntityManager, EntityManager>(new SingletonLifeTime(this));
+        WorldContainer.Register<IWorld, World>(new SingletonLifeTime(World));
+
+        backDestroyBuffer = new Queue<Entity>();
+        frontDestroyBuffer = new Queue<Entity>();
+
+        _scheduleManager.RegisterAll(this);
     }
 
-    private WorldRef world = default!;
-
-    public EntityManager(ILoggerService LoggerService, IEventService eventService)
+    public void Destroy(Entity entity)
     {
-        _logger = LoggerService.GetSawmill("ents");
+        World.AddOrSetComponent(entity, new Destroyed());
 
-        eventService.Register(new EventChannel<EntityCreatedEvent>());
-        eventService.Register(new EventChannel<EntityDestroyedEvent>());
-        eventService.Register(new ComponentEventChannel<ComponentAddedEvent>());
-        eventService.Register(new ComponentEventChannel<ComponentInitEvent>());
-        eventService.Register(new ComponentEventChannel<ComponentStartEvent>());
-        eventService.Register(new ComponentEventChannel<ComponentStopEvent>());
-        eventService.Register(new ComponentEventChannel<ComponentRemovedEvent>());
-        eventService.Register(new ComponentEventChannel<ComponentDeletedEvent>());
+        frontDestroyBuffer.Enqueue(entity);
+    }
 
-        _eventService = eventService;
-
-        world = new WorldRef(_logger, _eventService);
+    public void OnApplicationRun()
+    {
+        WorldContainer.GetInstance<IEnumerable<ISystem>>();
     }
 
     public void OnPostUpdate(float deltaTime)
     {
-        World.Update();
+        while (backDestroyBuffer.TryDequeue(out Entity entity))
+        {
+            if (!World.IsAlive(entity)) { continue; }
+
+            World.DestroyImmediate(entity);
+        }
+
+        // Swap buffers
+        var temp = backDestroyBuffer;
+        backDestroyBuffer = frontDestroyBuffer;
+        frontDestroyBuffer = temp;
+    }
+
+    public void Dispose()
+    {
+        if (disposing) { return; }
+
+        disposing = true;
+
+        _scheduleManager.UnregisterAll(this);
+        WorldContainer.Dispose();
     }
 }

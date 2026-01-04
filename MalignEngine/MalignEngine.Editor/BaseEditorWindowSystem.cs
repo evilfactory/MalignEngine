@@ -18,4 +18,11 @@ public abstract class BaseEditorWindowSystem : BaseSystem
     }
 
     public virtual void DrawWindow(float delta) { }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+
+        EditorSystem.RemoveWindow(this);
+    }
 }

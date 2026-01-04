@@ -1,5 +1,3 @@
-using Arch.Core;
-using Arch.Core.Extensions;
 using Silk.NET.SDL;
 using System.Numerics;
 
@@ -8,6 +6,11 @@ namespace MalignEngine;
 public interface ICameraDraw : ISchedule
 {
     public void OnCameraDraw(float delta, OrthographicCamera camera);
+}
+
+public struct CameraRenderData : IComponent
+{
+    public IFrameBufferResource Output;
 }
 
 public class CameraSystem : BaseSystem
@@ -28,11 +31,6 @@ public class CameraSystem : BaseSystem
         _scheduleManager = scheduleManager;
         _entityManager = entityManager;
         _eventService = eventService;
-
-        _eventService.Get<ComponentEventChannel<ComponentAddedEvent>>().Subscribe<OrthographicCamera>((entity, addedEvent) =>
-        {
-            entity.Get<OrthographicCamera>().Output = _renderApi.CreateFrameBuffer(new FrameBufferDescriptor(1, 512, 512));
-        });
     }
 
     public override void OnDraw(float delta)
@@ -42,23 +40,36 @@ public class CameraSystem : BaseSystem
             return;
         }
 
-        List<EntityRef> cameraEntities = new List<EntityRef>();
-        EntityRef mainCamera = default;
+        List<Entity> cameraEntities = new List<Entity>();
+        Entity mainCamera = default;
 
-        var query = new QueryDescription().WithAll<OrthographicCamera, Transform>();
-        _entityManager.World.Query(in query, (EntityRef entity, ref OrthographicCamera camera, ref Transform transform) =>
+        _entityManager.World.Query(new Query().WithAll<OrthographicCamera>().Exclude<CameraRenderData>(), (Entity entity) =>
         {
-            if (camera.Output == null)
+            entity.AddOrSet(new CameraRenderData()
+            {
+                Output = _renderApi.CreateFrameBuffer(new FrameBufferDescriptor(1, 512, 512))
+            });
+        });
+
+        _entityManager.World.Query(new Query().WithAll<OrthographicCamera, CameraRenderData, Transform>(), (Entity entity) =>
+        {
+            ref OrthographicCamera camera = ref entity.Get<OrthographicCamera>();
+            ref CameraRenderData renderData = ref entity.Get<CameraRenderData>();
+            ref Transform transform = ref entity.Get<Transform>();
+
+            if (renderData.Output == null)
             {
                 return;
             }
 
             if (camera.IsMain)
             {
-                camera.Output.Resize(_windowService.FrameSize.X, _windowService.FrameSize.Y);
+                renderData.Output.Resize(_windowService.FrameSize.X, _windowService.FrameSize.Y);
+                camera.Width = _windowService.FrameSize.X;
+                camera.Height = _windowService.FrameSize.Y;
             }
 
-            camera.Matrix = CreateOrthographicMatrix(camera.Output.Width, camera.Output.Height, camera.ViewSize, transform.Position.ToVector2());
+            camera.Matrix = CreateOrthographicMatrix(renderData.Output.Width, renderData.Output.Height, camera.ViewSize, transform.Position.ToVector2());
 
             cameraEntities.Add(entity);
 
@@ -71,12 +82,13 @@ public class CameraSystem : BaseSystem
         foreach (var cameraEntity in cameraEntities)
         {
             OrthographicCamera camera = cameraEntity.Get<OrthographicCamera>();
+            CameraRenderData renderData = cameraEntity.Get<CameraRenderData>();
 
             _renderApi.Submit(ctx =>
             {
                 _renderer2D.SetMatrix(camera.Matrix);
 
-                ctx.SetFrameBuffer(camera.Output, camera.Output.Width, camera.Output.Height);
+                ctx.SetFrameBuffer(renderData.Output, renderData.Output.Width, renderData.Output.Height);
                 ctx.Clear(camera.ClearColor);
             });
 
@@ -86,14 +98,15 @@ public class CameraSystem : BaseSystem
             {
                 for (int i = 0; i < camera.PostProcessingSteps.Length; i++)
                 {
-                    camera.PostProcessingSteps[i].Process(camera.Output);
+                    camera.PostProcessingSteps[i].Process(renderData.Output);
                 }
             }
         }
 
-        if (mainCamera != EntityRef.Null)
+        if (mainCamera != Entity.Null)
         {
             OrthographicCamera camera = mainCamera.Get<OrthographicCamera>();
+            CameraRenderData renderData = mainCamera.Get<CameraRenderData>();
 
             _renderApi.Submit(ctx =>
             {
@@ -102,7 +115,7 @@ public class CameraSystem : BaseSystem
                 ctx.Clear(Color.Black);
 
                 _renderer2D.Begin(ctx, Matrix4x4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, 0.001f, 100f));
-                _renderer2D.DrawTexture2D(camera.Output.GetColorAttachment(0), new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
+                _renderer2D.DrawTexture2D(renderData.Output.GetColorAttachment(0), new Vector2(0.5f, 0.5f), new Vector2(1f, 1f), Color.White, 0f, 0f);
                 _renderer2D.End();
             });
 
@@ -131,9 +144,7 @@ public class CameraSystem : BaseSystem
 
     public Vector2 ScreenToWorld(ref OrthographicCamera camera, Vector2 position)
     {
-        if (camera.Output == null) { return new Vector2(); }
-
-        position = new Vector2((position.X / camera.Output.Width - 0.5f) * 2f, (-position.Y / camera.Output.Height + 0.5f) * 2f);
+        position = new Vector2((position.X / camera.Width - 0.5f) * 2f, (-position.Y / camera.Height + 0.5f) * 2f);
 
         Matrix4x4.Invert(camera.Matrix, out Matrix4x4 invMatrix);
 

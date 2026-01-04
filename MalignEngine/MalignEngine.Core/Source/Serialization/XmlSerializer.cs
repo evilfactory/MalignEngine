@@ -17,7 +17,7 @@ public class XmlSerializer : IService
     {
         return type == typeof(int) || type == typeof(float) || type == typeof(string) || type == typeof(bool) ||
                type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4) || type == typeof(Color) ||
-               type == typeof(EntityRef) || type == typeof(Quaternion) || type.IsAssignableTo(typeof(IAssetHandle));
+               type == typeof(Entity) || type == typeof(Quaternion) || type.IsAssignableTo(typeof(IAssetHandle));
     }
 
     public void SerializeObject(object obj, XElement element, bool saveAll = false)
@@ -50,9 +50,9 @@ public class XmlSerializer : IService
             {
                 element.SetAttributeColor(dataField.Name, (Color)value);
             }
-            else if (memberType == typeof(EntityRef))
+            else if (memberType == typeof(Entity))
             {
-                element.SetAttributeInt(dataField.Name, ((EntityRef)value).Id);
+                element.SetAttributeInt(dataField.Name, ((Entity)value).Id);
             }
             else if (memberType.IsEnum)
             {
@@ -138,7 +138,7 @@ public class XmlSerializer : IService
             {
                 setValue(obj, Enum.Parse(memberType, element.GetAttributeString(dataField.Name)));
             }
-            else if (memberType == typeof(EntityRef))
+            else if (memberType == typeof(Entity))
             {
                 if (idRemap == null)
                 {

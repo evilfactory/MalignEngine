@@ -1,6 +1,5 @@
-using Arch.Core;
-using Arch.Core.Extensions;
 using ImGuiNET;
+using Silk.NET.OpenGL;
 using System.Numerics;
 
 namespace MalignEngine.Editor;
@@ -18,7 +17,7 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
     private CameraSystem _cameraSystem = default!;
     private IEntityManager _entityManager;
 
-    private EntityRef _camera;
+    private Entity _camera;
 
     public EditorSceneViewSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, IRenderer2D renderer2D, TransformSystem transformSystem, IInputService inputService, CameraSystem cameraSystem) 
         : base(loggerService, scheduleManager, editorSystem, imGuiService)
@@ -43,9 +42,9 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
 
         if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
         {
-            var query = new QueryDescription().WithAll<Transform>();
-            _entityManager.World.Query(in query, (EntityRef entity, ref Transform transform) =>
+            _entityManager.World.Query(new Query().Include<Transform>(), (Entity entity) =>
             {
+                ref Transform transform = ref entity.Get<Transform>();
                 if (WorldMousePosition.X > transform.Position.X - transform.Scale.X / 2 && WorldMousePosition.X < transform.Position.X + transform.Scale.X / 2)
                 {
                     if (WorldMousePosition.Y > transform.Position.Y - transform.Scale.Y / 2 && WorldMousePosition.Y < transform.Position.Y + transform.Scale.Y / 2)
@@ -61,11 +60,11 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
 
     public override void DrawWindow(float deltaTime)
     {
-        if (!_camera.IsValid())
+        if (!_camera.IsAlive())
         {
             _camera = _entityManager.World.CreateEntity();
-            _camera.Add(new Transform());
-            _camera.Add(new OrthographicCamera() { ViewSize = 6f, IsMain = false, ClearColor = Color.Black });
+            _camera.AddOrSet(new Transform());
+            _camera.AddOrSet(new OrthographicCamera() { ViewSize = 6f, IsMain = false, ClearColor = Color.Black });
         }
 
         ImGui.Begin("Scene View");
@@ -94,12 +93,15 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
         if (size.X < 1) { size.X = 1f; }
         if (size.Y < 1) { size.Y = 1f; }
 
-        IFrameBufferResource renderTexture = _camera.Get<OrthographicCamera>().Output;
-
-        if (renderTexture != null)
+        if (_camera.TryGet(out ComponentRef<CameraRenderData> renderData))
         {
-            ImGuiService.Image(renderTexture.GetColorAttachment(0), size, uv0: new Vector2(0, 1), uv1: new Vector2(1, 0));
-            renderTexture.Resize((int)size.X, (int)size.Y);
+            IFrameBufferResource renderTexture = renderData.Value.Output;
+
+            if (renderTexture != null)
+            {
+                ImGuiService.Image(renderTexture.GetColorAttachment(0), size, uv0: new Vector2(0, 1), uv1: new Vector2(1, 0));
+                renderTexture.Resize((int)size.X, (int)size.Y);
+            }
         }
 
         ImGui.End();

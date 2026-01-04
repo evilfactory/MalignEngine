@@ -19,15 +19,8 @@ public struct PhysicsBody2D : IComponent
     [DataField("Mass", save: true)]
     public float Mass;
 
-    [DataField("LinearVelocity", save: true)]
     public Vector2 LinearVelocity;
-    [DataField("AngularVelocity", save: true)]
     public float AngularVelocity;
 
     public FixtureData2D[] Fixtures;
-}
-
-internal struct PhysicsSimId : IComponent
-{
-    public uint Id;
 }

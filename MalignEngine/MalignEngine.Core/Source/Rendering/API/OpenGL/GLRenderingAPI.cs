@@ -103,12 +103,12 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
         while (_running)
         {
-            using (_performanceProfiler.BeginSample("rendering.api.renderthread.waiting.frame"))
+            using (_performanceProfiler?.BeginSample("rendering.api.renderthread.waiting.frame"))
             {
                 _frameReady.WaitOne();
             }
 
-            using (_performanceProfiler.BeginSample("rendering.api.renderthread.frame"))
+            using (_performanceProfiler?.BeginSample("rendering.api.renderthread.frame"))
             {
                 _context = new GLRenderContext(_gl);
 
@@ -169,7 +169,7 @@ public class GLRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     public void EndFrame()
     {
-        using (_performanceProfiler.BeginSample("rendering.api.waiting.prevframe"))
+        using (_performanceProfiler?.BeginSample("rendering.api.waiting.prevframe"))
         {
             _frameComplete.WaitOne();
         }

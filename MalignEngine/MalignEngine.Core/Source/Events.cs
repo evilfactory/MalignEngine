@@ -39,10 +39,14 @@ namespace MalignEngine
         public void OnPostDrawGUI(float deltaTime);
     }
 
+    public interface IApplicationRun : ISchedule
+    {
+        public void OnApplicationRun();
+    }
+
     public interface IApplicationClosing : ISchedule
     {
         public void OnApplicationClosing();
-
     }
 }
 

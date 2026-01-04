@@ -1,4 +1,3 @@
-using Arch.Core;
 using ImGuiNET;
 using System.Numerics;
 
@@ -9,7 +8,7 @@ public class EditorSystem : BaseSystem, IDrawImGui
     [Dependency]
     protected IInputService InputSystem = default!;
 
-    public EntityRef SelectedEntity { get; set; } = default;
+    public Entity SelectedEntity { get; set; } = default;
 
     private bool hideAllWindows = true;
 
@@ -20,6 +19,11 @@ public class EditorSystem : BaseSystem, IDrawImGui
     public void AddWindow(BaseEditorWindowSystem window)
     {
         windows.Add(window);
+    }
+
+    public void RemoveWindow(BaseEditorWindowSystem window)
+    {
+        windows.Remove(window);
     }
 
     public override void OnUpdate(float deltaTime)

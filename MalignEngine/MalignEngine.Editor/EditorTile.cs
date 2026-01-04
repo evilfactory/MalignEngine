@@ -5,6 +5,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine.Editor;
 
+/*
 public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 {
     [Dependency]
@@ -28,11 +29,11 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
     [Dependency]
     protected SceneXmlLoader SceneXmlLoader = default!;
     [Dependency]
-    protected ParentSystem ParentSystem = default!;
+    protected HierarchySystem ParentSystem = default!;
 
     public override string WindowName => "Tile Editor";
 
-    private EntityRef _selectedTileMap;
+    private Entity _selectedTileMap;
     private TileData? _selectedTileData;
 
     private AssetHandle<TileList>[]? _tileList;
@@ -44,11 +45,11 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
     {
     }
 
-    private string GetTileName(EntityRef tilemap)
+    private string GetTileName(Entity tilemap)
     {
         if (tilemap.TryGet<NameComponent>(out var nameComp))
         {
-            return nameComp.Name;
+            return nameComp.Value.Name;
         }
 
         return tilemap.Id.ToString();
@@ -60,16 +61,13 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
         ImGui.Text("Tile Editor");
 
-        List<EntityRef> tilemaps = new List<EntityRef>();
+        List<Entity> tilemaps = new List<Entity>();
 
-        EntityManager.World.Query(EntityManager.World.CreateQuery().WithAll<TileMapComponent>(), (EntityRef entity) =>
-        {
-            tilemaps.Add(entity);
-        });
+        EntityManager.World.Query(new Query().WithAll<TileMapComponent>(), tilemaps.Add);
 
-        if (ImGui.BeginCombo("Tilemaps", _selectedTileMap.IsValid() ? GetTileName(_selectedTileMap) : "Select Tilemap"))
+        if (ImGui.BeginCombo("Tilemaps", _selectedTileMap.IsAlive() ? GetTileName(_selectedTileMap) : "Select Tilemap"))
         {
-            foreach (EntityRef tilemap in tilemaps)
+            foreach (Entity tilemap in tilemaps)
             {
                 if (ImGui.Selectable(GetTileName(tilemap), _selectedTileMap == tilemap))
                 {
@@ -86,12 +84,12 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
             var children = _selectedTileMap.Get<Children>();
 
-            EntityRef[] entitiesToCopy = new EntityRef[children.Childs.Count + 1];
+            Entity[] entitiesToCopy = new Entity[children.Values.Count + 1];
 
             entitiesToCopy[0] = _selectedTileMap;
 
             int index = 1;
-            foreach (EntityRef entity in children.Childs)
+            foreach (Entity entity in children.Values)
             {
                 entitiesToCopy[index] = entity;
                 index++;
@@ -107,7 +105,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
         if (ImGui.Button("Load"))
         {
             Scene scene = AssetService.FromPath<Scene>(_fileName);
-            EntityRef tilemap = SceneSystem.Instantiate(scene);
+            Entity tilemap = SceneSystem.Instantiate(scene);
             _selectedTileMap = tilemap;
         }
 
@@ -148,7 +146,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
         _tileList = AssetService.GetHandles<TileList>().ToArray();
 
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
-        if (!_selectedTileMap.IsValid() || _selectedTileData == null) { return; }
+        if (!_selectedTileMap.IsAlive() || _selectedTileData == null) { return; }
 
         if (InputService.Mouse.IsButtonPressed(MouseButton.Left))
         {
@@ -157,7 +155,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
             if (lastPlacePosition != tilePosition || lastPlacedTile != _selectedTileData)
             {
-                EntityRef tile = TileSystem.CreateTile(_selectedTileMap, _selectedTileData, tilePosition);
+                Entity tile = TileSystem.CreateTile(_selectedTileMap, _selectedTileData, tilePosition);
                 lastPlacePosition = tilePosition;
                 lastPlacedTile = _selectedTileData;
             }
@@ -167,7 +165,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
     public void OnCameraDraw(float delta, OrthographicCamera camera)
     {
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
-        if (!_selectedTileMap.IsValid() || _selectedTileData == null) { return; }
+        if (!_selectedTileMap.IsAlive() || _selectedTileData == null) { return; }
 
         RenderingAPI.Submit(ctx =>
         {
@@ -177,3 +175,4 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
         });
     }
 }
+*/
