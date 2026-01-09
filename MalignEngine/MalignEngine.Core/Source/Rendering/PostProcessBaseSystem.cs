@@ -1,7 +1,7 @@
 namespace MalignEngine
 {    public abstract class PostProcessBaseSystem : BaseSystem
     {
-        protected PostProcessBaseSystem(ILoggerService loggerService, IScheduleManager scheduleManager) : base(loggerService, scheduleManager)
+        protected PostProcessBaseSystem(IServiceContainer serviceContainer) : base(serviceContainer)
         {
         }
 

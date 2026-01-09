@@ -11,12 +11,12 @@ public struct SceneComponent : IComponent
 
 public class SceneSystem : EntitySystem
 {
-    private readonly HierarchySystem _parentSystem;
+    private readonly HierarchySystem _hierarchySystem;
 
-    public SceneSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, HierarchySystem parentSystem) 
-        : base(loggerService, scheduleManager, entityManager, eventService)
+    public SceneSystem(IServiceContainer serviceContainer, HierarchySystem parentSystem) 
+        : base(serviceContainer)
     {
-        _parentSystem = parentSystem;
+        _hierarchySystem = parentSystem;
     }
 
     public Entity Instantiate(Scene scene)

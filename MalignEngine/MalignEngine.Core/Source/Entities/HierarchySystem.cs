@@ -27,10 +27,7 @@ public class HierarchySystem : EntitySystem
         }
     }
 
-    public HierarchySystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService) 
-        : base(loggerService, scheduleManager, entityManager, eventService)
-    {
-    }
+    public HierarchySystem(IServiceContainer serviceContainer) : base(serviceContainer) { }
 
     private void Attach(Entity child, Entity parent)
     {

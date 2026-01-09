@@ -8,8 +8,8 @@ public abstract class BaseEditorWindowSystem : BaseSystem
     protected EditorSystem EditorSystem;
     protected ImGuiSystem ImGuiService;
 
-    protected BaseEditorWindowSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
-        : base(loggerService, scheduleManager)
+    protected BaseEditorWindowSystem(IServiceContainer serviceContainer, EditorSystem editorSystem, ImGuiSystem imGuiService) 
+        : base(serviceContainer)
     {
         EditorSystem = editorSystem;
         ImGuiService = imGuiService;

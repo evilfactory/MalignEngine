@@ -5,13 +5,15 @@
 /// </summary>
 public abstract class BaseSystem : ISystem, IUpdate, IDraw, IDisposable
 {
-    protected readonly ILogger Logger;
+    protected readonly ILoggerService LoggerService;
     protected readonly IScheduleManager ScheduleManager;
 
-    public BaseSystem(ILoggerService loggerService, IScheduleManager scheduleManager)
+    protected virtual ILogger Logger => LoggerService.GetSawmill(GetType().Name);
+
+    public BaseSystem(IServiceContainer serviceContainer)
     {
-        Logger = loggerService.GetSawmill(GetType().Name);
-        ScheduleManager = scheduleManager;
+        LoggerService = serviceContainer.GetInstance<ILoggerService>();
+        ScheduleManager = serviceContainer.GetInstance<IScheduleManager>();
 
         ScheduleManager.RegisterAll(this);
     }

@@ -12,8 +12,8 @@ public class TransformSystem : EntitySystem, IPostUpdate
 {
     private readonly HierarchySystem _hierarchySystem;
 
-    public TransformSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, HierarchySystem parentSystem) 
-        : base(loggerService, scheduleManager, entityManager, eventService)
+    public TransformSystem(IServiceContainer serviceContainer, HierarchySystem parentSystem) 
+        : base(serviceContainer)
     {
         _hierarchySystem = parentSystem;
     }

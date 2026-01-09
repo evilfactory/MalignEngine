@@ -28,8 +28,7 @@ class Experimentation : BaseSystem, ICameraDraw
     private Font _font;
 
     public Experimentation(
-        ILoggerService loggerService,
-        IScheduleManager scheduleManager,
+        IServiceContainer serviceContainer,
         IRenderingAPI renderAPI,
         IAssetService assetService,
         IRenderer2D render2D,
@@ -40,9 +39,8 @@ class Experimentation : BaseSystem, ICameraDraw
         SceneXmlLoader sceneXmlLoader,
         SceneSystem sceneSystem
         )
-    : base (loggerService, scheduleManager)
+        : base(serviceContainer)
     {
-        _logger = loggerService.GetSawmill("experimentation");
         _renderAPI = renderAPI;
         _render2D = render2D;
         _windowService = windowService;
@@ -142,7 +140,7 @@ class Experimentation : BaseSystem, ICameraDraw
         });
     }
 
-    public void OnDraw(float deltaTime)
+    public override void OnDraw(float deltaTime)
     {
         return;
         var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, _windowService.FrameSize.Y, 0, 0.0001f, 100f);

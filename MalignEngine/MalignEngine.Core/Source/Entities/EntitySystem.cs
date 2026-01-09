@@ -5,15 +5,15 @@ namespace MalignEngine
 {
     public abstract class EntitySystem : BaseSystem
     {
-        protected readonly IEntityManager EntityManager;
-        protected readonly IEventService EventService;
+        protected readonly IEntityManager EntityManager = default!;
+        protected readonly IEventService EventService = default!; 
+
         protected IWorld World => EntityManager.World;
 
-        protected EntitySystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService) 
-            : base(loggerService, scheduleManager)
+        protected EntitySystem(IServiceContainer serviceContainer) : base(serviceContainer)
         {
-            EntityManager = entityManager;
-            EventService = eventService;
+            EntityManager = serviceContainer.GetInstance<IEntityManager>();
+            EventService = serviceContainer.GetInstance<IEventService>();
         }
     }
 }

@@ -19,8 +19,8 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
 
     private Entity _camera;
 
-    public EditorSceneViewSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, IRenderer2D renderer2D, TransformSystem transformSystem, IInputService inputService, CameraSystem cameraSystem) 
-        : base(loggerService, scheduleManager, editorSystem, imGuiService)
+    public EditorSceneViewSystem(IServiceContainer serviceContainer, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, IRenderer2D renderer2D, TransformSystem transformSystem, IInputService inputService, CameraSystem cameraSystem) 
+        : base(serviceContainer, editorSystem, imGuiService)
     {
         _renderer2D = renderer2D;
         _transformSystem = transformSystem;

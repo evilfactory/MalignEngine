@@ -13,14 +13,12 @@ public interface IDrawImGui : ISchedule
 public class ImGuiSystem : BaseSystem
 {
     private readonly GLRenderingAPI _glRenderAPI;
-    private readonly IScheduleManager _scheduleManager;
     private ImGuiController? _imGuiController;
 
-    public ImGuiSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IWindowContextProvider windowContext, GLRenderingAPI glRenderingAPI, ISilkInputContextProvider inputContext)
-        : base(loggerService, scheduleManager)
+    public ImGuiSystem(IServiceContainer serviceContainer, IWindowContextProvider windowContext, GLRenderingAPI glRenderingAPI, ISilkInputContextProvider inputContext)
+        : base(serviceContainer)
     {
         _glRenderAPI = glRenderingAPI;
-        _scheduleManager = scheduleManager;
 
         _glRenderAPI.Submit(() =>
         {
@@ -97,7 +95,7 @@ public class ImGuiSystem : BaseSystem
         _glRenderAPI.Submit(() =>
         {
             _imGuiController?.Update(deltaTime);
-            _scheduleManager.Run<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
+            ScheduleManager.Run<IDrawImGui>(e => e.OnDrawImGui(deltaTime));
             _imGuiController?.Render();
         });
     }

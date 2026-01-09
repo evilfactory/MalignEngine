@@ -113,6 +113,8 @@ public class ServiceContainer : IServiceContainer
     public ServiceContainer(IServiceContainer? parent = null)
     {
         this.parent = parent;
+
+        Register<IServiceContainer, ServiceContainer>(new SingletonLifeTime(this));
     }
 
     public void InjectAll(object obj)

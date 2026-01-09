@@ -52,18 +52,12 @@ public class WindowService : BaseSystem, IWindowService, IWindowContextProvider,
     public int Width => Size.X;
     public int Height => Size.Y;
 
-    private readonly ILogger _logger;
-    private readonly IScheduleManager _scheduleManager;
-
     // for renderer, i need to get rid of this later
     internal IWindow window;
 
-    public WindowService(ILoggerService loggerService, IScheduleManager scheduleManager)
-        : base (loggerService, scheduleManager)
+    public WindowService(IServiceContainer serviceContainer)
+        : base (serviceContainer)
     {
-        _scheduleManager = scheduleManager;
-        _logger = loggerService.GetSawmill("window");
-
         var options = WindowOptions.Default;
         options.PreferredDepthBufferBits = 8;
         options.PreferredStencilBufferBits = 8;
@@ -77,7 +71,7 @@ public class WindowService : BaseSystem, IWindowService, IWindowContextProvider,
 
         window.Initialize();
 
-        _logger.LogInfo($"Window \"{Title}\" initialized {options.Size.X}x{options.Size.Y}");
+        Logger.LogInfo($"Window \"{Title}\" initialized {options.Size.X}x{options.Size.Y}");
     }
 
     public IWindow GetWindow() => window;
@@ -101,7 +95,7 @@ public class WindowService : BaseSystem, IWindowService, IWindowContextProvider,
     {
         base.Dispose();
 
-        _logger.LogInfo($"Window \"{Title}\" destroyed");
+        Logger.LogInfo($"Window \"{Title}\" destroyed");
 
         window.Dispose();
     }
@@ -112,7 +106,7 @@ public class WindowService : BaseSystem, IWindowService, IWindowContextProvider,
 
         if (window.IsClosing)
         {
-            _scheduleManager.Run<IApplicationClosing>(x => x.OnApplicationClosing());
+            ScheduleManager.Run<IApplicationClosing>(x => x.OnApplicationClosing());
         }
     }
 }

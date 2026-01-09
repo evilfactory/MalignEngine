@@ -10,8 +10,8 @@ public class EditorPerformanceSystem : BaseEditorWindowSystem
     private bool _lag = false;
     private double _updatesPerSecond;
 
-    public EditorPerformanceSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IPerformanceProfiler performanceProfiler) 
-        : base(loggerService, scheduleManager, editorSystem, imGuiService)
+    public EditorPerformanceSystem(IServiceContainer serviceContainer, EditorSystem editorSystem, ImGuiSystem imGuiService, IPerformanceProfiler performanceProfiler) 
+        : base(serviceContainer, editorSystem, imGuiService)
     {
         _performanceProfiler = performanceProfiler;
     }

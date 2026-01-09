@@ -5,9 +5,6 @@ namespace MalignEngine.Editor;
 
 public class EditorConsole : BaseEditorWindowSystem, ILogHandler
 {
-    [Dependency]
-    protected ILoggerService LoggerService = default!;
-
     private class DebugConsoleLog
     {
         public string Line;
@@ -29,10 +26,10 @@ public class EditorConsole : BaseEditorWindowSystem, ILogHandler
     private bool autoScroll = true;
     private string command = "";
 
-    public EditorConsole(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
-        : base(loggerService, scheduleManager, editorSystem, imGuiService)
+    public EditorConsole(IServiceContainer serviceContainer, EditorSystem editorSystem, ImGuiSystem imGuiService) 
+        : base(serviceContainer, editorSystem, imGuiService)
     {
-        loggerService.Root.AddHandler(this);
+        LoggerService.Root.AddHandler(this);
     }
 
     public override void DrawWindow(float delta)

@@ -13,8 +13,8 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
 
     public override string WindowName => "Inspector";
 
-    public EditorInspectorSystem(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, HierarchySystem parentSystem)
-    : base(loggerService, scheduleManager, editorSystem, imGuiService)
+    public EditorInspectorSystem(IServiceContainer serviceContainer, EditorSystem editorSystem, ImGuiSystem imGuiService, IEntityManager entityManager, HierarchySystem parentSystem)
+        : base(serviceContainer, editorSystem, imGuiService)
     {
         _entityManager = entityManager;
         _parentSystem = parentSystem;

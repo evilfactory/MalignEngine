@@ -95,8 +95,8 @@ public class InputService : BaseSystem, IInputService, ISilkInputContextProvider
     private readonly List<Mouse> _mice = new();
     private readonly List<Keyboard> _keyboards = new();
 
-    public InputService(ILoggerService loggerService, IScheduleManager scheduleManager, WindowService windowService)
-        : base(loggerService, scheduleManager)
+    public InputService(IServiceContainer serviceContainer, WindowService windowService)
+        : base(serviceContainer)
     {
         _inputContext = windowService.window.CreateInput();
 

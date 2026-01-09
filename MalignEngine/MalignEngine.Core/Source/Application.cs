@@ -19,7 +19,6 @@ public class Application : IDisposable, ILogHandler, IApplicationClosing
 
         ServiceContainer = new ServiceContainer();
 
-        ServiceContainer.Register<IServiceContainer, ServiceContainer>(new SingletonLifeTime(ServiceContainer));
         ServiceContainer.Register<ILoggerService, LoggerService>(new SingletonLifeTime());
         ServiceContainer.Register<IScheduleManager, ScheduleManager>(new SingletonLifeTime());
 

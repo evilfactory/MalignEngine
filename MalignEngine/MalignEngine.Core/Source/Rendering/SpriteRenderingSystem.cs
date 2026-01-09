@@ -2,9 +2,8 @@ using System.Numerics;
 
 namespace MalignEngine;
 
-public class SpriteRenderingSystem : IService, ICameraDraw
+public class SpriteRenderingSystem : EntitySystem, ICameraDraw
 {
-    private IEntityManager _entityManager;
     private IRenderer2D _renderer2D;
     private IRenderingAPI _renderApi;
     private IPerformanceProfiler? _performanceProfiler;
@@ -15,9 +14,9 @@ public class SpriteRenderingSystem : IService, ICameraDraw
         public WorldTransform Transform;
     }
 
-    public SpriteRenderingSystem(IEntityManager entityManager, IRenderingAPI renderApi, IRenderer2D renderer2D, IPerformanceProfiler? performanceProfiler = null)
+    public SpriteRenderingSystem(IServiceContainer serviceContainer, IRenderingAPI renderApi, IRenderer2D renderer2D, IPerformanceProfiler? performanceProfiler = null)
+        : base(serviceContainer)
     {
-        _entityManager = entityManager;
         _renderApi = renderApi;
         _renderer2D = renderer2D;
         _performanceProfiler = performanceProfiler;
@@ -33,7 +32,7 @@ public class SpriteRenderingSystem : IService, ICameraDraw
         List<RenderData> renderData = new List<RenderData>();
 
         var query = new Query().WithAll<SpriteRenderer, WorldTransform>();
-        _entityManager.World.Query(query, (Entity entity) =>
+        World.Query(query, (Entity entity) =>
         {
             ref WorldTransform transform = ref entity.Get<WorldTransform>();
             ref SpriteRenderer spriteRenderer = ref entity.Get<SpriteRenderer>();

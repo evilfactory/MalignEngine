@@ -13,24 +13,18 @@ public struct CameraRenderData : IComponent
     public IFrameBufferResource Output;
 }
 
-public class CameraSystem : BaseSystem
+public class CameraSystem : EntitySystem
 {
-    private IScheduleManager _scheduleManager;
     private IWindowService _windowService;
     private IRenderer2D _renderer2D;
     private IRenderingAPI _renderApi;
-    private IEntityManager _entityManager;
-    private IEventService _eventService;
 
-    public CameraSystem(ILoggerService loggerService, IScheduleManager scheduleManager, IEntityManager entityManager, IEventService eventService, IRenderingAPI renderApi, IWindowService windowService, IRenderer2D renderer2D)
-        : base(loggerService, scheduleManager)
+    public CameraSystem(IServiceContainer serviceContainer, IWindowService windowService, IRenderingAPI renderApi, IRenderer2D renderer2D)
+        : base(serviceContainer)
     {
         _renderApi = renderApi;
         _windowService = windowService;
         _renderer2D = renderer2D;
-        _scheduleManager = scheduleManager;
-        _entityManager = entityManager;
-        _eventService = eventService;
     }
 
     public override void OnDraw(float delta)
@@ -43,7 +37,7 @@ public class CameraSystem : BaseSystem
         List<Entity> cameraEntities = new List<Entity>();
         Entity mainCamera = default;
 
-        _entityManager.World.Query(new Query().WithAll<OrthographicCamera>().Exclude<CameraRenderData>(), (Entity entity) =>
+        World.Query(new Query().WithAll<OrthographicCamera>().Exclude<CameraRenderData>(), (Entity entity) =>
         {
             entity.AddOrSet(new CameraRenderData()
             {
@@ -51,7 +45,7 @@ public class CameraSystem : BaseSystem
             });
         });
 
-        _entityManager.World.Query(new Query().WithAll<OrthographicCamera, CameraRenderData, Transform>(), (Entity entity) =>
+        World.Query(new Query().WithAll<OrthographicCamera, CameraRenderData, Transform>(), (Entity entity) =>
         {
             ref OrthographicCamera camera = ref entity.Get<OrthographicCamera>();
             ref CameraRenderData renderData = ref entity.Get<CameraRenderData>();
@@ -92,7 +86,7 @@ public class CameraSystem : BaseSystem
                 ctx.Clear(camera.ClearColor);
             });
 
-            _scheduleManager.Run<ICameraDraw>(e => e.OnCameraDraw(delta, camera));
+            ScheduleManager.Run<ICameraDraw>(e => e.OnCameraDraw(delta, camera));
 
             if (camera.PostProcessingSteps != null)
             {

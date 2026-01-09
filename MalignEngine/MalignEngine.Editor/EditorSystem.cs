@@ -14,7 +14,7 @@ public class EditorSystem : BaseSystem, IDrawImGui
 
     private readonly List<BaseEditorWindowSystem> windows = new List<BaseEditorWindowSystem>();
 
-    public EditorSystem(ILoggerService loggerService, IScheduleManager scheduleManager) : base(loggerService, scheduleManager) { }
+    public EditorSystem(IServiceContainer serviceContainer) : base(serviceContainer) { }
 
     public void AddWindow(BaseEditorWindowSystem window)
     {
