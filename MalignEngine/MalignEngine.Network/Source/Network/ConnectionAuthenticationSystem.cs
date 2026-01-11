@@ -9,9 +9,17 @@ namespace MalignEngine.Network;
 /// <summary>
 /// Called on the server when a connection is authenticated.
 /// </summary>
-public interface IConnectionAuthenticated
+public interface IClientAuthenticatedToServer : ISchedule
 {
-    void OnClientAuthenticated(NetworkConnection connection);
+    void OnClientAuthenticated(IClientInfo clientInfo);
+}
+
+/// <summary>
+/// Called on the server when a connection is authenticated.
+/// </summary>
+public interface IAuthenticatedToServer : ISchedule
+{
+    void OnAuthenticated(IClientInfo clientInfo);
 }
 
 public interface IClientInfo
@@ -46,11 +54,20 @@ public abstract class ConnectionAuthenticationSystem<ClientType, AuthRequestNetM
     public abstract void ServerReceiveAuthRequest(AuthRequestNetMessage netMessage);
     public abstract void ClientReceiveAuthResponse(AuthResponseNetMessage netMessage);
 
-    protected void AcceptConnection(NetworkConnection connection, ClientType clientType)
+    protected void ClientFinishAuthentication(ClientType clientInfo)
     {
-        clients.Add(clientType);
+        MyClient = clientInfo;
 
-        Logger.LogInfo($"Connection authentication accepted: {connection}, assigned client id {clientType.ClientId}");
+        ScheduleManager.Run<IAuthenticatedToServer>(x => x.OnAuthenticated(clientInfo));
+    }
+
+    protected void AcceptConnection(NetworkConnection connection, ClientType clientInfo)
+    {
+        clients.Add(clientInfo);
+
+        Logger.LogInfo($"Connection authentication accepted: {connection}, assigned client id {clientInfo.ClientId}");
+
+        ScheduleManager.Run<IClientAuthenticatedToServer>(x => x.OnClientAuthenticated(clientInfo));
     }
 
     protected void RejectConnection(NetworkConnection connection)

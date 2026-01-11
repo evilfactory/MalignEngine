@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace MalignEngine.Samples.Cubes;
 
-class Cubes : IService, IDraw
+class Cubes : ISystem, IDraw
 {
     private IRenderingAPI _renderAPI;
     private IWindowService _windowService;
@@ -15,8 +15,9 @@ class Cubes : IService, IDraw
 
     private Matrix4x4[] _cubeTransforms;
 
-    public Cubes(IRenderingAPI renderAPI, IWindowService windowService)
+    public Cubes(IScheduleManager scheduleManager, IRenderingAPI renderAPI, IWindowService windowService)
     {
+        scheduleManager.RegisterAll(this);
         _renderAPI = renderAPI;
         _windowService = windowService;
 
@@ -26,7 +27,7 @@ class Cubes : IService, IDraw
             FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl")
         });
 
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/wolfgang.jpg"));
+        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/he.png"));
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
@@ -89,9 +90,9 @@ class Cubes : IService, IDraw
             MemoryMarshal.AsBytes(vertices.AsSpan()).ToArray()
         ));
 
-        _cubeTransforms = new Matrix4x4[10000];
+        _cubeTransforms = new Matrix4x4[1000];
         var rng = new Random();
-        for (int i = 0; i < 10000; i++)
+        for (int i = 0; i < 1000; i++)
         {
             float x = (float)(rng.NextDouble() * 100 - 50);
             float y = (float)(rng.NextDouble() * 100 - 50);

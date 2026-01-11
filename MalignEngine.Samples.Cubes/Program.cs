@@ -8,16 +8,15 @@ class Program
     public static void Main(string[] args)
     {
         Application application = new Application();
-        application.Add<EventLoop>();
-        application.Add<WindowService>();
-        application.Add<GLRenderingAPI>();
-        application.Add<InputService>();
-        application.Add<Renderer2D>();
-        application.Add<Cubes>();
-        application.Add<ImGuiSystem>();
-        application.Add<PerformanceProfiler>();
-        application.Add<EditorSystem>();
-        application.Add<EditorPerformanceSystem>();
+        application.ServiceContainer.RegisterAll<WindowService>();
+        application.ServiceContainer.RegisterAll<GLRenderingAPI>();
+        application.ServiceContainer.RegisterAll<InputService>();
+        application.ServiceContainer.RegisterAll<Renderer2D>();
+        application.ServiceContainer.RegisterAll<Cubes>();
+        application.ServiceContainer.RegisterAll<ImGuiSystem>();
+        application.ServiceContainer.RegisterAll<PerformanceProfiler>();
+        application.ServiceContainer.RegisterAll<EditorSystem>();
+        application.ServiceContainer.RegisterAll<EditorPerformanceSystem>();
 
         application.Run();
     }
