@@ -8,7 +8,7 @@ public class FileAssetSource : AssetSource
 
     public override Stream GetStream()
     {
-        FileStream openFile = null;
+        FileStream openFile;
 
         if (!openFileMap.ContainsKey(AssetPath))
         {

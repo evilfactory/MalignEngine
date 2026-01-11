@@ -2,6 +2,7 @@
 
 namespace MalignEngine.Network;
 
+/*
 public struct NetId : IComponent
 {
     public uint Id;
@@ -144,3 +145,4 @@ public class EntityNetworking : EntitySystem
         return stateMessage;
     }
 }
+*/

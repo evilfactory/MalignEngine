@@ -192,7 +192,7 @@ public partial class LidgrenTransport : ServerTransport, ClientTransport
                     byte[] data = msg.ReadBytes(msg.LengthBytes);
                     IReadMessage readMessage = new ReadOnlyMessage(data, false, 0, data.Length);
                     readMessage.Sender = connections[msg.SenderConnection.RemoteUniqueIdentifier];
-                    OnClientData(readMessage.Sender.Value, readMessage);
+                    OnClientData(readMessage.Sender, readMessage);
 
                     break;
                 default:

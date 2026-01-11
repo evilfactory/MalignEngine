@@ -4,7 +4,7 @@ public class NetworkConnection
 {
     public long Id { get; private set; }
 
-    public object Data { get; set; }
+    public object? Data { get; set; }
 
     public bool IsValid
     {

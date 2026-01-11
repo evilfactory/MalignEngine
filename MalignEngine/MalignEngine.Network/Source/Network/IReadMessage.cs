@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MalignEngine
+namespace MalignEngine.Network
 {
     public interface IReadMessage
     {

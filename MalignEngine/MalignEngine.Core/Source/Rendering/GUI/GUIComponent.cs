@@ -4,15 +4,9 @@ using MalignEngine;
 
 namespace MalignEngine
 {
-    /*
-
     public abstract class GUIComponent
     {
         public RectTransform RectTransform { get; private set; }
-
-        protected FontRenderer FontSystem => Application.Main.ServiceContainer.GetInstance<FontRenderer>();
-        protected IRenderer2D IRenderingService => Application.Main.ServiceContainer.GetInstance<IRenderer2D>();
-        protected InputSystem InputSystem => Application.Main.ServiceContainer.GetInstance<InputSystem>();
 
         public IEnumerable<GUIComponent> Children
         {
@@ -44,6 +38,7 @@ namespace MalignEngine
                 child.Update();
             }
         }
+
         public virtual void Draw()
         {
             // draw children
@@ -53,5 +48,4 @@ namespace MalignEngine
             }
         }
     }
-    */
 }

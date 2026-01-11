@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MalignEngine
+namespace MalignEngine.Network
 {
     public static class MsgConstants
     {

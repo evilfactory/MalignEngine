@@ -24,6 +24,11 @@ namespace MalignEngine
                     LoadNow();
                 }
 
+                if (asset == null)
+                {
+                    throw new InvalidOperationException("Asset was null after it was loaded.");
+                }
+
                 return asset;
             }
             private set
@@ -36,13 +41,21 @@ namespace MalignEngine
         {
             get
             {
-                if (IsLoading) { return _loader.GetAssetType(AssetPath); }
+                if (IsLoading) 
+                {
+                    if (_loader == null)
+                    {
+                        throw new InvalidOperationException("Tried to get AssetType while this asset was still loading, but it doesn't have a loaded.");
+                    }
+
+                    return _loader.GetAssetType(AssetPath); 
+                }
 
                 return Asset.GetType();
             }
         }
 
-        private IAssetLoader _loader;
+        private IAssetLoader? _loader;
 
         public AssetHandle(AssetPath assetPath, IAssetLoader loader)
         {
@@ -60,6 +73,11 @@ namespace MalignEngine
 
         public void LoadNow()
         {
+            if (_loader == null)
+            {
+                throw new InvalidOperationException("Tried load asset but loaded was null.");
+            }
+
             Asset = _loader.Load(AssetPath);
 
             IsLoading = false;
@@ -94,7 +112,7 @@ namespace MalignEngine
 
             var genericType = typeof(AssetHandle<>).MakeGenericType(type);
 
-            return (IAssetHandle)Activator.CreateInstance(genericType, this);
+            return (IAssetHandle)Activator.CreateInstance(genericType, this)!;
         }
     }
 
