@@ -1,8 +1,15 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace MalignEngine.Network;
 
 public interface INetSerializable { }
+
+public enum NetworkTarget
+{
+    Client,
+    Server
+}
 
 public abstract class NetMessage
 {
@@ -48,6 +55,9 @@ public interface IDisconnectedFromServer : ISchedule
     void OnDisconnectedFromServer();
 }
 
+public delegate void ReceiveServerNetMessageDelegate<T>(NetworkConnection connection, T netMessage) where T : NetMessage;
+public delegate void ReceiveClientNetMessageDelegate<T>(T netMessage) where T : NetMessage;
+
 public interface INetworkService
 {
     /// <summary>
@@ -58,7 +68,8 @@ public interface INetworkService
     bool IsClient { get; }
 
     void SetTransport(ITransport transport);
-    void RegisterNetMessage<T>(Action<T>? callback = null) where T : NetMessage;
+    void RegisterClientNetMessage<T>(ReceiveClientNetMessageDelegate<T>? callback = null) where T : NetMessage;
+    void RegisterServerNetMessage<T>(ReceiveServerNetMessageDelegate<T>? callback = null) where T : NetMessage;
     void StartServer(IPEndPoint endpoint);
     void StopServer();
     /// <summary>
@@ -81,16 +92,12 @@ public interface INetworkService
     /// <summary>
     /// Sends a net message from the client to the server
     /// </summary>
-    public void SendToClient<T>(T message) where T : NetMessage;
+    public void SendToServer<T>(T message) where T : NetMessage;
 }
 
-public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisposable
+public partial class NetworkSystem : ISystem, INetworkService, IUpdate, IDisposable
 {
-    private class MessageData
-    {
-        public Type Type;
-        public Action<NetMessage>? Callback;
-    }
+    private record MessageData(Type Type, NetworkTarget Target, Action<NetworkConnection, NetMessage>? Callback);
 
     public bool IsServer { get; private set; }
     public bool IsClient { get; private set; }
@@ -105,7 +112,7 @@ public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisp
     private readonly Dictionary<string, MessageData> _netReceives;
     private readonly NetSerializer.Serializer _serializer;
 
-    public NetworkingSystem(ILoggerService loggerService, IScheduleManager scheduleManager)
+    public NetworkSystem(ILoggerService loggerService, IScheduleManager scheduleManager)
     {
         _logger = loggerService.GetSawmill("networking");
         _scheduleManager = scheduleManager;
@@ -119,14 +126,16 @@ public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisp
 
     public void SetTransport(ITransport transport)
     {
-        transport.OnClientConnected += OnClientConnected;
-        transport.OnClientDisconnected += OnClientDisconnected;
+        _transport = transport;
 
-        transport.OnConnected += OnConnected;
-        transport.OnDisconnected += OnDisconnected;
+        _transport.OnClientConnected += OnClientConnected;
+        _transport.OnClientDisconnected += OnClientDisconnected;
 
-        transport.OnClientData += OnClientData;
-        transport.OnData += OnData;
+        _transport.OnConnected += OnConnected;
+        _transport.OnDisconnected += OnDisconnected;
+
+        _transport.OnClientData += OnClientData;
+        _transport.OnData += OnData;
     }
 
     private void OnData(IReadMessage message)
@@ -138,10 +147,22 @@ public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisp
             return;
         }
 
-        NetMessage msg = (NetMessage)Activator.CreateInstance(messageData.Type)!;
+        if (!IsServer && messageData.Target == NetworkTarget.Server)
+        {
+            _logger.LogWarning($"Received message for wrong target: {msgName}");
+            return;
+        }
+
+        if (!IsClient && messageData.Target == NetworkTarget.Client)
+        {
+            _logger.LogWarning($"Received message for wrong target: {msgName}");
+            return;
+        }
+
+        NetMessage msg = (NetMessage)RuntimeHelpers.GetUninitializedObject(messageData.Type)!;
         msg.Deserialize(message);
 
-        messageData.Callback?.Invoke(msg);
+        messageData.Callback?.Invoke(message.Sender!, msg);
     }
 
     private void OnClientData(NetworkConnection connection, IReadMessage message) => OnData(message);
@@ -202,17 +223,19 @@ public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisp
         _transport.Disconnect(connection);
     }
 
-    public void RegisterNetMessage<T>(Action<T>? callback = null) where T : NetMessage
+    public void RegisterServerNetMessage<T>(ReceiveServerNetMessageDelegate<T>? callback = null) where T : NetMessage
     {
-        _netReceives.Add(typeof(T).Name, 
-            new MessageData() 
-            { 
-                Type = typeof(T), 
-                Callback = (NetMessage message) => callback?.Invoke((T)message) 
-            });
+        _netReceives.Add(typeof(T).Name,
+            new MessageData(typeof(T), NetworkTarget.Server, (NetworkConnection connection, NetMessage message) => callback?.Invoke(connection, (T)message)));
     }
 
-    public void SendToClient<T>(T message) where T : NetMessage
+    public void RegisterClientNetMessage<T>(ReceiveClientNetMessageDelegate<T>? callback = null) where T : NetMessage
+    {
+        _netReceives.Add(typeof(T).Name,
+            new MessageData(typeof(T), NetworkTarget.Client, (NetworkConnection connection, NetMessage message) => callback?.Invoke((T)message)));
+    }
+
+    public void SendToServer<T>(T message) where T : NetMessage
     {
         if (_transport == null)
         {
@@ -264,9 +287,9 @@ public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisp
 
     private void OnConnected()
     {
-        _scheduleManager.Run<IConnectedToServer>(x => x.OnConnectedToServer());
+        IsClient = true;
 
-        IsClient = false;
+        _scheduleManager.Run<IConnectedToServer>(x => x.OnConnectedToServer());
     }
 
     private void OnClientDisconnected(NetworkConnection connection)
@@ -285,6 +308,7 @@ public partial class NetworkingSystem : ISystem, INetworkService, IUpdate, IDisp
     public void Dispose()
     {
         StopServer();
+        Disconnect();
         _scheduleManager.UnregisterAll(this);
     }
 }

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34221.43
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{0233806C-C951-4B11-AEB1-A52AF5243C3B}"
 EndProject
@@ -26,6 +26,14 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MalignEngine.Samples.Cubes", "MalignEngine.Samples.Cubes\MalignEngine.Samples.Cubes.csproj", "{537025F0-EFB6-481F-AA06-AECFBA95F711}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MalignEngine.Editor", "MalignEngine\MalignEngine.Editor\MalignEngine.Editor.csproj", "{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SteamBolt", "SteamBolt", "{E9309227-6C7C-4D38-B7E5-E2EF4841C2C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamBolt.Server", "SteamBolt\SteamBolt.Server\SteamBolt.Server.csproj", "{7EC147D2-ABA9-48E2-996B-27527714DCB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SteamBolt.Client", "SteamBolt\SteamBolt.Client\SteamBolt.Client.csproj", "{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SteamBolt.Shared", "SteamBolt\SteamBolt.Shared\SteamBolt.Shared.shproj", "{334DD830-1F0E-4922-8164-A3D0C17E5727}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -178,6 +186,34 @@ Global
 		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
 		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
 		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Debug-Events|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Debug-Events|Any CPU.Build.0 = Debug|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Debug-PureECS|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Debug-PureECS|Any CPU.Build.0 = Debug|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release-Events|Any CPU.ActiveCfg = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release-Events|Any CPU.Build.0 = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release-Pure|Any CPU.ActiveCfg = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Debug-Events|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Debug-Events|Any CPU.Build.0 = Debug|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Debug-PureECS|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Debug-PureECS|Any CPU.Build.0 = Debug|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release-Events|Any CPU.ActiveCfg = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release-Events|Any CPU.Build.0 = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release-Pure|Any CPU.ActiveCfg = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release-Pure|Any CPU.Build.0 = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release-PureECS|Any CPU.ActiveCfg = Release|Any CPU
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30}.Release-PureECS|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -190,8 +226,16 @@ Global
 		{AA01EA7A-2D09-41C4-A89E-C31B309DB59C} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
 		{6278BE85-0794-4F22-B701-D132BA9A99DB} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
 		{B556892F-DAD6-4B19-81DE-EB4D0A671B0F} = {6937B470-5FA2-4A96-995B-92A0FB3B7192}
+		{7EC147D2-ABA9-48E2-996B-27527714DCB6} = {E9309227-6C7C-4D38-B7E5-E2EF4841C2C1}
+		{FB1D868B-7964-43D5-BB3A-B1B499EF9C30} = {E9309227-6C7C-4D38-B7E5-E2EF4841C2C1}
+		{334DD830-1F0E-4922-8164-A3D0C17E5727} = {E9309227-6C7C-4D38-B7E5-E2EF4841C2C1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0B174E1E-125E-48EE-8E30-F3793965839D}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SteamBolt\SteamBolt.Shared\SteamBolt.Shared.projitems*{334dd830-1f0e-4922-8164-a3d0c17e5727}*SharedItemsImports = 13
+		SteamBolt\SteamBolt.Shared\SteamBolt.Shared.projitems*{7ec147d2-aba9-48e2-996b-27527714dcb6}*SharedItemsImports = 5
+		SteamBolt\SteamBolt.Shared\SteamBolt.Shared.projitems*{fb1d868b-7964-43d5-bb3a-b1b499ef9c30}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

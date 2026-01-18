@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MalignEngine.Network;
 
-public partial class LidgrenTransport : ServerTransport, ClientTransport
+public partial class LidgrenTransport : ITransport
 {
     private ILogger logger;
 
@@ -51,7 +51,7 @@ public partial class LidgrenTransport : ServerTransport, ClientTransport
 
     public void SendDataToClient(NetworkConnection connection, IWriteMessage message, PacketChannel channel = PacketChannel.Reliable)
     {
-        if (server != null)
+        if (server == null)
         {
             throw new ArgumentException("Tried to send data but the server is not started.");
         }
@@ -247,6 +247,6 @@ public partial class LidgrenTransport : ServerTransport, ClientTransport
 
     public void Stop()
     {
-        server.Shutdown(null);
+        server?.Shutdown(null);
     }
 }

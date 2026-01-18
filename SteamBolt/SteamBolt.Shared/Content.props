@@ -1,0 +1,9 @@
+<Project>
+  <ItemGroup>
+    <Content Include="..\SteamBolt.Shared\Content\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>..\..\Content\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+</Project>

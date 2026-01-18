@@ -10,7 +10,9 @@ public interface IAssetService
     /// Gets the handle for the specified asset path. Throws an exception if there's more than one handle in this asset path and there's no id specified in the asset path
     /// </summary>
     AssetHandle FromPath(AssetPath assetPath);
+    /// <summary>
     /// <inheritdoc cref="FromPath" />
+    /// </summary>
     AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
     AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset;
     IEnumerable<AssetHandle<T>> GetHandles<T>() where T : class, IAsset;
