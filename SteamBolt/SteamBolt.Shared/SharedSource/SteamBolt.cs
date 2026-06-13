@@ -6,8 +6,10 @@ namespace SteamBolt;
 
 public class SteamBolt : ISystem
 {
-    public SteamBolt(ILoggerService loggerService, INetworkService networkService)
+    public SteamBolt(ILoggerService loggerService, INetworkService networkService, IAssetService assetService)
     {
+        assetService.PreLoad("Content");
+
         networkService.SetTransport(new LidgrenTransport(loggerService.GetSawmill("transport")));
 #if SERVER
         networkService.StartServer(IPEndPoint.Parse("127.0.0.1:7430"));

@@ -22,9 +22,16 @@ public interface IClientSession
     DateTime ConnectedAt { get; }
 }
 
-public interface IClientSessionSystem<TClient> where TClient : IClientSession
+public interface IClientSessionRetrieval
 {
-    IReadOnlyCollection<TClient> Clients { get; }
+    IEnumerable<IClientSession> Clients { get; }
+}
+
+public interface IClientSessionSystem<TClient> : IClientSessionRetrieval
+{
+    IEnumerable<IClientSession> IClientSessionRetrieval.Clients => Clients.OfType<IClientSession>();
+
+    new IReadOnlyCollection<TClient> Clients { get; }
 
     bool TryGetClient(NetworkConnection connection, [NotNullWhen(returnValue: true)] out TClient? client);
 

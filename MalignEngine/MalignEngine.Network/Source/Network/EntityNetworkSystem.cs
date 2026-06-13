@@ -2,15 +2,11 @@
 
 namespace MalignEngine.Network;
 
-/*
-public struct NetId : IComponent
-{
-    public uint Id;
-}
 
 [Serializable]
 public class ComponentState : INetSerializable { }
 
+/*
 public class ComponentGetState : ComponentEventArgs
 {
     public ComponentState State;
@@ -19,33 +15,34 @@ public class ComponentHandleState : ComponentEventArgs
 {
     public ComponentState State;
 }
+*/
 
 public class NetEntitySpawnNetMessage : NetMessage
 {
-    public uint EntityId;
-    public string SceneId;
+    public NetEntityId NetEntityId = default!;
+    public string SceneId = default!;
 
     public override void Deserialize(IReadMessage message)
     {
-        EntityId = message.ReadUInt32();
+        NetEntityId = new NetEntityId() { Value = message.ReadUInt32() };
         SceneId = message.ReadString();
     }
 
     public override void Serialize(IWriteMessage message)
     {
-        message.WriteUInt32(EntityId);
+        message.WriteUInt32(NetEntityId.Value);
         message.WriteString(SceneId);
     }
 }
 
 public class NetEntityStateNetMessage : NetMessage
 {
-    public uint EntityId;
+    public NetEntityId NetEntityId;
     public List<byte[]> States = new List<byte[]>();
 
     public override void Deserialize(IReadMessage message)
     {
-        EntityId = message.ReadUInt32();
+        NetEntityId = new NetEntityId() { Value = message.ReadUInt32() };
         int count = message.ReadInt32();
         States = new List<byte[]>(count);
         for (int i = 0; i < count; i++)
@@ -58,7 +55,7 @@ public class NetEntityStateNetMessage : NetMessage
 
     public override void Serialize(IWriteMessage message)
     {
-        message.WriteUInt32(EntityId);
+        message.WriteUInt32(NetEntityId.Value);
         message.WriteInt32(States.Count);
         foreach (byte[] state in States)
         {
@@ -70,8 +67,8 @@ public class NetEntityStateNetMessage : NetMessage
 
 public class NetEntitySyncNetMessage : NetMessage
 {
-    public NetEntitySpawnNetMessage[] Entities;
-    public NetEntityStateNetMessage[] States;
+    public required NetEntitySpawnNetMessage[] Entities;
+    public required NetEntityStateNetMessage[] States;
 
     public override void Deserialize(IReadMessage message)
     {
@@ -110,39 +107,19 @@ public class NetEntitySyncNetMessage : NetMessage
     }
 }
 
-public class EntityNetworking : EntitySystem
+public class EntityNetworkSystem : EntitySystem
 {
-    public EntityNetworking()
+    private readonly INetworkService _networkService;
+    private readonly IClientSessionRetrieval _clientSessionRetrieval;
+
+    public EntityNetworkSystem(IServiceContainer serviceContainer, INetworkService networkService, IClientSessionRetrieval clientSessionRetrieval) : base(serviceContainer)
     {
-        RegisterNetMessage<NetEntitySpawnNetMessage>();
-        RegisterNetMessage<NetEntityStateNetMessage>();
-        RegisterNetMessage<NetEntitySyncNetMessage>();
-
-        RegisterNetMessage<NetEntitySpawnNetMessage>(ClientNetEntitySpawnReceived);
-        RegisterNetMessage<NetEntityStateNetMessage>(ClientNetEntityStateReceived);
-        RegisterNetMessage<NetEntitySyncNetMessage>(ClientNetEntitySyncReceived);
-
+        _networkService = networkService;
+        _clientSessionRetrieval = clientSessionRetrieval;
     }
 
-    private NetEntityStateNetMessage CreateNetStateMessage(EntityRef entity)
+    public void SpawnEntity(Entity entity)
     {
-        NetEntityStateNetMessage stateMessage = new NetEntityStateNetMessage();
-        stateMessage.EntityId = entity.Get<NetId>().Id;
 
-        foreach (IComponent component in entity.GetComponents())
-        {
-            ComponentGetState getState = new ComponentGetState();
-            EntityEvent.RaiseEvent(entity, component, getState);
-
-            if (getState.State != null)
-            {
-                MemoryStream stream = new MemoryStream();
-                serializer.Serialize(stream, getState.State);
-                stateMessage.States.Add(stream.ToArray());
-            }
-        }
-
-        return stateMessage;
     }
 }
-*/
