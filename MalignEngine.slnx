@@ -9,13 +9,6 @@
     <BuildType Name="Release-PureECS" />
   </Configurations>
   <Folder Name="/MalignEngine/">
-    <Project Path="MalignEngine/MalignEngine.Platform.Desktop/MalignEngine.Platform.Desktop.csproj" Id="04458383-97a2-4405-9586-47cb17070b4b">
-      <BuildType Solution="Debug-Events|*" Project="Debug" />
-      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
-      <BuildType Solution="Release-Events|*" Project="Release" />
-      <BuildType Solution="Release-PureECS|*" Project="Release" />
-      <BuildType Solution="Release-Pure|*" Project="Release" />
-    </Project>
     <Project Path="MalignEngine/MalignEngine.Core/MalignEngine.Core.csproj">
       <BuildType Solution="Debug-Events|*" Project="Debug" />
       <BuildType Solution="Debug-PureECS|*" Project="Debug" />
@@ -31,6 +24,20 @@
       <BuildType Solution="Release-Pure|*" Project="Release" />
     </Project>
     <Project Path="MalignEngine/MalignEngine.Network/MalignEngine.Network.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+    <Project Path="MalignEngine/MalignEngine.Platform.Desktop/MalignEngine.Platform.Desktop.csproj" Id="04458383-97a2-4405-9586-47cb17070b4b">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+    <Project Path="MalignEngine/MalignEngine.Platform.Web/MalignEngine.Platform.Web.csproj">
       <BuildType Solution="Debug-Events|*" Project="Debug" />
       <BuildType Solution="Debug-PureECS|*" Project="Debug" />
       <BuildType Solution="Release-Events|*" Project="Release" />
