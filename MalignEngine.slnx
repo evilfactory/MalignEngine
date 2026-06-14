@@ -1,0 +1,92 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Debug-Events" />
+    <BuildType Name="Debug-PureECS" />
+    <BuildType Name="Release" />
+    <BuildType Name="Release-Events" />
+    <BuildType Name="Release-Pure" />
+    <BuildType Name="Release-PureECS" />
+  </Configurations>
+  <Folder Name="/MalignEngine/">
+    <Project Path="MalignEngine/MalignEngine.Core/MalignEngine.Core.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+    <Project Path="MalignEngine/MalignEngine.Editor/MalignEngine.Editor.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+    <Project Path="MalignEngine/MalignEngine.Network/MalignEngine.Network.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/MalignEngine/Libraries/">
+    <Project Path="MalignEngine/Libraries/Arch/src/Arch.SourceGen/Arch.SourceGen.csproj" />
+    <Project Path="MalignEngine/Libraries/Arch/src/Arch/Arch.csproj">
+      <BuildType Solution="Release-Pure|*" Project="Release-PureECS" />
+    </Project>
+    <Project Path="MalignEngine/Libraries/netserializer/NetSerializer/NetSerializer.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+  </Folder>
+  <Folder Name="/SteamBolt/">
+    <Project Path="SteamBolt/SteamBolt.Client/SteamBolt.Client.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+    <Project Path="SteamBolt/SteamBolt.Server/SteamBolt.Server.csproj">
+      <BuildType Solution="Debug-Events|*" Project="Debug" />
+      <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+      <BuildType Solution="Release-Events|*" Project="Release" />
+      <BuildType Solution="Release-PureECS|*" Project="Release" />
+      <BuildType Solution="Release-Pure|*" Project="Release" />
+    </Project>
+    <Project Path="SteamBolt/SteamBolt.Shared/SteamBolt.Shared.shproj" />
+  </Folder>
+  <Project Path="MalignEngine.Experimentation/MalignEngine.Experimentation.csproj">
+    <BuildType Solution="Debug-Events|*" Project="Debug" />
+    <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+    <BuildType Solution="Release-Events|*" Project="Release" />
+    <BuildType Solution="Release-PureECS|*" Project="Release" />
+    <BuildType Solution="Release-Pure|*" Project="Release" />
+  </Project>
+  <Project Path="MalignEngine.Sample/MalignEngine.Sample.csproj">
+    <BuildType Solution="Debug-Events|*" Project="Debug" />
+    <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+    <BuildType Solution="Release-Events|*" Project="Release" />
+    <BuildType Solution="Release-PureECS|*" Project="Release" />
+    <BuildType Solution="Release-Pure|*" Project="Release" />
+  </Project>
+  <Project Path="MalignEngine.Samples.Cubes/MalignEngine.Samples.Cubes.csproj">
+    <BuildType Solution="Debug-Events|*" Project="Debug" />
+    <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+    <BuildType Solution="Release-Events|*" Project="Release" />
+    <BuildType Solution="Release-PureECS|*" Project="Release" />
+    <BuildType Solution="Release-Pure|*" Project="Release" />
+  </Project>
+  <Project Path="MalignEngine.Samples.Minesweeper/MalignEngine.Samples.Minesweeper.csproj">
+    <BuildType Solution="Debug-Events|*" Project="Debug" />
+    <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+    <BuildType Solution="Release-Events|*" Project="Release" />
+    <BuildType Solution="Release-PureECS|*" Project="Release" />
+    <BuildType Solution="Release-Pure|*" Project="Release" />
+  </Project>
+</Solution>
