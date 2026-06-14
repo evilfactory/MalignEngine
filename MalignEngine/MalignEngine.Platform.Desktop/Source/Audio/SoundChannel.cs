@@ -1,11 +1,9 @@
-﻿using Silk.NET.OpenAL;
+using Silk.NET.OpenAL;
 using System.Numerics;
 
 namespace MalignEngine;
 
-// TODO: properly interface this
-
-public class SoundChannel : IDisposable
+public class SoundChannel : ISoundChannel
 {
     private AudioService audioSystem;
 

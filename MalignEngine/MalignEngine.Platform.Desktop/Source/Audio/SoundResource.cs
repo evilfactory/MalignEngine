@@ -1,4 +1,4 @@
-﻿using Silk.NET.OpenAL;
+using Silk.NET.OpenAL;
 using System.Buffers.Binary;
 using System.Text;
 
@@ -8,8 +8,6 @@ public interface IALBuffer
 {
     uint GetALBuffer();
 }
-
-public interface ISoundResource { }
 
 public class SoundResource : ISoundResource, IALBuffer, IDisposable
 {

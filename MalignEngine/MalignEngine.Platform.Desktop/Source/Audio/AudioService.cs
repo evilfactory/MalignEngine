@@ -1,14 +1,7 @@
-﻿using Silk.NET.OpenAL;
+using Silk.NET.OpenAL;
 using System.Numerics;
 
 namespace MalignEngine;
-
-public interface IAudioService : IService
-{
-    Vector3 ListenerPosition { get; set; }
-    SoundChannel Play(ISoundResource sound);
-    ISoundResource CreateResource(ISoundResourceDescriptor descriptor);
-}
 
 public class AudioService : IAudioService, IUpdate, IDisposable
 {
@@ -64,7 +57,7 @@ public class AudioService : IAudioService, IUpdate, IDisposable
         }
     }
 
-    public SoundChannel Play(ISoundResource sound)
+    public ISoundChannel Play(ISoundResource sound)
     {
         SoundChannel channel = new SoundChannel(this, ((IALBuffer)sound).GetALBuffer());
         _soundChannels.Add(channel);
