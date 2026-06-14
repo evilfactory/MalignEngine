@@ -1,5 +1,4 @@
-﻿using Silk.NET.OpenAL;
-using System.Numerics;
+﻿using System.Numerics;
 
 namespace MalignEngine;
 

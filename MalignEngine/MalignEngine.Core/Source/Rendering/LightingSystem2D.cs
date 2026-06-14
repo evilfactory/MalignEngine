@@ -1,4 +1,3 @@
-using Silk.NET.SDL;
 using System.Numerics;
 
 /*

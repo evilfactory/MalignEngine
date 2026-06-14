@@ -1,6 +1,5 @@
 using FontStashSharp.Interfaces;
 using System.Drawing;
-using Silk.NET.OpenGL;
 
 namespace MalignEngine;
 

@@ -6,6 +6,11 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+public interface IWindowContextProvider
+{
+    public IWindow GetWindow();
+}
+
 public class WindowService : BaseSystem, IWindowService, IWindowContextProvider, IPreUpdate
 {
     public string Title

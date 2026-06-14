@@ -1,12 +1,6 @@
 using Silk.NET.Maths;
-using Silk.NET.Windowing;
 
 namespace MalignEngine;
-
-public interface IWindowContextProvider
-{
-    public IWindow GetWindow();
-}
 
 public interface IWindowService
 {
