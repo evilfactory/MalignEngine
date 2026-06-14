@@ -9,5 +9,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\MalignEngine.Core\MalignEngine.Core.csproj" />
+		<PackageReference Include="nkast.Wasm.Canvas" Version="10.0.0" />
+		
 	</ItemGroup>
 </Project>
