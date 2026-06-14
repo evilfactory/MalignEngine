@@ -53,7 +53,7 @@ public class WindowService : BaseSystem, IWindowService, IWindowContextProvider,
     public int Height => Size.Y;
 
     // for renderer, i need to get rid of this later
-    internal IWindow window;
+    public IWindow window;
 
     public WindowService(IServiceContainer serviceContainer)
         : base (serviceContainer)

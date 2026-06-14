@@ -12,5 +12,6 @@
     <ItemGroup>
         <ProjectReference Include="..\MalignEngine\MalignEngine.Core\MalignEngine.Core.csproj" />
         <ProjectReference Include="..\MalignEngine\MalignEngine.Editor\MalignEngine.Editor.csproj" />
+		<ProjectReference Include="..\MalignEngine\MalignEngine.Platform.Desktop\MalignEngine.Platform.Desktop.csproj" />
     </ItemGroup>
 </Project>
