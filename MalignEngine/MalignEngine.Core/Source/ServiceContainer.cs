@@ -139,10 +139,6 @@ public class ServiceContainer : IServiceContainer
     {
         return () =>
         {
-            var obj = RuntimeHelpers.GetUninitializedObject(type);
-
-            InjectAll(obj);
-
             var constructors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
 
             ConstructorInfo ctor = constructors.First();
@@ -155,9 +151,11 @@ public class ServiceContainer : IServiceContainer
                 passedParameters[i] = GetInstance(parameters[i].ParameterType);
             }
 
+            object obj = null;
+
             try
             {
-                ctor.Invoke(obj, passedParameters);
+                obj = Activator.CreateInstance(type, passedParameters)!;
             }
             catch(TargetInvocationException exception)
             {
