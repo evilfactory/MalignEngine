@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebGamePrototype2</title>
+    <base href="/" />
+    <link rel="preload" id="webassembly" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <div id="app">
+        <svg class="loading-progress">
+            <circle r="40%" cx="50%" cy="50%" />
+            <circle r="40%" cx="50%" cy="50%" />
+        </svg>
+        <div class="loading-progress-text"></div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+
+    <script src="_content/nkast.Wasm.JSInterop/js/JSObject.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Window.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Document.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Navigator.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Gamepad.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Dom/js/Media.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.XHR/js/XHR.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Audio/js/Audio.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/Canvas.10.0.0.js"></script>
+    <script src="_content/nkast.Wasm.Canvas/js/CanvasGLContext.10.0.0.js"></script>
+
+    <script>
+        function tickJS() {
+            // resize the canvas to fit its parent
+            var canvas = document.getElementById('theCanvas');
+
+            var holder = document.getElementById('canvasHolder');
+            canvas.width = holder.clientWidth;
+            canvas.height = holder.clientHeight;
+
+            window.theInstance.invokeMethod('TickDotNet');
+            window.requestAnimationFrame(tickJS);
+        }
+
+        window.initRenderJS = (instance) => {
+            window.theInstance = instance;
+
+            // begin game loop
+            window.requestAnimationFrame(tickJS);
+        };
+
+    </script>
+
+</body>
+
+</html>

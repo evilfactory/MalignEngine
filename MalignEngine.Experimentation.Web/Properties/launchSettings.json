@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "MalignEngine.Experimentation.Web": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:59246;http://localhost:59247"
+    }
+  }
+}

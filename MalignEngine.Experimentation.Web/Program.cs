@@ -1,41 +1,25 @@
-﻿namespace MalignEngine.Experimentation;
+﻿using MalignEngine;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+
+namespace MalignEngine.Experimentation.Web;
 
 class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Application application = new Application();
 
-        // Core services
-        application.ServiceContainer.RegisterAll<Renderer2D>();
-        application.ServiceContainer.RegisterAll<FontRenderer>();
-        application.ServiceContainer.RegisterAll<EventService>();
-        application.ServiceContainer.RegisterAll<EntitySerializer>();
+        var builder = WebAssemblyHostBuilder.CreateDefault(args);
+        builder.RootComponents.Add<Home>("#app");
+        builder.RootComponents.Add<HeadOutlet>("head::after");
 
-        // Assets
-        application.ServiceContainer.RegisterAll<FontAssetLoader>();
-        application.ServiceContainer.RegisterAll<AssetService>();
-        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
-        application.ServiceContainer.RegisterAll<PerformanceProfiler>();
-        application.ServiceContainer.RegisterAll<XmlSerializer>();
-        application.ServiceContainer.RegisterAll<XmlAssetLoader>();
-        application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
-        application.ServiceContainer.RegisterAll<TileListXmlLoader>();
-        application.ServiceContainer.RegisterAll<SceneXmlLoader>();
+        builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-        var entityManager = new EntityManager(new ServiceContainer(application.ServiceContainer), application.ServiceContainer.GetInstance<IScheduleManager>());
+        var app = builder.Build();
 
-        // World
-        entityManager.WorldContainer.RegisterAll<CameraSystem>();
-        entityManager.WorldContainer.RegisterAll<TransformSystem>();
-        entityManager.WorldContainer.RegisterAll<HierarchySystem>();
-        entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
-        entityManager.WorldContainer.RegisterAll<SceneSystem>();
-        entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
-        entityManager.WorldContainer.RegisterAll<Experimentation>();
-
-
-        application.Run();
+        await app.RunAsync();
     }
 
 }

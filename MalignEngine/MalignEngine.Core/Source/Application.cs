@@ -14,8 +14,8 @@ public class Application : IDisposable, ILogHandler, IApplicationClosing
     {
         Main = this;
 
-        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
 
         ServiceContainer = new ServiceContainer();
 
