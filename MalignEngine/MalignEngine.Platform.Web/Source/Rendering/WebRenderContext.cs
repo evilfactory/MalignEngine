@@ -11,18 +11,18 @@ public class WebRenderContext : IRenderContext
         _gl = gl;
     }
 
-    private GLPrimitiveType PrimitiveTypeToGlType(PrimitiveType type)
+    private WebGLPrimitiveType PrimitiveTypeToGlType(PrimitiveType type)
     {
         switch (type)
         {
             case PrimitiveType.Triangles:
-                return GLPrimitiveType.Triangles;
+                return WebGLPrimitiveType.TRIANGLES;
             case PrimitiveType.Lines:
-                return GLPrimitiveType.Lines;
+                return WebGLPrimitiveType.LINES;
             case PrimitiveType.Points:
-                return GLPrimitiveType.Points;
+                throw new NotImplementedException("Not supported");
             default:
-                return GLPrimitiveType.Triangles;
+                return WebGLPrimitiveType.TRIANGLES;
         }
     }
 
@@ -44,7 +44,7 @@ public class WebRenderContext : IRenderContext
 
         unsafe
         {
-            _gl.DrawElements(PrimitiveTypeToGlType(primitiveType), indices, WebGLDataType.UINT, null);
+            _gl.DrawElements(PrimitiveTypeToGlType(primitiveType), (int)indices, WebGLDataType.UINT, 0);
         }
     }
 
@@ -54,7 +54,7 @@ public class WebRenderContext : IRenderContext
         WebBufferResource vbo = (WebBufferResource)vertexBuffer;
         vao.Bind();
         vbo.Bind();
-        _gl.DrawArrays(PrimitiveTypeToGlType(primitiveType), 0, count);
+        _gl.DrawArrays(PrimitiveTypeToGlType(primitiveType), 0, (int)count);
     }
 
     public void SetShader(IShaderResource shader)
@@ -74,18 +74,18 @@ public class WebRenderContext : IRenderContext
         }
         else
         {
-            // _gl.BindFramebuffer(WebGL2FramebufferType.FRAMEBUFFER, 0); ??
+            //_gl.BindFramebuffer(WebGL2FramebufferType.FRAMEBUFFER, 0); ??
             _gl.Viewport(0, 0, width, height);
         }
     }
 
     public void SetTexture(int slot, ITextureResource texture)
     {
-        ((GLTextureResource)texture).Bind(WebGLTextureUnit.TEXTURE0 + slot);
+        ((WebTextureResource)texture).Bind(WebGLTextureUnit.TEXTURE0 + slot);
     }
 
     public void SetPipeline(IPipelineResource pipeline)
     {
-        ((GLPipelineResource)pipeline).Bind();
+        ((WebPipelineResource)pipeline).Bind();
     }
 }

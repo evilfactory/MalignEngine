@@ -75,6 +75,13 @@
     </Project>
     <Project Path="SteamBolt/SteamBolt.Shared/SteamBolt.Shared.shproj" />
   </Folder>
+  <Project Path="MalignEngine.Experimentation.Web/MalignEngine.Experimentation.Web.csproj">
+    <BuildType Solution="Debug-Events|*" Project="Debug" />
+    <BuildType Solution="Debug-PureECS|*" Project="Debug" />
+    <BuildType Solution="Release-Events|*" Project="Debug" />
+    <BuildType Solution="Release-PureECS|*" Project="Debug" />
+    <BuildType Solution="Release-Pure|*" Project="Debug" />
+  </Project>
   <Project Path="MalignEngine.Experimentation/MalignEngine.Experimentation.csproj">
     <BuildType Solution="Debug-Events|*" Project="Debug" />
     <BuildType Solution="Debug-PureECS|*" Project="Debug" />

@@ -107,32 +107,32 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     public IBufferResource CreateBuffer(IBufferResourceDescriptor descriptor)
     {
-        return new GLBufferResource(_gl, this, descriptor);
+        return new WebBufferResource(_gl, this, descriptor);
     }
 
     public IVertexArrayResource CreateVertexArray(IVertexArrayDescriptor descriptor)
     {
-        return new GLVertexArrayResource(_gl, this, descriptor);
+        return new WebVertexArrayResource(_gl, this, descriptor);
     }
 
     public ITextureResource CreateTexture(ITextureDescriptor descriptor)
     {
-        return new GLTextureResource(_gl, this, descriptor);
+        return new WebTextureResource(_gl, this, descriptor);
     }
 
     public IShaderResource CreateShader(IShaderResourceDescriptor descriptor)
     {
-        return new GLShaderResource(_gl, this, descriptor);
+        return new WebShaderResource(_gl, this, descriptor);
     }
 
     public IFrameBufferResource CreateFrameBuffer(IFrameBufferDescriptor descriptor)
     {
-        return new GLFrameBufferResource(_gl, this, descriptor);
+        return new WebFrameBufferResource(_gl, this, descriptor);
     }
 
     public IPipelineResource CreatePipeline(IPipelineResourceDescriptor descriptor)
     {
-        return new GLPipelineResource(_gl, descriptor);
+        return new WebPipelineResource(_gl, descriptor);
     }
 
     public void Dispose()
