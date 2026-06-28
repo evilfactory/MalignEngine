@@ -1,21 +1,24 @@
 ﻿using MalignEngine;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.Extensions.FileProviders;
+using Silk.NET.Maths;
 
 namespace MalignEngine.Experimentation.Web;
 
 class Program
 {
+    public static Uri BaseAddress;
+
     public static async Task Main(string[] args)
     {
-        Application application = new Application();
-
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
         builder.RootComponents.Add<Home>("#app");
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+        BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 
         var app = builder.Build();
 

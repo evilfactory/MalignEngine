@@ -23,18 +23,15 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
     [Dependency]
     protected IPerformanceProfiler? _performanceProfiler;
 
-    private Canvas canvas;
     private IWebGL2RenderingContext _gl;
 
-    public WebRenderingAPI(IScheduleManager scheduleManager, ILoggerService loggerService)
+    public WebRenderingAPI(CanvasWindow canvasWindow, IScheduleManager scheduleManager, ILoggerService loggerService)
     {
         _running = true;
 
-        canvas = Window.Current.Document.GetElementById<Canvas>("game");
-
         ContextAttributes attribs = new ContextAttributes();
         attribs.Depth = true;
-        _gl = canvas.GetContext<IWebGL2RenderingContext>(attribs);
+        _gl = canvasWindow.Canvas.GetContext<IWebGL2RenderingContext>(attribs);
 
         _scheduleManager = scheduleManager;
         _logger = loggerService.GetSawmill("rendering.api");
@@ -65,12 +62,6 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     private void SubmitInternal(Delegate command)
     {
-        if (IsInRenderingThread())
-        {
-            ExecuteRenderCommand(command);
-            return;
-        }
-
         _queue.Enqueue(command);
     }
 

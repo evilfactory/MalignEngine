@@ -1,5 +1,6 @@
 ﻿@page "/"
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
 @using System.Diagnostics;
 @using System.Numerics;
 @using Microsoft.JSInterop;
@@ -39,6 +40,29 @@
         Console.WriteLine("initialized");
     }
 
+    public static string TestFrag;
+    public static string TestVert;
+    public static byte[] Texture;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TestFrag = await Http.GetStringAsync("TestFrag.glsl");
+        TestVert = await Http.GetStringAsync("TestVert.glsl");
+        Texture = await Http.GetByteArrayAsync("Textures/player.png");
+
+        application = new WebApplication();
+        application.ServiceContainer.RegisterAll<CanvasWindow>();
+        application.ServiceContainer.RegisterAll<FontRenderer>();
+        application.ServiceContainer.RegisterAll<WebRenderingAPI>();
+        application.ServiceContainer.RegisterAll<Renderer2D>();
+        application.ServiceContainer.RegisterAll<Experimentation>();
+        application.ServiceContainer.RegisterAll<PerformanceProfiler>();
+
+        _scheduleManager = application.ServiceContainer.GetInstance<IScheduleManager>();
+
+        application.Run();
+    }
+
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
@@ -51,8 +75,12 @@
         }
     }
 
-    Canvas cs;
+    private bool init = false;
     IWebGL2RenderingContext gl;
+
+    private Application application;
+
+    private IScheduleManager _scheduleManager;
 
     private WebGLProgram program;
 
@@ -76,10 +104,13 @@
     [JSInvokable]
     public void TickDotNet()
     {
-        Console.WriteLine("hello");
+        if (application == null) { return; }
 
-        if (cs == null)
+        if (!init)
         {
+            init = true;
+
+            /*
             cs = Window.Current.Document.GetElementById<Canvas>("theCanvas");
             ContextAttributes attribs = new ContextAttributes();
             attribs.Depth = true;
@@ -175,8 +206,19 @@ void main()
                 Console.WriteLine("PROGRAM LINK FAILED:");
                 Console.WriteLine(log);
             }
+
+            */
         }
 
+        _scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate(1f/60f));
+        _scheduleManager.Run<IUpdate>(e => e.OnUpdate(1f / 60f));
+        _scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate(1f/60f));
+
+        _scheduleManager.Run<IPreDraw>(x => x.OnPreDraw(1f / 60f));
+        _scheduleManager.Run<IDraw>(x => x.OnDraw(1f / 60f));
+        _scheduleManager.Run<IPostDraw>(x => x.OnPostDraw(1f / 60f));
+
+        /*
         // run gameloop tick
         TimeSpan t = _sw.Elapsed;
         TimeSpan dt = t - _prevt;
@@ -212,6 +254,7 @@ void main()
             WebGLDataType.UINT,
             0
         );
+        */
     }
 
     private void cs_ContextLost(object sender, EventArgs e)

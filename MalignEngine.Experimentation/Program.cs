@@ -6,7 +6,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        Application application = new Application();
+        Application application = new DesktopApplication();
 
         // Core services
         application.ServiceContainer.RegisterAll<WindowService>();

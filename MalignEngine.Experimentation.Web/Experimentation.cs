@@ -1,6 +1,8 @@
-﻿using System.Runtime.InteropServices;
+﻿using MalignEngine.Experimentation.Web;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Xml.Linq;
+using static System.Net.WebRequestMethods;
 
 namespace MalignEngine.Experimentation;
 
@@ -30,14 +32,9 @@ class Experimentation : BaseSystem, ICameraDraw
     public Experimentation(
         IServiceContainer serviceContainer,
         IRenderingAPI renderAPI,
-        IAssetService assetService,
         IRenderer2D render2D,
         IWindowService windowService,
-        IFontRenderer fontRenderer,
-        IInputService inputService,
-        IEntityManager entityManager,
-        SceneXmlLoader sceneXmlLoader,
-        SceneSystem sceneSystem
+        IFontRenderer fontRenderer
         )
         : base(serviceContainer)
     {
@@ -45,27 +42,25 @@ class Experimentation : BaseSystem, ICameraDraw
         _render2D = render2D;
         _windowService = windowService;
         _fontRenderer = fontRenderer;
-        _inputService = inputService;
-        _entityManager = entityManager;
-        _assetService = assetService;
-        _sceneXmlLoader = sceneXmlLoader;
-        _sceneSystem = sceneSystem;
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
+        var http = new HttpClient();
+
+        http.BaseAddress = Program.BaseAddress;
+
+        /*
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
-            FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl"),
-            VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
+            FragmentShaderSource = Home.TestFrag,
+            VertexShaderSource = Home.TestVert
         });
+        */
 
-        _shaderResource2 = _renderAPI.CreateShader(new ShaderResourceDescriptor()
+        using (Stream img = new MemoryStream(Home.Texture))
         {
-            FragmentShaderSource = File.ReadAllText("Content/TestFrag2.glsl"),
-            VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
-        });
-
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/player.png"));
+            _textureResource = _renderAPI.CreateTexture(TextureLoader.Load(img));
+        }
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
@@ -86,11 +81,7 @@ class Experimentation : BaseSystem, ICameraDraw
 
         _bufferResource = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Static, MemoryMarshal.AsBytes(imageData.AsSpan()).ToArray()));
 
-        _frameBufferResource = _renderAPI.CreateFrameBuffer(new FrameBufferDescriptor(1, 1280, 800));
-
-        _font = _assetService.FromPath<Font>("file:Content/Roboto-Regular.ttf");
-        _inputService = inputService;
-        _entityManager = entityManager;
+        //_frameBufferResource = _renderAPI.CreateFrameBuffer(new FrameBufferDescriptor(1, 1280, 800));
 
         /*
         AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>("file:Content/FooSprite.xml");
@@ -121,12 +112,10 @@ class Experimentation : BaseSystem, ICameraDraw
         _logger.LogInfo(test.ToString());
         */
 
-        assetService.PreLoad("Content");
-
         //var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
 
-        AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
-        Entity entity = _sceneSystem.Instantiate(scene);
+        //AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
+        //Entity entity = _sceneSystem.Instantiate(scene);
         //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
     }
 
@@ -142,6 +131,13 @@ class Experimentation : BaseSystem, ICameraDraw
 
     public override void OnDraw(float deltaTime)
     {
+        _renderAPI.Submit(ctx =>
+        {
+            _render2D.Begin(ctx);
+            _render2D.DrawTexture2D(_textureResource, new Vector2(0f, 0f), new Vector2(10f, 10f), 0f);
+            _render2D.End();
+        });
+
         return;
         var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, _windowService.FrameSize.Y, 0, 0.0001f, 100f);
 

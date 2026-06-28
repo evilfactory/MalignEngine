@@ -7,7 +7,7 @@ class Program
 {
     public static void Main(string[] args)
     {
-        Application application = new Application();
+        Application application = new DesktopApplication();
         application.ServiceContainer.RegisterAll<WindowService>();
         application.ServiceContainer.RegisterAll<GLRenderingAPI>();
         application.ServiceContainer.RegisterAll<InputService>();

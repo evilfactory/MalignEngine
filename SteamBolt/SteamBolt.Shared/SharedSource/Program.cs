@@ -8,7 +8,7 @@ internal class Program
 {
     static void Main(string[] args)
     {
-        Application application = new Application();
+        Application application = new DesktopApplication();
 
         // Core services
 #if CLIENT
