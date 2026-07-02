@@ -21,8 +21,16 @@ public class GLShaderResource : IShaderResource
 
         renderAPI.Submit(ctx =>
         {
-            uint vertex = LoadShader(ShaderType.VertexShader, _descriptor.VertexShaderSource);
-            uint fragment = LoadShader(ShaderType.FragmentShader, _descriptor.FragmentShaderSource);
+            StringBuilder vertexSource = new StringBuilder();
+            vertexSource.AppendLine("#version 330 core");
+            vertexSource.AppendLine(_descriptor.VertexShaderSource);
+
+            StringBuilder fragmentSource = new StringBuilder();
+            fragmentSource.AppendLine("#version 330 core");
+            fragmentSource.AppendLine(_descriptor.FragmentShaderSource);
+
+            uint vertex = LoadShader(ShaderType.VertexShader, vertexSource.ToString());
+            uint fragment = LoadShader(ShaderType.FragmentShader, fragmentSource.ToString());
             _handle = _gl.CreateProgram();
             _gl.AttachShader(_handle, vertex);
             _gl.AttachShader(_handle, fragment);

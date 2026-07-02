@@ -56,17 +56,7 @@ class Experimentation : BaseSystem, ICameraDraw
         assetService.Mount("/Content/", new FileAssetSource("Content"));
         var httpClient = new HttpClient();
 
-        _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
-        {
-            FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl"),
-            VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
-        });
-
-        _shaderResource2 = _renderAPI.CreateShader(new ShaderResourceDescriptor()
-        {
-            FragmentShaderSource = File.ReadAllText("Content/TestFrag2.glsl"),
-            VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
-        });
+        _shaderResource = _assetService.FromPath<ShaderAsset>("/Content/TestShader.shader").Asset.ShaderResource;
 
         //_textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/player.png"));
         _textureResource = _assetService.FromPath<Texture2D>("/Content/Textures/player.png").Asset.Resource;

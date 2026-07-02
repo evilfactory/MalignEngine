@@ -153,14 +153,7 @@ public class ServiceContainer : IServiceContainer
 
             object obj = null;
 
-            try
-            {
-                obj = Activator.CreateInstance(type, passedParameters)!;
-            }
-            catch(TargetInvocationException exception)
-            {
-                System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception.InnerException ?? exception).Throw();
-            }
+            obj = Activator.CreateInstance(type, passedParameters)!;
 
             InjectAll(obj);
 

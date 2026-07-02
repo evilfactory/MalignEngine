@@ -26,6 +26,7 @@ class Program
         application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
         application.ServiceContainer.RegisterAll<TileListXmlLoader>();
         application.ServiceContainer.RegisterAll<SceneXmlLoader>();
+        application.ServiceContainer.RegisterAll<ShaderAssetLoader>();
 
         var entityManager = new EntityManager(new ServiceContainer(application.ServiceContainer), application.ServiceContainer.GetInstance<IScheduleManager>());
 

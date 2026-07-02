@@ -119,9 +119,6 @@ public class Renderer2D : IRenderer2D
         _basicShader = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
             FragmentShaderSource = """
-            #version 300 es
-            precision mediump float;
-
             in vec2 fUv;
             in float fTexIndex;
             in vec4 fColor;
@@ -195,9 +192,6 @@ public class Renderer2D : IRenderer2D
             }
             """,
             VertexShaderSource = """
-            #version 300 es
-            precision mediump float;
-
             layout (location = 0) in vec3 vPos;
             layout (location = 1) in vec2 vUv;
             layout (location = 2) in float vTexIndex;

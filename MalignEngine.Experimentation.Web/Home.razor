@@ -40,25 +40,55 @@
         Console.WriteLine("initialized");
     }
 
-    public static string TestFrag;
-    public static string TestVert;
-    public static byte[] Texture;
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        TestFrag = await Http.GetStringAsync("TestFrag.glsl");
-        TestVert = await Http.GetStringAsync("TestVert.glsl");
-        Texture = await Http.GetByteArrayAsync("Textures/player.png");
-
         application = new WebApplication();
+        application.ServiceContainer.RegisterAll<AssetService>();
         application.ServiceContainer.RegisterAll<CanvasWindow>();
         application.ServiceContainer.RegisterAll<FontRenderer>();
         application.ServiceContainer.RegisterAll<WebRenderingAPI>();
         application.ServiceContainer.RegisterAll<Renderer2D>();
-        application.ServiceContainer.RegisterAll<Experimentation>();
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
 
+        // Assets
+        application.ServiceContainer.RegisterAll<EntitySerializer>();
+        application.ServiceContainer.RegisterAll<FontAssetLoader>();
+        application.ServiceContainer.RegisterAll<AssetService>();
+        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
+        application.ServiceContainer.RegisterAll<PerformanceProfiler>();
+        application.ServiceContainer.RegisterAll<XmlSerializer>();
+        application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
+        application.ServiceContainer.RegisterAll<TileListXmlLoader>();
+        application.ServiceContainer.RegisterAll<SceneXmlLoader>();
+        application.ServiceContainer.RegisterAll<ShaderAssetLoader>();
+
+        var entityManager = new EntityManager(new ServiceContainer(application.ServiceContainer), application.ServiceContainer.GetInstance<IScheduleManager>());
+
+        // World
+        entityManager.WorldContainer.RegisterAll<CameraSystem>();
+        entityManager.WorldContainer.RegisterAll<TransformSystem>();
+        entityManager.WorldContainer.RegisterAll<HierarchySystem>();
+        entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
+        entityManager.WorldContainer.RegisterAll<SceneSystem>();
+        entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
+        entityManager.WorldContainer.RegisterAll<Experimentation>();
+
+        // Assets
+        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
+
         _scheduleManager = application.ServiceContainer.GetInstance<IScheduleManager>();
+
+        IAssetService assetService = application.ServiceContainer.GetInstance<IAssetService>();
+
+        assetService.Mount("/", new HttpAssetSource(Http, ""));
+
+        AssetManifest manifest = new AssetManifest([
+            (typeof(Texture2D), "/Content/Textures/player.png"),
+            (typeof(Scene), "/Content/FooScene.xml"),
+            (typeof(Font), "/Content/Roboto-Regular.ttf")
+        ]);
+
+        await assetService.PreLoadAsync(manifest);
 
         application.Run();
     }

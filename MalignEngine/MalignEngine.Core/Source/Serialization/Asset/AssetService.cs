@@ -17,6 +17,7 @@ public interface IAssetService
     AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset;
     IEnumerable<AssetHandle<T>> GetHandles<T>() where T : class, IAsset;
     //void Save(AssetPath assetPath, IAsset asset);
+    Task PreLoadAsync(AssetManifest manifest);
 }
 
 public class AssetService : IAssetService, IService
@@ -114,5 +115,14 @@ public class AssetService : IAssetService, IService
         }
 
         return best;
+    }
+
+    public async Task PreLoadAsync(AssetManifest manifest)
+    {
+        foreach ((Type type, AssetPath path) in manifest.Assets)
+        {
+            AssetHandle handle = FromPath(type, path);
+            await handle.LoadAsync();
+        }
     }
 }

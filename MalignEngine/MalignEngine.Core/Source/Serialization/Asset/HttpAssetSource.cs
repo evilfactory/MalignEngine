@@ -22,7 +22,14 @@ public class HttpAssetSource : IAssetSource
 
     public async Task<Stream> OpenReadAsync(AssetPath path)
     {
-        return await _http.GetStreamAsync(GetUrl(path.AbsolutePath));
+        await using var httpStream = await _http.GetStreamAsync(path);
+
+        var memory = new MemoryStream();
+        await httpStream.CopyToAsync(memory);
+
+        memory.Position = 0;
+
+        return memory;
     }
 
     public async Task SaveAsync(AssetPath path, Stream stream)

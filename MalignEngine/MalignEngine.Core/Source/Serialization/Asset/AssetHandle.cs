@@ -6,8 +6,8 @@ namespace MalignEngine
     {
         public AssetPath AssetPath { get; }
         public bool IsLoading { get; }
-        public Task Load();
-        public void LoadSync();
+        public Task LoadAsync();
+        public void Load();
     }
 
     public class AssetHandle : IAssetHandle
@@ -22,7 +22,7 @@ namespace MalignEngine
             {
                 if (asset == null)
                 {
-                    LoadSync();
+                    Load();
                 }
 
                 if (asset == null)
@@ -74,12 +74,12 @@ namespace MalignEngine
             Asset = asset;
         }
 
-        public void LoadSync()
+        public void Load()
         {
-            Load().ConfigureAwait(true).GetAwaiter().GetResult();
+            LoadAsync().ConfigureAwait(true).GetAwaiter().GetResult();
         }
 
-        public async Task Load()
+        public async Task LoadAsync()
         {
             if (_mount == null || _loader == null)
             {
@@ -135,8 +135,8 @@ namespace MalignEngine
 
         private AssetHandle handle;
 
-        public Task Load() => handle.Load();
-        public void LoadSync() => handle.LoadSync();
+        public async Task LoadAsync() => await handle.LoadAsync();
+        public void Load() => handle.Load();
 
         public AssetHandle(AssetHandle handle)
         {

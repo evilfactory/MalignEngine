@@ -33,7 +33,10 @@ class Experimentation : BaseSystem, ICameraDraw
         IRenderingAPI renderAPI,
         IRenderer2D render2D,
         IWindowService windowService,
-        IFontRenderer fontRenderer
+        IFontRenderer fontRenderer,
+        IAssetService assetService,
+        IEntityManager entityManager,
+        SceneSystem sceneSystem
         )
         : base(serviceContainer)
     {
@@ -41,6 +44,8 @@ class Experimentation : BaseSystem, ICameraDraw
         _render2D = render2D;
         _windowService = windowService;
         _fontRenderer = fontRenderer;
+        _assetService = assetService;
+        _sceneSystem = sceneSystem;
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
@@ -56,11 +61,8 @@ class Experimentation : BaseSystem, ICameraDraw
         });
         */
 
-        using (Stream img = new MemoryStream(Home.Texture))
-        {
-            _textureResource = _renderAPI.CreateTexture(TextureLoader.Load(img));
-        }
-
+        _textureResource = assetService.FromPath<Texture2D>("/Content/Textures/player.png").Asset.Resource;
+       
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
         desc.AddAttribute("UV", 1, VertexAttributeType.Float, 2, false);
@@ -113,8 +115,11 @@ class Experimentation : BaseSystem, ICameraDraw
 
         //var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
 
-        //AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
-        //Entity entity = _sceneSystem.Instantiate(scene);
+        _font = _assetService.FromPath<Font>("/Content/Roboto-Regular.ttf");
+        _entityManager = entityManager;
+
+        AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene.xml");
+        Entity entity = _sceneSystem.Instantiate(scene);
         //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
     }
 
@@ -123,7 +128,7 @@ class Experimentation : BaseSystem, ICameraDraw
         _renderAPI.Submit(ctx =>
         {
             _render2D.Begin(ctx);
-            _render2D.DrawTexture2D(_textureResource, new Vector2(-10f, -3f), new Vector2(15f, 15f), 0f);
+            _render2D.DrawTexture2D(_textureResource, new Vector2(-10f, -3f), new Vector2(1f, 1f), 0f);
             _render2D.End();
         });
     }

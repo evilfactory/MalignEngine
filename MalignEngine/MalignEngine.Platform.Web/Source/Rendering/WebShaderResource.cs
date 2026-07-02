@@ -21,8 +21,18 @@ public class WebShaderResource : IShaderResource
 
         renderAPI.Submit(ctx =>
         {
-            var vertex = LoadShader(WebGLShaderType.VERTEX, _descriptor.VertexShaderSource);
-            var fragment = LoadShader(WebGLShaderType.FRAGMENT, _descriptor.FragmentShaderSource);
+            StringBuilder vertexSource = new StringBuilder();
+            vertexSource.AppendLine("#version 300 es");
+            vertexSource.AppendLine("precision mediump float;");
+            vertexSource.AppendLine(_descriptor.VertexShaderSource);
+
+            StringBuilder fragmentSource = new StringBuilder();
+            fragmentSource.AppendLine("#version 300 es");
+            fragmentSource.AppendLine("precision mediump float;");
+            fragmentSource.AppendLine(_descriptor.FragmentShaderSource);
+
+            var vertex = LoadShader(WebGLShaderType.VERTEX, vertexSource.ToString());
+            var fragment = LoadShader(WebGLShaderType.FRAGMENT, fragmentSource.ToString());
             _program = _gl.CreateProgram();
             _gl.AttachShader(_program, vertex);
             _gl.AttachShader(_program, fragment);
