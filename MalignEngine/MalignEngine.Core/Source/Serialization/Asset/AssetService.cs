@@ -1,113 +1,76 @@
+using nkast.Aether.Physics2D.Common;
+
 namespace MalignEngine;
 
 public interface IAssetService
 {
+    void Mount(AssetPath virtualRoot, IAssetSource source);
     /// <summary>
     /// Returns all handles associated with a specific asset path, without a specific id
     /// </summary>
-    IEnumerable<AssetHandle> FromPathAll(AssetPath assetPath);
+    //IEnumerable<AssetHandle> FromPathAll(AssetPath assetPath);
+    AssetHandle FromPath(Type type, AssetPath assetPath);
     /// <summary>
     /// Gets the handle for the specified asset path. Throws an exception if there's more than one handle in this asset path and there's no id specified in the asset path
-    /// </summary>
-    AssetHandle FromPath(AssetPath assetPath);
-    /// <summary>
-    /// <inheritdoc cref="FromPath" />
     /// </summary>
     AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset;
     AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset;
     IEnumerable<AssetHandle<T>> GetHandles<T>() where T : class, IAsset;
-    void PreLoad(string directory, bool loadNow = false);
-    void Save(AssetPath assetPath, IAsset asset);
+    //void Save(AssetPath assetPath, IAsset asset);
 }
 
 public class AssetService : IAssetService, IService
 {
     private ILogger _logger;
 
-    private Dictionary<AssetPath, AssetHandle> _assetHandles;
+    private Dictionary<(Type Type, AssetPath Path), AssetHandle> _assetHandles;
+    private List<AssetMount> _mounts;
+
     private IServiceContainer _container;
 
     public AssetService(ILoggerService loggerService, IServiceContainer container)
     {
         _logger = loggerService.GetSawmill("assets");
 
-        _assetHandles = new Dictionary<AssetPath, AssetHandle>();
+        _mounts = new List<AssetMount>();
+        _assetHandles = new Dictionary<(Type Type, AssetPath Path), AssetHandle>();
         _container = container;
     }
 
-    public IEnumerable<AssetHandle> FromPathAll(AssetPath assetPath)
+    public void Mount(AssetPath virtualRoot, IAssetSource source)
     {
-        IEnumerable<IAssetLoader> loaders = _container.GetInstance<IEnumerable<IAssetLoader>>();
-
-        var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
-
-        if (loader == null)
-        {
-            throw new InvalidOperationException("No loader defined for this asset extension");
-        }
-
-        List<AssetHandle> handles = new List<AssetHandle>();
-
-        foreach (var id in loader.GetSubIds(assetPath))
-        {
-            AssetPath assetPathWithId = assetPath + "#" + id;
-
-            handles.Add(FromPath(assetPathWithId));
-        }
-
-        return handles;
+        _mounts.Add(new AssetMount(virtualRoot, source));
     }
 
-    public AssetHandle FromPath(AssetPath assetPath)
+    public AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset => FromPath(typeof(T), assetPath).Upgrade<T>();
+
+    public AssetHandle FromPath(Type type, AssetPath assetPath)
     {
-        if (_assetHandles.ContainsKey(assetPath))
+        if (_assetHandles.TryGetValue((type, assetPath), out AssetHandle? handle))
         {
-            return _assetHandles[assetPath];
+            return handle;
         }
 
         IEnumerable<IAssetLoader> loaders = _container.GetInstance<IEnumerable<IAssetLoader>>();
 
-        var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
-
+        IAssetLoader? loader = loaders.FirstOrDefault(l => l.AssetTypes.Contains(type));
+        
         if (loader == null)
         {
-            throw new InvalidOperationException("No loader defined for this asset extension");
+            throw new ArgumentException($"Failed to find loader for type {type.Name}");
         }
 
-        IEnumerable<string> subIds = loader.GetSubIds(assetPath);
+        AssetMount? mount = FindMount(assetPath);
 
-        bool matchesAny = false;
-
-        if (subIds.Count() == 0)
+        if (mount == null)
         {
-            matchesAny = true;
-        }
-        else
-        {
-            foreach (var str in subIds)
-            {
-                if (str == assetPath.Id)
-                {
-                    matchesAny = true;
-                }
-            }
+            throw new ArgumentException($"Failed to find mount that matches path {assetPath}");
         }
 
-        if (!matchesAny)
-        {
-            throw new InvalidOperationException("Asset id is invalid");
-        }
-
-        AssetHandle handle = new AssetHandle(assetPath, loader);
-
-        _assetHandles[assetPath] = handle;
+        handle = new AssetHandle(assetPath, mount, loader);
+        _assetHandles[(type, assetPath)] = handle;
 
         return handle;
-    }
-
-    public AssetHandle<T> FromPath<T>(AssetPath assetPath) where T : class, IAsset
-    {
-        return FromPath(assetPath).Upgrade<T>();
     }
 
     public AssetHandle<T> FromAsset<T>(T asset) where T : class, IAsset
@@ -116,23 +79,9 @@ public class AssetService : IAssetService, IService
 
         var handle = new AssetHandle(assetPath, asset);
 
-        _assetHandles[assetPath] = handle;
+        _assetHandles[(asset.GetType(), assetPath)] = handle;
 
         return handle.Upgrade<T>();
-    }
-
-    public void Save(AssetPath assetPath, IAsset asset)
-    {
-        IEnumerable<IAssetLoader> loaders = _container.GetInstance<IEnumerable<IAssetLoader>>();
-
-        var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
-
-        if (loader == null)
-        {
-            throw new InvalidOperationException("No loader defined for this asset extension");
-        }
-
-        throw new NotImplementedException();
     }
 
     IEnumerable<AssetHandle<T>> IAssetService.GetHandles<T>()
@@ -146,28 +95,24 @@ public class AssetService : IAssetService, IService
         }
     }
 
-    public void PreLoad(string directory, bool loadNow = false)
+    private AssetMount? FindMount(AssetPath assetPath)
     {
-        IEnumerable<IAssetLoader> loaders = _container.GetInstance<IEnumerable<IAssetLoader>>();
+        AssetMount? best = null;
 
-        var files = Directory.EnumerateFiles(directory, "*", new EnumerationOptions() { RecurseSubdirectories = true });
-
-        foreach (var file in files)
+        foreach (var mount in _mounts)
         {
-            AssetPath assetPath = new AssetPath("file:" + file.Replace("\\", "/"));
-
-            var loader = loaders.Where(x => x.IsCompatible(assetPath)).FirstOrDefault();
-
-            if (loader == null)
+            if (!assetPath.ToString().StartsWith(mount.VirtualRoot))
             {
-                _logger.LogVerbose($"preload: ignoring {assetPath}, no loader");
                 continue;
             }
 
-            var handle = FromPath(assetPath);
-            if (loadNow) { handle.LoadNow(); }
-
-            _logger.LogVerbose($"preload: added {assetPath}");
+            if (best == null ||
+                mount.VirtualRoot.Length > best.VirtualRoot.Length)
+            {
+                best = mount;
+            }
         }
+
+        return best;
     }
 }

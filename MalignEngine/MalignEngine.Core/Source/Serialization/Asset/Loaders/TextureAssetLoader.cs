@@ -3,6 +3,8 @@ namespace MalignEngine;
 
 public class TextureAssetLoader : IService, IAssetLoader
 {
+    public IReadOnlyCollection<Type> AssetTypes => [typeof(Texture2D)];
+
     private IRenderingAPI _renderingAPI;
 
     public TextureAssetLoader(IRenderingAPI renderingAPI)
@@ -10,32 +12,15 @@ public class TextureAssetLoader : IService, IAssetLoader
         _renderingAPI = renderingAPI;
     }
 
-    public Type GetAssetType(AssetPath assetPath)
+    public IAsset Load(Stream stream)
     {
-        return typeof(Texture2D);
-    }
-
-    public bool IsCompatible(AssetPath assetPath)
-    {
-        return assetPath.Extension == "png" || assetPath.Extension == "jpg" || assetPath.Extension == "jpeg";
-    }
-
-    public IEnumerable<string> GetSubIds(AssetPath assetPath)
-    {
-        return Enumerable.Empty<string>();
-    }
-
-    public IAsset Load(AssetPath assetPath)
-    {
-        AssetSource source = AssetSource.Get(assetPath);
-
-        ITextureDescriptor descriptor = TextureLoader.Load(source.GetStream());
+        ITextureDescriptor descriptor = TextureLoader.Load(stream);
         ITextureResource resource = _renderingAPI.CreateTexture(descriptor);
         Texture2D texture = new Texture2D(resource);
         return texture;
     }
 
-    public void Save(AssetPath assetPath, IAsset asset)
+    public void Save(Stream stream, IAsset asset)
     {
         throw new NotImplementedException();
     }

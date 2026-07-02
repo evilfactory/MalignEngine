@@ -2,7 +2,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
-using static System.Net.WebRequestMethods;
 
 namespace MalignEngine.Experimentation;
 

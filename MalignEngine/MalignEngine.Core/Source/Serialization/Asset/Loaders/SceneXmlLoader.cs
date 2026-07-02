@@ -2,12 +2,8 @@
 
 namespace MalignEngine;
 
-public class SceneXmlLoader : IXmlLoader
+public class SceneXmlLoader : XmlAssetLoader<Scene>
 {
-    public string RootName => "Scene";
-
-    public Type GetAssetType() => typeof(Scene);
-
     private IAssetService _assetService;
     private EntitySerializer _entitySerializer;
 
@@ -57,8 +53,10 @@ public class SceneXmlLoader : IXmlLoader
         return result;
     }
 
-    public IAsset Load(XElement element)
+    public override Scene Load(XDocument document)
     {
+        XElement element = document.Root;
+
         var id = element.Attribute("Id")?.Value ?? null;
 
         if (id == null)

@@ -3,7 +3,7 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
-public class TileListXmlLoader : IXmlLoader
+public class TileListXmlLoader : XmlAssetLoader<TileList>
 {
     public string RootName => "TileList";
 
@@ -18,8 +18,10 @@ public class TileListXmlLoader : IXmlLoader
 
     public Type GetAssetType() => typeof(TileList);
 
-    public IAsset Load(XElement element)
+    public override TileList Load(XDocument document)
     {
+        XElement element = document.Root!;
+
         List<TileData> tiles = new List<TileData>();
 
         foreach (XElement child in element.Elements())

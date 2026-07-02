@@ -3,10 +3,8 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
-public class SpriteXmlAssetLoader : IXmlLoader
+public class SpriteXmlAssetLoader : XmlAssetLoader<Sprite>
 {
-    public string RootName => "Sprite";
-
     private IAssetService _assetService;
 
     public SpriteXmlAssetLoader(IAssetService assetService)
@@ -14,10 +12,10 @@ public class SpriteXmlAssetLoader : IXmlLoader
         _assetService = assetService;
     }
 
-    public Type GetAssetType() => typeof(Sprite);
-
-    public IAsset Load(XElement element)
+    public override Sprite Load(XDocument document)
     {
+        XElement element = document.Root!;
+
         string texturePath = element.GetAttributeString("Texture");
 
         if (texturePath == null) { throw new Exception("No Texture attribute found"); }

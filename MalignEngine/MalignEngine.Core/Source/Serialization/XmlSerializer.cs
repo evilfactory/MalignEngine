@@ -148,9 +148,10 @@ public class XmlSerializer : IService
             }
             else if (memberType.IsAssignableTo(typeof(IAssetHandle)))
             {
-                AssetHandle handle = _assetService.FromPath(element.GetAttributeString(dataField.Name));
+                Type assetType = memberType.GetGenericArguments()[0];
+                AssetHandle handle = _assetService.FromPath(assetType, element.GetAttributeString(dataField.Name));
 
-                setValue(obj, handle.Upgrade(memberType.GetGenericArguments()[0]));
+                setValue(obj, handle.Upgrade(assetType));
             }
         }
     }

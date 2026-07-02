@@ -23,7 +23,6 @@ class Program
         application.ServiceContainer.RegisterAll<TextureAssetLoader>();
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
         application.ServiceContainer.RegisterAll<XmlSerializer>();
-        application.ServiceContainer.RegisterAll<XmlAssetLoader>();
         application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
         application.ServiceContainer.RegisterAll<TileListXmlLoader>();
         application.ServiceContainer.RegisterAll<SceneXmlLoader>();

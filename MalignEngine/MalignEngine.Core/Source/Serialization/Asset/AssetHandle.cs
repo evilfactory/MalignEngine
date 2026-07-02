@@ -6,7 +6,8 @@ namespace MalignEngine
     {
         public AssetPath AssetPath { get; }
         public bool IsLoading { get; }
-        public void LoadNow();
+        public Task Load();
+        public void LoadSync();
     }
 
     public class AssetHandle : IAssetHandle
@@ -21,7 +22,7 @@ namespace MalignEngine
             {
                 if (asset == null)
                 {
-                    LoadNow();
+                    LoadSync();
                 }
 
                 if (asset == null)
@@ -48,7 +49,7 @@ namespace MalignEngine
                         throw new InvalidOperationException("Tried to get AssetType while this asset was still loading, but it doesn't have a loaded.");
                     }
 
-                    return _loader.GetAssetType(AssetPath); 
+                    return _loader.AssetTypes.First(); 
                 }
 
                 return Asset.GetType();
@@ -56,12 +57,14 @@ namespace MalignEngine
         }
 
         private IAssetLoader? _loader;
+        private AssetMount? _mount;
 
-        public AssetHandle(AssetPath assetPath, IAssetLoader loader)
+        public AssetHandle(AssetPath assetPath, AssetMount mount, IAssetLoader loader)
         {
-            IsLoading = true;
             AssetPath = assetPath;
             _loader = loader;
+            _mount = mount;
+            IsLoading = true;
         }
 
         public AssetHandle(AssetPath assetPath, IAsset asset)
@@ -71,14 +74,22 @@ namespace MalignEngine
             Asset = asset;
         }
 
-        public void LoadNow()
+        public void LoadSync()
         {
-            if (_loader == null)
+            Load().ConfigureAwait(true).GetAwaiter().GetResult();
+        }
+
+        public async Task Load()
+        {
+            if (_mount == null || _loader == null)
             {
-                throw new InvalidOperationException("Tried load asset but loaded was null.");
+                throw new InvalidOperationException("Tried load asset without a loader.");
             }
 
-            Asset = _loader.Load(AssetPath);
+            using (var stream = await _mount.Source.OpenReadAsync(AssetPath.RelativeTo(_mount.VirtualRoot)))
+            {
+                Asset = _loader.Load(stream);
+            }
 
             IsLoading = false;
         }
@@ -124,7 +135,8 @@ namespace MalignEngine
 
         private AssetHandle handle;
 
-        public void LoadNow() => handle.LoadNow();
+        public Task Load() => handle.Load();
+        public void LoadSync() => handle.LoadSync();
 
         public AssetHandle(AssetHandle handle)
         {

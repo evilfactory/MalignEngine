@@ -53,6 +53,9 @@ class Experimentation : BaseSystem, ICameraDraw
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
+        assetService.Mount("/Content/", new FileAssetSource("Content"));
+        var httpClient = new HttpClient();
+
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
             FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl"),
@@ -65,7 +68,8 @@ class Experimentation : BaseSystem, ICameraDraw
             VertexShaderSource = File.ReadAllText("Content/TestVert.glsl")
         });
 
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/player.png"));
+        //_textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/player.png"));
+        _textureResource = _assetService.FromPath<Texture2D>("/Content/Textures/player.png").Asset.Resource;
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);
@@ -88,7 +92,7 @@ class Experimentation : BaseSystem, ICameraDraw
 
         _frameBufferResource = _renderAPI.CreateFrameBuffer(new FrameBufferDescriptor(1, 1280, 800));
 
-        _font = _assetService.FromPath<Font>("file:Content/Roboto-Regular.ttf");
+        _font = _assetService.FromPath<Font>("/Content/Roboto-Regular.ttf");
         _inputService = inputService;
         _entityManager = entityManager;
 
@@ -121,11 +125,9 @@ class Experimentation : BaseSystem, ICameraDraw
         _logger.LogInfo(test.ToString());
         */
 
-        assetService.PreLoad("Content");
-
         //var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
 
-        AssetHandle<Scene> scene = _assetService.FromPath<Scene>("file:Content/FooScene.xml");
+        AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene.xml");
         Entity entity = _sceneSystem.Instantiate(scene);
         //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
     }
