@@ -28,7 +28,7 @@ public class TransformSystem : EntitySystem, IPostUpdate
 
     public void UpdateTransformTree(Entity root)
     {
-        if (root.Has<WorldTransform>() && root.TryGet(out ComponentRef<Transform> parentTransform))
+        if (!root.Has<WorldTransform>() && root.TryGet(out ComponentRef<Transform> parentTransform))
         {
             if (!root.Has<ParentOf>())
             {

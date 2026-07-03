@@ -1,5 +1,6 @@
 ﻿using MalignEngine.Experimentation.Web;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 
@@ -25,8 +26,11 @@ class Experimentation : BaseSystem, ICameraDraw
 
     private SceneSystem _sceneSystem;
     private SceneXmlLoader _sceneXmlLoader;
+    private CameraSystem _cameraSystem;
 
     private Font _font;
+
+    private Entity entity;
 
     public Experimentation(
         IServiceContainer serviceContainer,
@@ -36,7 +40,9 @@ class Experimentation : BaseSystem, ICameraDraw
         IFontRenderer fontRenderer,
         IAssetService assetService,
         IEntityManager entityManager,
-        SceneSystem sceneSystem
+        SceneSystem sceneSystem,
+        IInputService inputService,
+        CameraSystem cameraSystem
         )
         : base(serviceContainer)
     {
@@ -46,6 +52,8 @@ class Experimentation : BaseSystem, ICameraDraw
         _fontRenderer = fontRenderer;
         _assetService = assetService;
         _sceneSystem = sceneSystem;
+        _inputService = inputService;
+        _cameraSystem = cameraSystem;
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
@@ -119,18 +127,44 @@ class Experimentation : BaseSystem, ICameraDraw
         _entityManager = entityManager;
 
         AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene.xml");
-        Entity entity = _sceneSystem.Instantiate(scene);
+        entity = _sceneSystem.Instantiate(scene);
         //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
+    }
+
+    public override void OnUpdate(float deltaTime)
+    {
+        Vector2 mov = Vector2.Zero;
+        if (_inputService.Keyboard.IsKeyPressed(Key.W))
+        {
+            mov.Y = 1f;
+        }
+        if (_inputService.Keyboard.IsKeyPressed(Key.S))
+        {
+            mov.Y = -1f;
+        }
+        if (_inputService.Keyboard.IsKeyPressed(Key.A))
+        {
+            mov.X = -1f;
+        }
+        if (_inputService.Keyboard.IsKeyPressed(Key.D))
+        {
+            mov.X = 1f;
+        }
+
+        if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
+        {
+            AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene2.xml");
+            var newEntity = _sceneSystem.Instantiate(scene);
+            newEntity.Get<Transform>().Position = _cameraSystem.ScreenToWorld(ref entity.Get<OrthographicCamera>(), _inputService.Mouse.Position).ToVector3();
+        }
+
+        entity.Get<OrthographicCamera>().ViewSize += _inputService.Mouse.ScrollDelta * deltaTime;
+
+        entity.Get<Transform>().Position += mov.ToVector3();
     }
 
     public void OnCameraDraw(float delta, OrthographicCamera camera)
     {
-        _renderAPI.Submit(ctx =>
-        {
-            _render2D.Begin(ctx);
-            _render2D.DrawTexture2D(_textureResource, new Vector2(0f, 0f), new Vector2(10f, 10f), 0f);
-            _render2D.End();
-        });
     }
 
     float time = 0;
@@ -148,13 +182,20 @@ class Experimentation : BaseSystem, ICameraDraw
 
             _render2D.Begin(ctx);
 
-            _fontRenderer.DrawFont(_font, 120, "hello wawawawawawa", Vector2.Zero, Color.Red);
+            if (_inputService.Keyboard.IsKeyPressed(Key.W))
+            {
+                _fontRenderer.DrawFont(_font, 120, "haha", Vector2.Zero, Color.Red);
+            }
+            else
+            {
+                _fontRenderer.DrawFont(_font, 120, "hello wawawawawawa", Vector2.Zero, Color.Red);
+            }
 
             for (int x = 0; x < 10; x++)
             {
                 for (int y = 0; y < 10; y++)
                 {
-                    _render2D.DrawTexture2D(_textureResource, new Vector2(-50, 100) + new Vector2(MathF.Cos(time * 10f), MathF.Sin(time * 10f)) * 50f + new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
+                    _render2D.DrawTexture2D(_textureResource, _inputService.Mouse.Position + new Vector2(MathF.Cos(time * 10f), MathF.Sin(time * 10f)) * 50f + new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
                 }
             }
             _render2D.End();

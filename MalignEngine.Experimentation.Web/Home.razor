@@ -43,12 +43,12 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         application = new WebApplication();
-        application.ServiceContainer.RegisterAll<AssetService>();
         application.ServiceContainer.RegisterAll<CanvasWindow>();
         application.ServiceContainer.RegisterAll<FontRenderer>();
         application.ServiceContainer.RegisterAll<WebRenderingAPI>();
         application.ServiceContainer.RegisterAll<Renderer2D>();
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
+        application.ServiceContainer.RegisterAll<WebInputService>();
 
         // Assets
         application.ServiceContainer.RegisterAll<EntitySerializer>();
@@ -73,9 +73,6 @@
         entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
         entityManager.WorldContainer.RegisterAll<Experimentation>();
 
-        // Assets
-        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
-
         _scheduleManager = application.ServiceContainer.GetInstance<IScheduleManager>();
 
         IAssetService assetService = application.ServiceContainer.GetInstance<IAssetService>();
@@ -84,7 +81,10 @@
 
         AssetManifest manifest = new AssetManifest([
             (typeof(Texture2D), "/Content/Textures/player.png"),
+            (typeof(Texture2D), "/Content/Textures/he.png"),
             (typeof(Scene), "/Content/FooScene.xml"),
+            (typeof(Scene), "/Content/FooScene2.xml"),
+            (typeof(Sprite), "/Content/FooSprite.xml"),
             (typeof(Font), "/Content/Roboto-Regular.ttf")
         ]);
 
@@ -147,11 +147,6 @@
             gl = cs.GetContext<IWebGL2RenderingContext>(attribs);
             //gl.WebGLContextLost += cs_ContextLost;
             //gl.WebGLContextRestored += cs_ContextRestored;
-
-            Window.Current.OnResize += this.OnResize;
-            Window.Current.OnFocus += this.OnFocus;
-            Window.Current.OnBlur += this.OnBlur;
-
             _sw.Start();
             _prevt = _sw.Elapsed;
             int size = 100;
