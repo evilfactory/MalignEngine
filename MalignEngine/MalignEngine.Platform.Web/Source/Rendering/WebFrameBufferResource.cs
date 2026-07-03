@@ -102,7 +102,7 @@ public class WebFrameBufferResource : IFrameBufferResource
                 throw new Exception($"Framebuffer incomplete: {status}");
             }
 
-            _gl.BindFramebuffer(WebGL2FramebufferType.FRAMEBUFFER, _frameHandle);
+            _gl.BindFramebuffer(WebGL2FramebufferType.FRAMEBUFFER, null);
         });
     }
 

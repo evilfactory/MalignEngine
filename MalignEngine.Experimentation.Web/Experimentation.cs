@@ -128,42 +128,33 @@ class Experimentation : BaseSystem, ICameraDraw
         _renderAPI.Submit(ctx =>
         {
             _render2D.Begin(ctx);
-            _render2D.DrawTexture2D(_textureResource, new Vector2(-10f, -3f), new Vector2(1f, 1f), 0f);
+            _render2D.DrawTexture2D(_textureResource, new Vector2(0f, 0f), new Vector2(10f, 10f), 0f);
             _render2D.End();
         });
     }
 
+    float time = 0;
     public override void OnDraw(float deltaTime)
     {
-        _renderAPI.Submit(ctx =>
-        {
-            _render2D.Begin(ctx);
-            _render2D.DrawTexture2D(_textureResource, new Vector2(0f, 0f), new Vector2(10f, 10f), 0f);
-            _render2D.End();
-        });
-
-        return;
         var matrix = Matrix4x4.CreateOrthographicOffCenter(0, _windowService.FrameSize.X, _windowService.FrameSize.Y, 0, 0.0001f, 100f);
+
+        time += deltaTime;
 
         _renderAPI.Submit((IRenderContext ctx) =>
         {
-            ctx.SetFrameBuffer(null, _windowService.FrameSize.X, _windowService.FrameSize.Y);
-            ctx.Clear(Color.LightGray);
+            Vector2 scale = new Vector2(_windowService.FrameSize.X / 100f, _windowService.FrameSize.X / 100f);
 
             _render2D.SetMatrix(matrix);
 
-
             _render2D.Begin(ctx);
 
-            _fontRenderer.DrawFont(_font, 120, "hello wawawawawawa", _inputService.Mouse.Position, Color.Red);
+            _fontRenderer.DrawFont(_font, 120, "hello wawawawawawa", Vector2.Zero, Color.Red);
 
-            Vector2 scale = new Vector2(_windowService.FrameSize.X / 32f, _windowService.FrameSize.X / 32f);
-
-            for (int x = 0; x < 128; x++)
+            for (int x = 0; x < 10; x++)
             {
-                for (int y = 0; y < 128; y++)
+                for (int y = 0; y < 10; y++)
                 {
-                    _render2D.DrawTexture2D(_textureResource, _inputService.Mouse.Position + new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
+                    _render2D.DrawTexture2D(_textureResource, new Vector2(-50, 100) + new Vector2(MathF.Cos(time * 10f), MathF.Sin(time * 10f)) * 50f + new Vector2(x * scale.X, y * scale.Y), new Vector2(scale.X, scale.Y), 0f);
                 }
             }
             _render2D.End();

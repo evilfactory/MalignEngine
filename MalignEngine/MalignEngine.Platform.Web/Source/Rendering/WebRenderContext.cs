@@ -28,7 +28,7 @@ public class WebRenderContext : IRenderContext
 
     public void Clear(Color color)
     {
-        _gl.ClearColor(color.A, color.R, color.G, color.B);
+        _gl.ClearColor(color.R, color.G, color.B, color.A);
         _gl.Clear(WebGLBufferBits.COLOR | WebGLBufferBits.DEPTH | WebGLBufferBits.STENCIL);
     }
 
@@ -42,10 +42,7 @@ public class WebRenderContext : IRenderContext
         vbo.Bind();
         ibo.Bind();
 
-        unsafe
-        {
-            _gl.DrawElements(PrimitiveTypeToGlType(primitiveType), (int)indices, WebGLDataType.UINT, 0);
-        }
+        _gl.DrawElements(PrimitiveTypeToGlType(primitiveType), (int)indices, WebGLDataType.UINT, 0);
     }
 
     public void DrawArrays(IBufferResource vertexBuffer, IVertexArrayResource vertexArray, uint count, PrimitiveType primitiveType = PrimitiveType.Triangles)
@@ -63,25 +60,41 @@ public class WebRenderContext : IRenderContext
         glShader.Use();
     }
 
-    public void SetFrameBuffer(IFrameBufferResource frameBufferResource, int width = 0, int height = 0)
+    public void SetFrameBuffer(IFrameBufferResource? frameBufferResource, int width = 0, int height = 0)
     {
-        if (frameBufferResource != null)
+        if (frameBufferResource == null)
+        {
+            _gl.BindFramebuffer(WebGL2FramebufferType.FRAMEBUFFER, null);
+            _gl.Viewport(0, 0, width, height);
+        }
+        else if (frameBufferResource is WebFrameBufferResource webFrameBuffer)
         {
             if (width == 0) { width = frameBufferResource.Width; }
             if (height == 0) { height = frameBufferResource.Height; }
-            ((WebFrameBufferResource)frameBufferResource).Bind();
+            webFrameBuffer.Bind();
             _gl.Viewport(0, 0, width, height);
         }
         else
         {
-            //_gl.BindFramebuffer(WebGL2FramebufferType.FRAMEBUFFER, 0); ??
-            _gl.Viewport(0, 0, width, height);
+            throw new InvalidOperationException();
         }
     }
 
-    public void SetTexture(int slot, ITextureResource texture)
+    public void SetTexture(int slot, ITextureResource? texture)
     {
-        ((WebTextureResource)texture).Bind(WebGLTextureUnit.TEXTURE0 + slot);
+        if (texture == null)
+        {
+            _gl.ActiveTexture(WebGLTextureUnit.TEXTURE0 + slot);
+            _gl.BindTexture(WebGLTextureTarget.TEXTURE_2D, null);
+        }
+        else if (texture is WebTextureResource webTexture)
+        {
+            webTexture.Bind(WebGLTextureUnit.TEXTURE0 + slot);
+        }
+        else
+        {
+            throw new InvalidOperationException();
+        }
     }
 
     public void SetPipeline(IPipelineResource pipeline)

@@ -12,7 +12,6 @@ namespace MalignEngine;
 public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 {
     private ILogger _logger;
-    private bool _running;
 
     private Queue<Delegate> _queue = new();
 
@@ -25,10 +24,10 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     private IWebGL2RenderingContext _gl;
 
+    private bool _insideFrame = false;
+
     public WebRenderingAPI(CanvasWindow canvasWindow, IScheduleManager scheduleManager, ILoggerService loggerService)
     {
-        _running = true;
-
         ContextAttributes attribs = new ContextAttributes();
         attribs.Depth = true;
         _gl = canvasWindow.Canvas.GetContext<IWebGL2RenderingContext>(attribs);
@@ -39,13 +38,17 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
         _scheduleManager.RegisterAll(this);
 
         //_gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
-        _gl.Enable(WebGLCapability.BLEND);
-        _gl.DepthFunc(WebGLDepthComparisonFunc.LEQUAL);
+        //_gl.Enable(WebGLCapability.BLEND);
+        //_gl.DepthFunc(WebGLDepthComparisonFunc.LEQUAL);
     }
 
     public void BeginFrame()
     {
-
+        var error = _gl.GetError();
+        if (error != WebGLErrorCode.NO_ERROR)
+        {
+            _logger.LogError($"WebGL Error Code: {error}");
+        }
     }
 
     private void ExecuteRenderCommand(Delegate command)
@@ -62,7 +65,14 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     private void SubmitInternal(Delegate command)
     {
-        _queue.Enqueue(command);
+        if (_insideFrame)
+        {
+            ExecuteRenderCommand(command);
+        }
+        else
+        {
+            _queue.Enqueue(command);
+        }
     }
 
     public void Submit(RenderCommand command)
@@ -77,11 +87,13 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     public void EndFrame()
     {
+        _insideFrame = true;
+
         using (_performanceProfiler?.BeginSample("rendering.api.renderthread.frame"))
         {
             _context = new WebRenderContext(_gl);
 
-            while (_queue.TryDequeue(out Delegate command))
+            while (_queue.TryDequeue(out Delegate? command))
             {
                 ExecuteRenderCommand(command);
             }
@@ -89,11 +101,13 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
             // swap buffers
         }
+
+        _insideFrame = false;
     }
 
     public bool IsInRenderingThread()
     {
-        return true;
+        return _insideFrame;
     }
 
     public IBufferResource CreateBuffer(IBufferResourceDescriptor descriptor)
@@ -128,8 +142,6 @@ public class WebRenderingAPI : IRenderingAPI, IPreDraw, IPostDraw, IDisposable
 
     public void Dispose()
     {
-        _running = false;
-
         _scheduleManager.UnregisterAll(this);
 
         _logger.LogInfo("WebRenderingAPI disposed");

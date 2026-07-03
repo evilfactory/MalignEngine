@@ -65,25 +65,43 @@ public class GLRenderContext : IRenderContext
         glShader.Use();
     }
 
-    public void SetFrameBuffer(IFrameBufferResource frameBufferResource, int width = 0, int height = 0)
+    public void SetFrameBuffer(IFrameBufferResource? frameBufferResource, int width = 0, int height = 0)
     {
-        if (frameBufferResource != null)
-        {
-            if (width == 0) { width = frameBufferResource.Width; }
-            if (height == 0) { height = frameBufferResource.Height; }
-            ((GLFrameBufferResource)frameBufferResource).Bind();
-            _gl.Viewport(0, 0, (uint)width, (uint)height);
-        }
-        else
+        if (frameBufferResource == null)
         {
             _gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             _gl.Viewport(0, 0, (uint)width, (uint)height);
         }
+        else if (frameBufferResource is GLFrameBufferResource glFrameBuffer)
+        {
+            if (width == 0) { width = frameBufferResource.Width; }
+            if (height == 0) { height = frameBufferResource.Height; }
+            glFrameBuffer.Bind();
+            _gl.Viewport(0, 0, (uint)width, (uint)height);
+        }
+        else
+        {
+            throw new InvalidOperationException();
+        }
     }
 
-    public void SetTexture(int slot, ITextureResource texture)
+    public void SetTexture(int slot, ITextureResource? texture)
     {
-        ((GLTextureResource)texture).Bind(TextureUnit.Texture0 + slot);
+        var glSlot = TextureUnit.Texture0 + slot;
+
+        if (texture == null)
+        {
+            _gl.ActiveTexture(glSlot);
+            _gl.BindTexture(TextureTarget.Texture2D, 0);
+        }
+        else if (texture is GLTextureResource glTexture)
+        {
+            glTexture.Bind(glSlot);
+        }
+        else
+        {
+            throw new InvalidOperationException();
+        }
     }
 
     public void SetPipeline(IPipelineResource pipeline)

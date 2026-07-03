@@ -66,13 +66,7 @@ public class WebBufferResource : IBufferResource
         _renderAPI.Submit(ctx =>
         {
             Bind();
-            unsafe
-            {
-                fixed (void* d = data)
-                {
-                    _gl.BufferSubData<TDataType>(_bufferType, offset, data, (int)length);
-                }
-            }
+            _gl.BufferSubData<TDataType>(_bufferType, offset, data, (int)length);
         });
     }
 

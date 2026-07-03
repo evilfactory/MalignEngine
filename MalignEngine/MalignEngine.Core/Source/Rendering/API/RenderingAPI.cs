@@ -68,7 +68,7 @@ public interface IRenderContext
 
     // Binding commands
     void SetPipeline(IPipelineResource pipeline);
-    void SetFrameBuffer(IFrameBufferResource framebuffer, int width = 0, int height = 0);
+    void SetFrameBuffer(IFrameBufferResource? framebuffer, int width = 0, int height = 0);
     void SetShader(IShaderResource shader);
-    void SetTexture(int slot, ITextureResource texture);
+    void SetTexture(int slot, ITextureResource? texture);
 }

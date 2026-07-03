@@ -239,6 +239,11 @@ public static class TextureFormatExtensions
                 WebGLFormat.RGBA,
                 WebGLTexelType.FLOAT),
 
+            TextureFormat.Depth24Stencil8 => new GLFormatInfo(
+                (WebGLInternalFormat)35056,
+                (WebGLFormat)34041,
+                (WebGLTexelType)34042),
+
             // Requires WEBGL_compressed_texture_s3tc
             //TextureFormat.DXT1 => ...
             //TextureFormat.DXT3 => ...

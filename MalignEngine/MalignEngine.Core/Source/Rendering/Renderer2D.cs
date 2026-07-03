@@ -52,7 +52,7 @@ public class Renderer2D : IRenderer2D
     private IRenderingAPI _renderAPI;
     private ILogger _logger;
 
-    private const uint MaxBatchCount = 1000;
+    private const uint MaxBatchCount = 1024;
     private const uint MaxIndexCount = MaxBatchCount * 6;
     private const uint MaxTextures = 16;
 
@@ -105,7 +105,7 @@ public class Renderer2D : IRenderer2D
         _batchVertices = new Vertex[MaxBatchCount * 4];
 
         _quadElementBuffer = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Element, BufferUsageType.Static, MemoryMarshal.AsBytes(_triangleIndices.AsSpan()).ToArray()));
-        _quadVertexBuffer = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Static, MemoryMarshal.AsBytes(_batchVertices.AsSpan()).ToArray()));
+        _quadVertexBuffer = _renderAPI.CreateBuffer(new BufferResourceDescriptor(BufferObjectType.Vertex, BufferUsageType.Dynamic, MemoryMarshal.AsBytes(_batchVertices.AsSpan()).ToArray()));
 
         IVertexArrayDescriptor descriptor = new VertexArrayDescriptor();
         descriptor.AddAttribute("Position", 0, VertexAttributeType.Float, 3);
@@ -295,6 +295,8 @@ public class Renderer2D : IRenderer2D
 
         if (texture == null) { throw new ArgumentNullException(nameof(texture)); }
 
+        uint amountQuads = (uint)vertices.Length / 4;
+
         // Don't batch draw multiple textures if texture batching is disabled
         if (_indexCount >= MaxIndexCount || (texture != _textures[0]))
         {
@@ -335,8 +337,6 @@ public class Renderer2D : IRenderer2D
             _batchVertices[_batchIndex] = new Vertex(vertices[i].Position, vertices[i].TextureCoordinate, textureSlot, vertices[i].Color);
             _batchIndex++;
         }
-
-        uint amountQuads = (uint)vertices.Length / 4;
 
         _indexCount += amountQuads * 6;
     }
