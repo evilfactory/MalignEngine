@@ -15,19 +15,17 @@ class Cubes : ISystem, IDraw
 
     private Matrix4x4[] _cubeTransforms;
 
-    public Cubes(IScheduleManager scheduleManager, IRenderingAPI renderAPI, IWindowService windowService)
+    public Cubes(IAssetService assetService, IScheduleManager scheduleManager, IRenderingAPI renderAPI, IWindowService windowService)
     {
         scheduleManager.RegisterAll(this);
         _renderAPI = renderAPI;
         _windowService = windowService;
 
-        _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
-        {
-            VertexShaderSource = File.ReadAllText("Content/TestVert.glsl"),
-            FragmentShaderSource = File.ReadAllText("Content/TestFrag.glsl")
-        });
+        assetService.Mount("/Content/", new FileAssetSource("Content"));
 
-        _textureResource = _renderAPI.CreateTexture(TextureLoader.Load("Content/Textures/he.png"));
+        _shaderResource = assetService.FromPath<ShaderAsset>("/Content/basic3d.shader").Asset.ShaderResource;
+
+        _textureResource = assetService.FromPath<Texture2D>("/Content/Textures/he.png").Asset.Resource;
 
         var desc = new VertexArrayDescriptor();
         desc.AddAttribute("Position", 0, VertexAttributeType.Float, 3, false);

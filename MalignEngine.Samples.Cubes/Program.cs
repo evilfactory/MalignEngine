@@ -15,6 +15,9 @@ class Program
         application.ServiceContainer.RegisterAll<Cubes>();
         application.ServiceContainer.RegisterAll<ImGuiSystem>();
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
+        application.ServiceContainer.RegisterAll<AssetService>();
+        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
+        application.ServiceContainer.RegisterAll<ShaderAssetLoader>();
         application.ServiceContainer.RegisterAll<EditorSystem>();
         application.ServiceContainer.RegisterAll<EditorPerformanceSystem>();
 

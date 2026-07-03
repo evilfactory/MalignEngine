@@ -1,4 +1,17 @@
-#version 330 core
+#pragma fragment
+
+in vec2 vUV;
+
+uniform sampler2D uTexture; // bound at slot 0
+
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = texture(uTexture, vUV);
+}
+
+#pragma vertex
 
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec2 aUV;
