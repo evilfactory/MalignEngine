@@ -6,14 +6,15 @@ namespace SteamBolt;
 public class PlayerInputSystem : EntitySystem
 {
     private readonly IInputService _inputService;
-    private readonly ClientSessionSystem _clientSessionSystem;
+    //private readonly ClientSessionSystem _clientSessionSystem;
 
-    public PlayerInputSystem(IServiceContainer serviceContainer, IInputService inputService, ClientSessionSystem clientSessionSystem) : base(serviceContainer)
+    public PlayerInputSystem(IServiceContainer serviceContainer, IInputService inputService) : base(serviceContainer)
     {
         _inputService = inputService;
-        _clientSessionSystem = clientSessionSystem;
+        //_clientSessionSystem = clientSessionSystem;
     }
 
+    /*
     public override void OnUpdate(float deltaTime)
     {
         if (_clientSessionSystem.MyClient == null) { return; }
@@ -35,4 +36,5 @@ public class PlayerInputSystem : EntitySystem
                 }
             });
     }
+    */
 }

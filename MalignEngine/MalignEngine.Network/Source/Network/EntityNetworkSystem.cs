@@ -109,13 +109,12 @@ public class NetEntitySyncNetMessage : NetMessage
 
 public class EntityNetworkSystem : EntitySystem
 {
-    private readonly INetworkService _networkService;
-    private readonly IClientSessionRetrieval _clientSessionRetrieval;
+    //private readonly INetworkService _networkService;
+    //private readonly IClientSessionRetrieval _clientSessionRetrieval;
 
-    public EntityNetworkSystem(IServiceContainer serviceContainer, INetworkService networkService, IClientSessionRetrieval clientSessionRetrieval) : base(serviceContainer)
+    public EntityNetworkSystem(IServiceContainer serviceContainer) : base(serviceContainer)
     {
-        _networkService = networkService;
-        _clientSessionRetrieval = clientSessionRetrieval;
+
     }
 
     public void SpawnEntity(Entity entity)

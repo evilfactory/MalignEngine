@@ -31,8 +31,11 @@ internal class Program
         application.ServiceContainer.RegisterAll<SceneXmlLoader>();
 
         // Networking
-        application.ServiceContainer.RegisterAll<NetworkSystem>();
+        application.ServiceContainer.RegisterAll<NetworkServer>();
+        application.ServiceContainer.RegisterAll<NetworkClient>();
+        application.ServiceContainer.RegisterAll<ServerSessionSystem>();
         application.ServiceContainer.RegisterAll<ClientSessionSystem>();
+        application.ServiceContainer.RegisterAll<SessionHandler>();
 
         var entityManager = new EntityManager(new ServiceContainer(application.ServiceContainer), application.ServiceContainer.GetInstance<IScheduleManager>());
 

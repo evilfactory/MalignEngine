@@ -16,4 +16,9 @@ public class StringClientId : ClientId
     {
         _clientId = id;
     }
+
+    public override string ToString()
+    {
+        return $"ClientId({_clientId})";
+    }
 }

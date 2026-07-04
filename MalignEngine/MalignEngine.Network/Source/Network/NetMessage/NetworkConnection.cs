@@ -2,18 +2,19 @@ namespace MalignEngine.Network;
 
 public class NetworkConnection
 {
-    public long Id { get; private set; }
+    public readonly long Id;
+    public object? Tag { get; set; }
 
-    public object? Data { get; set; }
+    private bool _connected = false;
 
-    public bool IsValid
-    {
-        get {  return Id != 0; }
-    }
+    internal ITransport Transport { get; }
+    public bool IsConnected => _connected;
 
-    public NetworkConnection(long id)
+    public NetworkConnection(ITransport transport, long id)
     {
         Id = id;
+        Transport = transport;
+        _connected = true;
     }
 
     public override bool Equals(object? obj)
@@ -38,7 +39,7 @@ public class NetworkConnection
 
     internal void Invalidate()
     {
-        Id = 0;
+        _connected = false;
     }
 
     public static bool operator ==(NetworkConnection a, NetworkConnection b)

@@ -8,30 +8,31 @@ public enum PacketChannel
     Unreliable
 }
 
-public interface ITransport : ServerTransport, ClientTransport
+public interface ITransport { }
+
+public interface IClientTransport : ITransport
 {
-    public void Update();
+    event Action Connected;
+    event Action Disconnected;
+    event Action<IReadMessage> Received;
+
+    void Connect(IPEndPoint endpoint);
+    void Disconnect();
+    void Send(IWriteMessage payload, PacketChannel channel);
+    void Update();
 }
 
-public interface ServerTransport
+public interface IServerTransport : ITransport
 {
-    public event Action<NetworkConnection, IReadMessage> OnClientData;
-    public event Action<NetworkConnection> OnClientConnected;
-    public event Action<NetworkConnection> OnClientDisconnected;
+    IEnumerable<NetworkConnection> Connections { get; }
 
-    public void SendDataToClient(NetworkConnection connection, IWriteMessage message, PacketChannel channel);
-    public void Disconnect(NetworkConnection connection);
-    public void Listen(IPEndPoint endpoint);
-    public void Stop();
-}
+    event Action<NetworkConnection> ClientConnected;
+    event Action<NetworkConnection> ClientDisconnected;
+    event Action<NetworkConnection, IReadMessage> Received;
 
-public interface ClientTransport
-{
-    public event Action<IReadMessage> OnData;
-    public event Action OnConnected;
-    public event Action OnDisconnected;
-
-    public void SendDataToServer(IWriteMessage message, PacketChannel channel);
-    public void Disconnect();
-    public void TryConnect(IPEndPoint endpoint);
+    void Start();
+    void Stop();
+    void Send(NetworkConnection connection, IWriteMessage payload, PacketChannel channel);
+    void Disconnect(NetworkConnection connection);
+    void Update();
 }

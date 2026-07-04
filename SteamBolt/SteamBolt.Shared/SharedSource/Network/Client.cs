@@ -2,7 +2,7 @@ using MalignEngine.Network;
 
 namespace SteamBolt;
 
-public class Client : IClientSession
+public class Client// : IClientSession
 {
     public NetworkConnection? Connection { get; private set; }
     public ClientId ClientId { get; private set; }
