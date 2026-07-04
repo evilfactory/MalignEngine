@@ -8,8 +8,6 @@ namespace MalignEngine.Experimentation.Web;
 
 class Program
 {
-    public static Uri BaseAddress;
-
     public static async Task Main(string[] args)
     {
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -17,8 +15,6 @@ class Program
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
-        BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
 
         var app = builder.Build();
 

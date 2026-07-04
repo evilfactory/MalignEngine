@@ -24,8 +24,11 @@ class Experimentation : BaseSystem, ICameraDraw
 
     private SceneSystem _sceneSystem;
     private SceneXmlLoader _sceneXmlLoader;
+    private CameraSystem _cameraSystem;
 
     private Font _font;
+
+    private Entity entity;
 
     public Experimentation(
         IServiceContainer serviceContainer,
@@ -37,7 +40,8 @@ class Experimentation : BaseSystem, ICameraDraw
         IInputService inputService,
         IEntityManager entityManager,
         SceneXmlLoader sceneXmlLoader,
-        SceneSystem sceneSystem
+        SceneSystem sceneSystem,
+        CameraSystem cameraSystem
         )
         : base(serviceContainer)
     {
@@ -50,6 +54,7 @@ class Experimentation : BaseSystem, ICameraDraw
         _assetService = assetService;
         _sceneXmlLoader = sceneXmlLoader;
         _sceneSystem = sceneSystem;
+        _cameraSystem = cameraSystem;
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
@@ -118,8 +123,40 @@ class Experimentation : BaseSystem, ICameraDraw
         //var asset = assetService.FromPath<TileList>("file:Content/TileList.xml").Asset;
 
         AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene.xml");
-        Entity entity = _sceneSystem.Instantiate(scene);
+        entity = _sceneSystem.Instantiate(scene);
         //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
+    }
+
+    public override void OnUpdate(float deltaTime)
+    {
+        Vector2 mov = Vector2.Zero;
+        if (_inputService.Keyboard.IsKeyPressed(Key.W))
+        {
+            mov.Y = 1f;
+        }
+        if (_inputService.Keyboard.IsKeyPressed(Key.S))
+        {
+            mov.Y = -1f;
+        }
+        if (_inputService.Keyboard.IsKeyPressed(Key.A))
+        {
+            mov.X = -1f;
+        }
+        if (_inputService.Keyboard.IsKeyPressed(Key.D))
+        {
+            mov.X = 1f;
+        }
+
+        if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
+        {
+            AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene2.xml");
+            var newEntity = _sceneSystem.Instantiate(scene);
+            newEntity.Get<Transform>().Position = _cameraSystem.ScreenToWorld(ref entity.Get<OrthographicCamera>(), _inputService.Mouse.Position).ToVector3();
+        }
+
+        entity.Get<OrthographicCamera>().ViewSize += _inputService.Mouse.ScrollDelta * deltaTime;
+
+        entity.Get<Transform>().Position += mov.ToVector3();
     }
 
     public void OnCameraDraw(float delta, OrthographicCamera camera)

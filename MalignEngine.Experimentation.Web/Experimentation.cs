@@ -24,6 +24,8 @@ class Experimentation : BaseSystem, ICameraDraw
     private IVertexArrayResource _vertexArrayResource;
     private IFrameBufferResource _frameBufferResource;
 
+    private IPerformanceProfiler _performanceProfiler;
+
     private SceneSystem _sceneSystem;
     private SceneXmlLoader _sceneXmlLoader;
     private CameraSystem _cameraSystem;
@@ -42,7 +44,8 @@ class Experimentation : BaseSystem, ICameraDraw
         IEntityManager entityManager,
         SceneSystem sceneSystem,
         IInputService inputService,
-        CameraSystem cameraSystem
+        CameraSystem cameraSystem,
+        IPerformanceProfiler performanceProfiler
         )
         : base(serviceContainer)
     {
@@ -54,6 +57,7 @@ class Experimentation : BaseSystem, ICameraDraw
         _sceneSystem = sceneSystem;
         _inputService = inputService;
         _cameraSystem = cameraSystem;
+        _performanceProfiler = performanceProfiler;
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
@@ -188,7 +192,7 @@ class Experimentation : BaseSystem, ICameraDraw
             }
             else
             {
-                _fontRenderer.DrawFont(_font, 120, "hello wawawawawawa", Vector2.Zero, Color.Red);
+                _fontRenderer.DrawFont(_font, 120, $"{1/deltaTime}", Vector2.Zero, Color.Red);
             }
 
             for (int x = 0; x < 10; x++)

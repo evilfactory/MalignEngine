@@ -1,14 +1,7 @@
 ﻿@page "/"
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
-@using System.Diagnostics;
-@using System.Numerics;
 @using Microsoft.JSInterop;
-@using nkast.Wasm.Dom;
-@using nkast.Wasm.Canvas;
-@using nkast.Wasm.Canvas.WebGL;
-@using Microsoft.AspNetCore.Components;
-
 
 
 <div id="canvasHolder" style="
@@ -27,28 +20,18 @@
 <img id="image1" src="icon-192.png" width="100" height="100" style="visibility:collapse;" />
 
 @code {
-    Stopwatch _sw = new Stopwatch();
-    TimeSpan _prevt;
-
-    // Summary:
-    //     Method invoked when the component is ready to start, having received its initial
-    //     parameters from its parent in the render tree.
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        Console.WriteLine("initialized");
-    }
+    private IEventLoop? _eventLoop;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        application = new WebApplication();
+        WebApplication application = new WebApplication();
         application.ServiceContainer.RegisterAll<CanvasWindow>();
         application.ServiceContainer.RegisterAll<FontRenderer>();
         application.ServiceContainer.RegisterAll<WebRenderingAPI>();
         application.ServiceContainer.RegisterAll<Renderer2D>();
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
         application.ServiceContainer.RegisterAll<WebInputService>();
+        application.ServiceContainer.RegisterAll<EventLoop>();
 
         // Assets
         application.ServiceContainer.RegisterAll<EntitySerializer>();
@@ -73,7 +56,7 @@
         entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
         entityManager.WorldContainer.RegisterAll<Experimentation>();
 
-        _scheduleManager = application.ServiceContainer.GetInstance<IScheduleManager>();
+        _eventLoop = application.ServiceContainer.GetInstance<IEventLoop>();
 
         IAssetService assetService = application.ServiceContainer.GetInstance<IAssetService>();
 
@@ -91,13 +74,12 @@
         await assetService.PreLoadAsync(manifest);
 
         application.Run();
+        _eventLoop.Start();
     }
 
     protected override void OnAfterRender(bool firstRender)
     {
         base.OnAfterRender(firstRender);
-
-        Console.WriteLine("yay");
 
         if (firstRender)
         {
@@ -105,209 +87,11 @@
         }
     }
 
-    private bool init = false;
-    IWebGL2RenderingContext gl;
-
-    private Application application;
-
-    private IScheduleManager _scheduleManager;
-
-    private WebGLProgram program;
-
-    List<float> vertices = new();
-    List<uint> indices = new();
-
-    private WebGLBuffer vbo, ebo;
-
-    float time;
-
-    WebGLShader CompileShader(IWebGLRenderingContext gl, WebGLShaderType type, string source)
-    {
-        var shader = gl.CreateShader(type);
-
-        gl.ShaderSource(shader, source);
-        gl.CompileShader(shader);
-
-        return shader;
-    }
-
     [JSInvokable]
-    public void TickDotNet()
+    public void Tick()
     {
-        if (application == null) { return; }
+        if (_eventLoop == null) { return; }
 
-        if (!init)
-        {
-            init = true;
-
-            /*
-            cs = Window.Current.Document.GetElementById<Canvas>("theCanvas");
-            ContextAttributes attribs = new ContextAttributes();
-            attribs.Depth = true;
-            gl = cs.GetContext<IWebGL2RenderingContext>(attribs);
-            //gl.WebGLContextLost += cs_ContextLost;
-            //gl.WebGLContextRestored += cs_ContextRestored;
-            _sw.Start();
-            _prevt = _sw.Elapsed;
-            int size = 100;
-            float scale = 0.01f;
-
-            for (int z = 0; z < size; z++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    float fx = (x - size / 2) * scale;
-                    float fz = (z - size / 2) * scale;
-
-                    float y = MathF.Sin(fx / 10.0f) + MathF.Cos(fz / 10.0f);
-
-                    vertices.Add(fx);
-                    vertices.Add(y);
-                    vertices.Add(fz);
-                }
-            }
-
-            indices = new();
-
-            for (int z = 0; z < size - 1; z++)
-            {
-                for (int x = 0; x < size - 1; x++)
-                {
-                    uint i = (uint)(z * size + x);
-
-                    indices.Add(i);
-                    indices.Add(i + 1);
-                    indices.Add(i + (uint)size);
-
-                    indices.Add(i + 1);
-                    indices.Add(i + (uint)size + 1);
-                    indices.Add(i + (uint)size);
-                }
-            }
-            vbo = gl.CreateBuffer();
-            ebo = gl.CreateBuffer();
-
-            gl.BindBuffer(WebGLBufferType.ARRAY, vbo);
-            gl.BufferData(WebGLBufferType.ARRAY, vertices.ToArray(), WebGLBufferUsageHint.DYNAMIC_DRAW);
-
-            gl.BindBuffer(WebGLBufferType.ELEMENT_ARRAY, ebo);
-            gl.BufferData(WebGLBufferType.ELEMENT_ARRAY, indices.ToArray(), WebGLBufferUsageHint.STATIC_DRAW);
-
-            string vertexShaderSource = @"#version 300 es
-in vec3 aPos;
-
-uniform float time;
-
-void main()
-{
-    float y = sin(aPos.x + time) + cos(aPos.z + time);
-    gl_Position = vec4(aPos.x, y, aPos.z, 1.0);
-}";
-
-            string fragmentShaderSource = @"#version 300 es
-precision mediump float;
-
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-}";
-
-
-            var vs = CompileShader(gl, WebGLShaderType.VERTEX, vertexShaderSource);
-            var fs = CompileShader(gl, WebGLShaderType.FRAGMENT, fragmentShaderSource);
-
-            program = gl.CreateProgram();
-
-            gl.AttachShader(program, vs);
-            gl.AttachShader(program, fs);
-            gl.LinkProgram(program);
-
-            bool linked = gl.GetProgramParameter(program, WebGLProgramStatus.LINK);
-            if (!linked)
-            {
-                string log = gl.GetProgramInfoLog(program);
-                Console.WriteLine("PROGRAM LINK FAILED:");
-                Console.WriteLine(log);
-            }
-
-            */
-        }
-
-        _scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate(1f/60f));
-        _scheduleManager.Run<IUpdate>(e => e.OnUpdate(1f / 60f));
-        _scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate(1f/60f));
-
-        _scheduleManager.Run<IPreDraw>(x => x.OnPreDraw(1f / 60f));
-        _scheduleManager.Run<IDraw>(x => x.OnDraw(1f / 60f));
-        _scheduleManager.Run<IPostDraw>(x => x.OnPostDraw(1f / 60f));
-
-        /*
-        // run gameloop tick
-        TimeSpan t = _sw.Elapsed;
-        TimeSpan dt = t - _prevt;
-        _prevt = t;
-
-        // reset canvas
-        gl.ClearColor(0f, 0f, 0f, 1f);
-        gl.Clear(WebGLBufferBits.COLOR | WebGLBufferBits.DEPTH | WebGLBufferBits.STENCIL);
-
-        gl.BindBuffer(WebGLBufferType.ARRAY, vbo);
-
-        gl.UseProgram(program);
-
-        gl.VertexAttribPointer(
-            index: 0,
-            size: 3,
-            type: WebGLDataType.FLOAT,
-            normalized: false,
-            stride: 3 * sizeof(float),
-            offset: 0
-        );
-
-        time += 0.01f;
-        gl.Uniform1f(gl.GetUniformLocation(program, "time"), time);
-
-        gl.EnableVertexAttribArray(0);
-
-        gl.BindBuffer(WebGLBufferType.ELEMENT_ARRAY, ebo);
-
-        gl.DrawElements(
-            WebGLPrimitiveType.TRIANGLES,
-            indices.Count,
-            WebGLDataType.UINT,
-            0
-        );
-        */
-    }
-
-    private void cs_ContextLost(object sender, EventArgs e)
-    {
-        Console.WriteLine("gl_ContextLost");
-    }
-
-    private void cs_ContextRestored(object sender, EventArgs e)
-    {
-        Console.WriteLine("gl_ContextRestored");
-    }
-
-    private void OnResize(object sender)
-    {
-        Window wnd = (Window)sender;
-        int w = wnd.InnerWidth;
-        int h = wnd.InnerHeight;
-    }
-
-    private void OnFocus(object sender)
-    {
-        Window wnd = (Window)sender;
-        bool hasFocus = true;
-    }
-
-    private void OnBlur(object sender)
-    {
-        Window wnd = (Window)sender;
-        bool hasFocus = false;
+        _eventLoop.Tick();
     }
 }
