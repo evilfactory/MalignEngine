@@ -61,10 +61,6 @@ class Experimentation : BaseSystem, ICameraDraw
 
         //tileSystem.CreateTileMap(new List<TileLayer>() { new TileLayer("Wall", 0, true) });
 
-        var http = new HttpClient();
-
-        http.BaseAddress = Program.BaseAddress;
-
         /*
         _shaderResource = _renderAPI.CreateShader(new ShaderResourceDescriptor()
         {
