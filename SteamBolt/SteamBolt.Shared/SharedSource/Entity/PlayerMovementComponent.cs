@@ -3,6 +3,7 @@ using MalignEngine.Network;
 
 namespace SteamBolt;
 
+[Serializable]
 public struct PlayerMovementComponent : IComponent
 {
     public float MoveSpeed;

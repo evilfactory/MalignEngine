@@ -1,21 +1,11 @@
 ﻿using NetSerializer;
+using System.Xml.Linq;
 
 namespace MalignEngine.Network;
 
 
 [Serializable]
 public class ComponentState : INetSerializable { }
-
-/*
-public class ComponentGetState : ComponentEventArgs
-{
-    public ComponentState State;
-}
-public class ComponentHandleState : ComponentEventArgs
-{
-    public ComponentState State;
-}
-*/
 
 public class NetEntitySpawnNetMessage : NetMessage
 {
@@ -107,18 +97,51 @@ public class NetEntitySyncNetMessage : NetMessage
     }
 }
 
-public class EntityNetworkSystem : EntitySystem
+public class ServerEntityNetworkSystem : EntitySystem
 {
-    //private readonly INetworkService _networkService;
-    //private readonly IClientSessionRetrieval _clientSessionRetrieval;
+    private INetworkServer _server;
 
-    public EntityNetworkSystem(IServiceContainer serviceContainer) : base(serviceContainer)
+    private uint nextEntityId;
+
+    public ServerEntityNetworkSystem(IServiceContainer serviceContainer, INetworkServer server) : base(serviceContainer)
     {
-
+        _server = server;
     }
 
     public void SpawnEntity(Entity entity)
     {
+        nextEntityId++;
+        NetEntityId id = new NetEntityId() { Value = nextEntityId };
+        entity.AddOrSet(new NetEntityId() { Value = nextEntityId });
 
+        _server.Broadcast(new NetEntitySpawnNetMessage()
+        {
+            NetEntityId = id,
+            SceneId = entity.Get<SceneComponent>().SceneId
+        });
+    }
+}
+
+public class ClientEntityNetworkSystem : EntitySystem
+{
+    private INetworkClient _client;
+    private IAssetService _assetService;
+    private SceneSystem _sceneSystem;
+
+    public ClientEntityNetworkSystem(IServiceContainer serviceContainer, IAssetService assetService, SceneSystem sceneSystem, INetworkClient client) : base(serviceContainer)
+    {
+        _client = client;
+        _assetService = assetService;
+        _sceneSystem = sceneSystem;
+
+        _client.Register<NetEntitySpawnNetMessage>(ReceiveNetEntitySpawn);
+    }
+
+    private void ReceiveNetEntitySpawn(NetEntitySpawnNetMessage netMessage)
+    {
+        AssetHandle<Scene>? scene = _assetService.GetHandles<Scene>().FirstOrDefault(x => x.Asset.SceneId == netMessage.SceneId);
+
+        Entity entity = _sceneSystem.Instantiate(scene);
+        entity.AddOrSet(netMessage.NetEntityId);
     }
 }

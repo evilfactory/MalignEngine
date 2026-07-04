@@ -9,7 +9,7 @@ public class SteamBolt : ISystem
 {
 #if SERVER
     public SteamBolt(ILoggerService loggerService,
-        NetworkServer server, 
+        NetworkServer server,
         IAssetService assetService)
     {
 #elif CLIENT
@@ -18,6 +18,14 @@ public class SteamBolt : ISystem
         IAssetService assetService)
     {
 #endif
+
+        assetService.Mount("/Content/", new FileAssetSource("Content/"));
+
+        AssetManifest manifest = new AssetManifest([
+            (typeof(Scene), "/Content/Player.xml")
+        ]);
+
+        assetService.PreLoadAsync(manifest).Wait();
 
 #if SERVER
         server.AddTransport(new LidgrenServerTransport(new NetPeerConfiguration("SteamBolt") { Port = 7430 }));

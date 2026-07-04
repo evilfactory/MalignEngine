@@ -1,33 +1,33 @@
 using System.Numerics;
 using MalignEngine;
+using MalignEngine.Network;
 
 namespace SteamBolt;
 
 public class PlayerInputSystem : EntitySystem
 {
     private readonly IInputService _inputService;
-    //private readonly ClientSessionSystem _clientSessionSystem;
+    private readonly ClientSessionSystem _clientSessionSystem;
 
-    public PlayerInputSystem(IServiceContainer serviceContainer, IInputService inputService) : base(serviceContainer)
+    public PlayerInputSystem(IServiceContainer serviceContainer, IInputService inputService, ClientSessionSystem clientSessionSystem) : base(serviceContainer)
     {
         _inputService = inputService;
-        //_clientSessionSystem = clientSessionSystem;
+        _clientSessionSystem = clientSessionSystem;
     }
 
-    /*
     public override void OnUpdate(float deltaTime)
     {
-        if (_clientSessionSystem.MyClient == null) { return; }
+        if (_clientSessionSystem.ClientId == null) { return; }
 
         World.Query(new Query()
-            .Include<OwnerComponent>()
+            //.Include<OwnerComponent>()
             .Include<PlayerInputComponent>(),
             entity =>
             {
-                ref var owner = ref entity.Get<OwnerComponent>();
+                //ref var owner = ref entity.Get<OwnerComponent>();
                 ref var input = ref entity.Get<PlayerInputComponent>();
 
-                if (_clientSessionSystem.MyClient.ClientId == owner.ClientId)
+                if (true)
                 {
                     input.Up = _inputService.Keyboard.IsKeyPressed(Key.W);
                     input.Down = _inputService.Keyboard.IsKeyPressed(Key.S);
@@ -36,5 +36,4 @@ public class PlayerInputSystem : EntitySystem
                 }
             });
     }
-    */
 }

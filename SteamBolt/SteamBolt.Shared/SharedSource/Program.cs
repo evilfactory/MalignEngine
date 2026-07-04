@@ -23,18 +23,22 @@ internal class Program
         // Assets
         application.ServiceContainer.RegisterAll<FontAssetLoader>();
         application.ServiceContainer.RegisterAll<AssetService>();
-        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
         application.ServiceContainer.RegisterAll<XmlSerializer>();
-        application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
         application.ServiceContainer.RegisterAll<TileListXmlLoader>();
         application.ServiceContainer.RegisterAll<SceneXmlLoader>();
 
         // Networking
+#if SERVER
         application.ServiceContainer.RegisterAll<NetworkServer>();
-        application.ServiceContainer.RegisterAll<NetworkClient>();
         application.ServiceContainer.RegisterAll<ServerSessionSystem>();
+        application.ServiceContainer.RegisterAll<DummySpriteXmlAssetLoader>();
+#elif CLIENT
+        application.ServiceContainer.RegisterAll<NetworkClient>();
         application.ServiceContainer.RegisterAll<ClientSessionSystem>();
+        application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
+        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
+#endif
         application.ServiceContainer.RegisterAll<SessionHandler>();
 
         var entityManager = new EntityManager(new ServiceContainer(application.ServiceContainer), application.ServiceContainer.GetInstance<IScheduleManager>());
@@ -42,12 +46,18 @@ internal class Program
         // World
 #if CLIENT
         entityManager.WorldContainer.RegisterAll<CameraSystem>();
+        entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
+        entityManager.WorldContainer.RegisterAll<ClientEntityNetworkSystem>();
+        entityManager.WorldContainer.RegisterAll<PlayerInputSystem>();
+        entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
+#elif SERVER
+        entityManager.WorldContainer.RegisterAll<PlayerSpawnerSystem>();
+        entityManager.WorldContainer.RegisterAll<ServerEntityNetworkSystem>();
+        entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
 #endif
+
         entityManager.WorldContainer.RegisterAll<TransformSystem>();
         entityManager.WorldContainer.RegisterAll<HierarchySystem>();
-#if CLIENT
-        entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
-#endif
         entityManager.WorldContainer.RegisterAll<SceneSystem>();
         entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
         entityManager.WorldContainer.RegisterAll<SteamBolt>();

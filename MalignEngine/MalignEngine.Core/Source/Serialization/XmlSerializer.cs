@@ -17,7 +17,7 @@ public class XmlSerializer : IService
     {
         return type == typeof(int) || type == typeof(float) || type == typeof(string) || type == typeof(bool) ||
                type == typeof(Vector2) || type == typeof(Vector3) || type == typeof(Vector4) || type == typeof(Color) ||
-               type == typeof(Entity) || type == typeof(Quaternion) || type.IsAssignableTo(typeof(IAssetHandle));
+               type == typeof(Entity) || type == typeof(Quaternion) || type.IsAssignableTo(typeof(IAssetHandle)) || type.IsEnum;
     }
 
     public void SerializeObject(object obj, XElement element, bool saveAll = false)

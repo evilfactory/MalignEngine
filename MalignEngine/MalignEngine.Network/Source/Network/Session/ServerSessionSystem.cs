@@ -34,6 +34,11 @@ public class AuthSuccessNetMessage : NetMessage
     }
 }
 
+public interface IClientSessionStarted : ISchedule
+{
+    void OnClientSessionStarted(NetworkConnection connection, IClientSession session);
+}
+
 public class ServerSessionSystem : BaseSystem, IClientDisconnectedFromServer
 {
     private Dictionary<NetworkConnection, IClientSession> _sessions = [];
@@ -77,6 +82,8 @@ public class ServerSessionSystem : BaseSystem, IClientDisconnectedFromServer
         Logger.LogInfo($"Authentication accepted: {session.ClientId}");
 
         _server.Send(connection, new AuthSuccessNetMessage() { AuthData = _sessionHandler.CreateAuthSuccessData(session) });
+
+        ScheduleManager.Run<IClientSessionStarted>(d => d.OnClientSessionStarted(connection, session));
     }
 
     public void OnClientDisconnectedFromServer(NetworkConnection connection)

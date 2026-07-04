@@ -20,12 +20,11 @@ public interface IPhysicsSystem2D : IService
     void QueryAABB(Func<Entity, bool> action, Vector2 min, Vector2 max);
 }
 
-public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
+public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
 {
     [Dependency]
     protected IPerformanceProfiler? _performanceProfiler;
 
-    private readonly IEntityManager _entityManager;
     private readonly PhysicsWorld _physicsWorld;
 
     public Vector2 Gravity
@@ -34,10 +33,9 @@ public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
         set => _physicsWorld.Gravity = new AVector2(value.X, value.Y);
     }
 
-    public PhysicsSystem2D(IEventService eventService, IEntityManager entityManager)
+    public PhysicsSystem2D(IServiceContainer serviceContainer) : base(serviceContainer)
     {
-        _physicsWorld = new PhysicsWorld(new AVector2(0, -9.81f));
-        _entityManager = entityManager;
+        _physicsWorld = new PhysicsWorld(new AVector2(0, 0f));
     }
 
     public void RayCast(Func<Entity, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)
@@ -98,7 +96,7 @@ public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
     public void OnPostUpdate(float deltaTime)
     {
         // Add physics bodies to simulation
-        _entityManager.World.Query(new Query().Include<PhysicsBody2D>().Exclude<PhysicsSim>(), (Entity entity) =>
+        EntityManager.World.Query(new Query().Include<PhysicsBody2D>().Exclude<PhysicsSim>(), (Entity entity) =>
         {
             ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
 
@@ -109,7 +107,7 @@ public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
         using (_performanceProfiler?.BeginSample("PhysicsSystem2D.PutTransformations"))
         {
             // Put transformations into simulation
-            _entityManager.World.Query(new Query().WithAll<PhysicsBody2D, PhysicsSim>(), (Entity entity) =>
+            EntityManager.World.Query(new Query().WithAll<PhysicsBody2D, PhysicsSim>(), (Entity entity) =>
             {
                 ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
                 ref PhysicsSim physicsSim = ref entity.Get<PhysicsSim>();
@@ -150,7 +148,7 @@ public class PhysicsSystem2D : IPhysicsSystem2D, IPostUpdate
         using (_performanceProfiler?.BeginSample("PhysicsSystem2D.BringTransformations"))
         {
             // Bring transformations from simulation
-            _entityManager.World.Query(new Query().WithAll<PhysicsBody2D, PhysicsSim, Transform>(), (Entity entity) =>
+            EntityManager.World.Query(new Query().WithAll<PhysicsBody2D, PhysicsSim, Transform>(), (Entity entity) =>
             {
                 ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
                 ref PhysicsSim physicsSim = ref entity.Get<PhysicsSim>();
