@@ -50,12 +50,12 @@ public enum PrimitiveType
 
 public interface IBeginFrame : ISchedule
 {
-    void OnBeginFrame();
+    void BeginFrame();
 }
 
 public interface IEndFrame : ISchedule
 {
-    void OnEndFrame();
+    void EndFrame();
 }
 
 public delegate void RenderCommand();

@@ -147,7 +147,7 @@ class Experimentation : BaseSystem, ICameraDraw
             mov.X = 1f;
         }
 
-        if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
+        if (_inputService.Mouse.IsButtonPressed(MouseButton.Right))
         {
             AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene2.xml");
             var newEntity = _sceneSystem.Instantiate(scene);

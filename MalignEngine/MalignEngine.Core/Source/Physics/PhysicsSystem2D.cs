@@ -96,7 +96,7 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
     public void OnPostUpdate(float deltaTime)
     {
         // Add physics bodies to simulation
-        EntityManager.World.Query(new Query().Include<PhysicsBody2D>().Exclude<PhysicsSim>(), (Entity entity) =>
+        EntityManager.Query(new Query().Include<PhysicsBody2D>().Exclude<PhysicsSim>(), (Entity entity) =>
         {
             ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
 

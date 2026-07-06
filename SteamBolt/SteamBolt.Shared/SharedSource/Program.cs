@@ -73,6 +73,36 @@ internal class Program
 #endif
 
 
+#if CLIENT
+        EventLoop eventLoop = new EventLoop(
+            application.ServiceContainer.GetInstance<IScheduleManager>(),
+            new ExecutionPipeline()
+                .Stage<IPreUpdate>((s, c) => s.OnPreUpdate((float)c.DeltaTime))
+                .Stage<IUpdate>((s, c) => s.OnUpdate((float)c.DeltaTime))
+                .Stage<IPostUpdate>((s, c) => s.OnPostUpdate((float)c.DeltaTime))
+                .Stage<ICommitWorldChanges>((s, c) => s.CommitWorldChanges()),
+
+            new ExecutionPipeline()
+                .Stage<IBeginFrame>((s, c) => s.BeginFrame())
+                .Stage<IPreDraw>((s, c) => s.OnPreDraw((float)c.DeltaTime))
+                .Stage<IDraw>((s, c) => s.OnDraw((float)c.DeltaTime))
+                .Stage<IPostDraw>((s, c) => s.OnPostDraw((float)c.DeltaTime))
+                .Stage<IEndFrame>((s, c) => s.EndFrame())
+            );
+#elif SERVER
+        EventLoop eventLoop = new EventLoop(
+            application.ServiceContainer.GetInstance<IScheduleManager>(),
+            new ExecutionPipeline()
+                .Stage<IPreUpdate>((s, c) => s.OnPreUpdate((float)c.DeltaTime))
+                .Stage<IUpdate>((s, c) => s.OnUpdate((float)c.DeltaTime))
+                .Stage<IPostUpdate>((s, c) => s.OnPostUpdate((float)c.DeltaTime)),
+            drawPipeline: null
+        );
+#endif
+
+        application.ServiceContainer.Register<IEventLoop, EventLoop>(new SingletonLifeTime(eventLoop));
+
         application.Initialize();
+        eventLoop.Run();
     }
 }

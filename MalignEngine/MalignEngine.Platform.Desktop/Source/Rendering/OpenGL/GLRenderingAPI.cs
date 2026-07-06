@@ -223,8 +223,4 @@ public class GLRenderingAPI : IRenderingAPI, IBeginFrame, IEndFrame, IDisposable
 
         _logger.LogInfo("GLRenderingAPI disposed");
     }
-
-    public void OnBeginFrame() => BeginFrame();
-
-    public void OnEndFrame() => EndFrame();
 }
