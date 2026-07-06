@@ -21,7 +21,7 @@ class Program
         application.ServiceContainer.RegisterAll<EditorSystem>();
         application.ServiceContainer.RegisterAll<EditorPerformanceSystem>();
 
-        application.Run();
+        application.Initialize();
     }
 
 }

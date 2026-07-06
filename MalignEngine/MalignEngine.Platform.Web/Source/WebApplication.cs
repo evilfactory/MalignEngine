@@ -26,7 +26,7 @@ public class WebApplication : Application, IApplicationClosing, ILogHandler, IDi
     /// <summary>
     /// Instantiates all systems and creates the event loop
     /// </summary>
-    public override void Run()
+    public override void Initialize()
     {
         ServiceContainer.TryGetInstance(out IPerformanceProfiler? performanceProfiler);
 

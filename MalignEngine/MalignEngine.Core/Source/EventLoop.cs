@@ -13,10 +13,13 @@ public interface IEventLoop
     void Stop();
 }
 
-public class EventLoop : IEventLoop
+public class EventLoop : IEventLoop, IApplicationClosing
 {
     public float TargetUpdateDelta { get; set; } = 1f / 60f;
     public float TargetDrawDelta { get; set; } = 1f / 120f;
+
+    public ExecutionPipeline? _updatePipeline { get; set; }
+    public ExecutionPipeline? _drawPipeline { get; set; }
 
     private const double maxFrameTime = 0.25f;
 
@@ -29,10 +32,14 @@ public class EventLoop : IEventLoop
     private IScheduleManager _scheduleManager;
     private IPerformanceProfiler? _performanceProfiler;
 
-    public EventLoop(IScheduleManager scheduleManager, IPerformanceProfiler? performanceProfiler = null)
+    public EventLoop(IScheduleManager scheduleManager, ExecutionPipeline? updatePipeline = null, ExecutionPipeline? drawPipeline = null, IPerformanceProfiler? performanceProfiler = null)
     {
-        _scheduleManager = scheduleManager;
+        _updatePipeline = updatePipeline;
+        _drawPipeline = drawPipeline;
         _performanceProfiler = performanceProfiler;
+        _scheduleManager = scheduleManager;
+
+        _scheduleManager.Register<IApplicationClosing>(this);
     }
 
     public void Start()
@@ -57,9 +64,7 @@ public class EventLoop : IEventLoop
         while (updateAccumulator >= TargetUpdateDelta)
         {
             _performanceProfiler?.BeginSample("update");
-            _scheduleManager.Run<IPreUpdate>(e => e.OnPreUpdate((float)TargetUpdateDelta));
-            _scheduleManager.Run<IUpdate>(e => e.OnUpdate((float)TargetUpdateDelta));
-            _scheduleManager.Run<IPostUpdate>(e => e.OnPostUpdate((float)TargetUpdateDelta));
+            _updatePipeline?.Execute(new ExecutionContext(_scheduleManager, TargetUpdateDelta));
             _performanceProfiler?.EndSample();
             updateAccumulator -= TargetUpdateDelta;
         }
@@ -67,9 +72,7 @@ public class EventLoop : IEventLoop
         if (drawAccumulator >= TargetDrawDelta)
         {
             _performanceProfiler?.BeginSample("draw");
-            _scheduleManager.Run<IPreDraw>(x => x.OnPreDraw((float)drawAccumulator));
-            _scheduleManager.Run<IDraw>(x => x.OnDraw((float)drawAccumulator));
-            _scheduleManager.Run<IPostDraw>(x => x.OnPostDraw((float)drawAccumulator));
+            _drawPipeline?.Execute(new ExecutionContext(_scheduleManager, drawAccumulator));
             _performanceProfiler?.EndSample();
             drawAccumulator = 0.0;
         }
@@ -89,5 +92,8 @@ public class EventLoop : IEventLoop
 
     public void Stop() => _running = false;
 
-    public void OnApplicationRun() => Run();
+    public void OnApplicationClosing()
+    {
+        Stop();
+    }
 }

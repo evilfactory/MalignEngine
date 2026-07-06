@@ -9,8 +9,7 @@ public interface IDrawImGui : ISchedule
     void OnDrawImGui(float deltaTime);
 }
 
-[Stage<IDraw, BeforeEndFrame>]
-public class ImGuiSystem : BaseSystem
+public class ImGuiSystem : BaseSystem, IPostDraw
 {
     private readonly GLRenderingAPI _glRenderAPI;
     private ImGuiController? _imGuiController;
@@ -90,7 +89,7 @@ public class ImGuiSystem : BaseSystem
         });
     }
 
-    public override void OnDraw(float deltaTime)
+    public void OnPostDraw(float deltaTime)
     {
         _glRenderAPI.Submit(() =>
         {

@@ -5,7 +5,6 @@ namespace MalignEngine;
 
 public class DesktopApplication : Application, IApplicationClosing, ILogHandler, IDisposable
 {
-    public IEventLoop? EventLoop { get; private set; }
     public override IServiceContainer ServiceContainer { get; protected set; }
 
     public DesktopApplication() : base()
@@ -27,20 +26,11 @@ public class DesktopApplication : Application, IApplicationClosing, ILogHandler,
     /// <summary>
     /// Instantiates all systems and creates the event loop
     /// </summary>
-    public override void Run()
+    public override void Initialize()
     {
-        ServiceContainer.TryGetInstance(out IPerformanceProfiler? performanceProfiler);
-        EventLoop = new EventLoop(ServiceContainer.GetInstance<IScheduleManager>(), performanceProfiler);
-
         ServiceContainer.GetInstance<IEnumerable<ISystem>>(); // Instantiate all systems
 
         ServiceContainer.GetInstance<IScheduleManager>().Run<IApplicationRun>(x => x.OnApplicationRun());
-
-        // Start the event loop
-        EventLoop.Run();
-
-        Dispose();
-        ServiceContainer.GetInstance<ILoggerService>().LogInfo("Goodbye!");
     }
 
     public void HandleLog(Sawmill sawmill, LogEvent logEvent)
@@ -73,11 +63,13 @@ public class DesktopApplication : Application, IApplicationClosing, ILogHandler,
 
     public void Dispose()
     {
+        ServiceContainer.GetInstance<ILoggerService>().LogInfo("Goodbye!");
+
         ServiceContainer.Dispose();
     }
 
     public void OnApplicationClosing()
     {
-        EventLoop?.Stop();
+        Dispose();
     }
 }

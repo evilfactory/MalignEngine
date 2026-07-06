@@ -47,6 +47,17 @@ public enum PrimitiveType
     TriangleFan = 6
 }
 
+
+public interface IBeginFrame : ISchedule
+{
+    void OnBeginFrame();
+}
+
+public interface IEndFrame : ISchedule
+{
+    void OnEndFrame();
+}
+
 public delegate void RenderCommand();
 public delegate void RenderCommandContext(IRenderContext context);
 

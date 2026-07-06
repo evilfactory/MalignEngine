@@ -73,6 +73,6 @@ internal class Program
 #endif
 
 
-        application.Run();
+        application.Initialize();
     }
 }

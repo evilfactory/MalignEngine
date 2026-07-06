@@ -15,7 +15,7 @@ public abstract class Application
     }
 
     /// <summary>
-    /// Instantiates all systems and creates the event loop
+    /// Instantiates all systems.
     /// </summary>
-    public abstract void Run();
+    public abstract void Initialize();
 }
