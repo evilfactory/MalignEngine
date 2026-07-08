@@ -148,7 +148,14 @@ public class ServiceContainer : IServiceContainer
             object[] passedParameters = new object[parameters.Length];
             for (int i = 0; i < parameters.Length; i++)
             {
-                passedParameters[i] = GetInstance(parameters[i].ParameterType);
+                if (TryGetInstance(parameters[i].ParameterType, out object? instance))
+                {
+                    passedParameters[i] = instance;
+                }
+                else if (!parameters[i].HasDefaultValue)
+                {
+                    throw new Exception($"Failed to find implementation for {parameters[i].ParameterType.Name}");
+                }
             }
 
             object obj = null;
@@ -199,7 +206,7 @@ public class ServiceContainer : IServiceContainer
 
     public void RegisterAll<T>(ILifeTime? lifetime = null) => RegisterAll(typeof(T), lifetime);
 
-    public object GetInstance(Type serviceType)
+    public bool TryGetInstance(Type serviceType, [NotNullWhen(true)] out object? instance)
     {
         if (serviceType.IsGenericType && serviceType.IsAssignableTo(typeof(IEnumerable)))
         {
@@ -216,32 +223,40 @@ public class ServiceContainer : IServiceContainer
                     array.SetValue(instances[i], i);
                 }
 
-                return array;
+                instance = array;
+                return true;
             }
             else
             {
                 if (parent != null)
                 {
-                    return parent.GetInstance(serviceType);
+                    instance = parent.GetInstance(serviceType);
+                    return true;
                 }
 
-                return Array.CreateInstance(elementType, 0);
+                instance = Array.CreateInstance(elementType, 0);
+                return true;
             }
         }
         else
         {
             if (serviceInterfaces.ContainsKey(serviceType))
             {
-                return serviceInterfaces[serviceType].First().LifeTime.GetInstance(MakeInstanceFactory(serviceInterfaces[serviceType].First().Implementation));
+                instance = serviceInterfaces[serviceType].First().LifeTime.GetInstance(MakeInstanceFactory(serviceInterfaces[serviceType].First().Implementation));
+                return true;
             }
             else
             {
                 if (parent != null)
                 {
-                    return parent.GetInstance(serviceType);
+                    if (parent.TryGetInstance(serviceType, out instance))
+                    {
+                        return true;
+                    }
                 }
 
-                throw new InvalidOperationException($"No service of type {serviceType} has been registered");
+                instance = null;
+                return false;
             }
         }
     }
@@ -259,31 +274,24 @@ public class ServiceContainer : IServiceContainer
         }
     }
 
-    public bool TryGetInstance(Type type, [NotNullWhen(true)] out object? instance)
+    public object GetInstance(Type type)
     {
-        try
+        if (TryGetInstance(type, out object? instance))
         {
-            instance = GetInstance(type);
-            return true;
+            return instance;
         }
-        catch (Exception)
-        {
-            instance = null;
-            return false;
-        }
+
+        throw new InvalidOperationException($"No service of type {type} has been registered");
     }
 
     public bool TryGetInstance<T>([NotNullWhen(true)] out T? instance)
     {
-        try
+        if (TryGetInstance(typeof(T), out object? result))
         {
-            instance = (T)GetInstance(typeof(T));
-            return true;
+            instance = (T)result;
         }
-        catch (Exception)
-        {
-            instance = default;
-            return false;
-        }
+
+        instance = default;
+        return false;
     }
 }
