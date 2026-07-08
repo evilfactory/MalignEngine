@@ -97,44 +97,68 @@ public class NetEntitySyncNetMessage : NetMessage
     }
 }
 
-public class ServerEntityNetworkSystem : EntitySystem
+public interface IEntityNetwork
 {
-    private INetworkServer _server;
+    IEnumerable<NetworkConnection> SyncedClients { get; }
+    Entity FindEntityByNetId(NetEntityId id);
+}
+
+
+public class EntityNetworkSystem : EntitySystem, IEntityNetwork
+{
+    public IEnumerable<NetworkConnection> SyncedClients => _syncedClients;
+
+    private HashSet<NetworkConnection> _syncedClients = [];
+    private Dictionary<NetEntityId, Entity> _netEntities = [];
+
+    private INetworkService _network;
+    private IAssetService _assetService;
+    private SceneSystem _sceneSystem;
 
     private uint nextEntityId;
 
-    public ServerEntityNetworkSystem(IServiceContainer serviceContainer, INetworkServer server) : base(serviceContainer)
+    public EntityNetworkSystem(IServiceContainer serviceContainer, INetworkService network, IAssetService assetService, SceneSystem sceneSystem) : base(serviceContainer)
     {
-        _server = server;
+        _network = network;
+        _assetService = assetService;
+        _sceneSystem = sceneSystem;
+
+        if (network.Client != null)
+        {
+            network.Client.Register<NetEntitySpawnNetMessage>(ReceiveNetEntitySpawn);
+            network.Client.Register<NetEntitySyncNetMessage>(ReceiveNetSyncEntity);
+        }
     }
 
     public void SpawnEntity(Entity entity)
     {
+        if (_network.Server == null)
+        {
+            throw new InvalidOperationException();
+        }
+
         nextEntityId++;
         NetEntityId id = new NetEntityId() { Value = nextEntityId };
-        entity.AddOrSet(new NetEntityId() { Value = nextEntityId });
+        entity.AddOrSet(id);
 
-        _server.Broadcast(new NetEntitySpawnNetMessage()
+        _netEntities.Add(id, entity);
+
+        foreach (var connection in _syncedClients)
         {
-            NetEntityId = id,
-            SceneId = entity.Get<SceneComponent>().SceneId
-        });
+            _network.Server.Send(connection, new NetEntitySpawnNetMessage()
+            {
+                NetEntityId = id,
+                SceneId = entity.Get<SceneComponent>().SceneId
+            });
+        }
     }
-}
 
-public class ClientEntityNetworkSystem : EntitySystem
-{
-    private INetworkClient _client;
-    private IAssetService _assetService;
-    private SceneSystem _sceneSystem;
-
-    public ClientEntityNetworkSystem(IServiceContainer serviceContainer, IAssetService assetService, SceneSystem sceneSystem, INetworkClient client) : base(serviceContainer)
+    private void ReceiveNetSyncEntity(NetEntitySyncNetMessage message)
     {
-        _client = client;
-        _assetService = assetService;
-        _sceneSystem = sceneSystem;
-
-        _client.Register<NetEntitySpawnNetMessage>(ReceiveNetEntitySpawn);
+        foreach (var spawnMessage in message.Entities)
+        {
+            ReceiveNetEntitySpawn(spawnMessage);
+        }
     }
 
     private void ReceiveNetEntitySpawn(NetEntitySpawnNetMessage netMessage)
@@ -143,5 +167,29 @@ public class ClientEntityNetworkSystem : EntitySystem
 
         Entity entity = _sceneSystem.Instantiate(scene);
         entity.AddOrSet(netMessage.NetEntityId);
+        _netEntities.Add(netMessage.NetEntityId, entity);
+    }
+
+    public void SyncEntities(NetworkConnection connection)
+    {
+        if (_network.Server == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        List<NetEntitySpawnNetMessage> spawnMessages = [];
+        foreach (var (netId, entity) in _netEntities)
+        {
+            spawnMessages.Add(new NetEntitySpawnNetMessage() { NetEntityId = netId, SceneId = entity.Get<SceneComponent>().SceneId });
+        }
+
+        _network.Server.Send(connection, new NetEntitySyncNetMessage() { Entities = spawnMessages.ToArray(), States = [] });
+
+        _syncedClients.Add(connection);
+    }
+
+    public Entity FindEntityByNetId(NetEntityId id)
+    {
+        return _netEntities[id];
     }
 }

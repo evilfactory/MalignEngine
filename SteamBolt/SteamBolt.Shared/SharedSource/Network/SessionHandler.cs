@@ -23,7 +23,7 @@ public class SessionHandler : ISessionHandler
     public byte[] CreateAuthData()
     {
         var writeMessage = new WriteOnlyMessage();
-        var authDataMessage = new AuthData() { ClientId = new StringClientId("wawa") };
+        var authDataMessage = new AuthData() { ClientId = new StringClientId(RandomNameGenerator.Generate()) };
         authDataMessage.Serialize(writeMessage);
         return writeMessage.Buffer;
     }

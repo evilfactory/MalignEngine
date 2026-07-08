@@ -13,7 +13,7 @@ public interface INetworkSerializable
 public abstract class NetMessage : INetworkSerializable
 {
     public string MsgName { get; }
-    public PacketChannel Channel => PacketChannel.Reliable;
+    public PacketChannel Channel { get; set; } = PacketChannel.Reliable;
 
     protected NetMessage()
     {

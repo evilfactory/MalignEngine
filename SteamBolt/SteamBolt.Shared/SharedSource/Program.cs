@@ -30,14 +30,14 @@ internal class Program
 
         // Networking
 #if SERVER
-        application.ServiceContainer.RegisterAll<NetworkServer>();
         application.ServiceContainer.RegisterAll<ServerSessionSystem>();
         application.ServiceContainer.RegisterAll<DummySpriteXmlAssetLoader>();
+        application.ServiceContainer.RegisterAll<NetworkServer>();
 #elif CLIENT
-        application.ServiceContainer.RegisterAll<NetworkClient>();
         application.ServiceContainer.RegisterAll<ClientSessionSystem>();
         application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
         application.ServiceContainer.RegisterAll<TextureAssetLoader>();
+        application.ServiceContainer.RegisterAll<NetworkClient>();
 #endif
         application.ServiceContainer.RegisterAll<SessionHandler>();
 
@@ -47,14 +47,16 @@ internal class Program
 #if CLIENT
         entityManager.WorldContainer.RegisterAll<CameraSystem>();
         entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
-        entityManager.WorldContainer.RegisterAll<ClientEntityNetworkSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerInputSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
 #elif SERVER
         entityManager.WorldContainer.RegisterAll<PlayerSpawnerSystem>();
-        entityManager.WorldContainer.RegisterAll<ServerEntityNetworkSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
 #endif
+        entityManager.WorldContainer.RegisterAll<EntityNetworkSystem>();
+        entityManager.WorldContainer.RegisterAll<NetworkService>();
+        entityManager.WorldContainer.RegisterAll<ReplicationSystem>();
+        entityManager.WorldContainer.RegisterAll<OwnerReplicator>();
 
         entityManager.WorldContainer.RegisterAll<TransformSystem>();
         entityManager.WorldContainer.RegisterAll<HierarchySystem>();

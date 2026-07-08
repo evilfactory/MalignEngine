@@ -20,14 +20,14 @@ public class PlayerInputSystem : EntitySystem
         if (_clientSessionSystem.ClientId == null) { return; }
 
         World.Query(new Query()
-            //.Include<OwnerComponent>()
+            .Include<OwnerComponent>()
             .Include<PlayerInputComponent>(),
             entity =>
             {
-                //ref var owner = ref entity.Get<OwnerComponent>();
+                ref var owner = ref entity.Get<OwnerComponent>();
                 ref var input = ref entity.Get<PlayerInputComponent>();
 
-                if (true)
+                if (owner.ClientId.Equals(_clientSessionSystem.ClientId))
                 {
                     input.Up = _inputService.Keyboard.IsKeyPressed(Key.W);
                     input.Down = _inputService.Keyboard.IsKeyPressed(Key.S);
