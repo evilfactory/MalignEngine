@@ -125,12 +125,11 @@ public class ServiceContainer : IServiceContainer
             Dependency? dep = field.GetCustomAttribute<Dependency>();
             if (dep != null)
             {
-                object value = GetInstance(field.FieldType);
-                if (value == null && !dep.Optional)
+                if (!TryGetInstance(field.FieldType, out object? instance) && !dep.Optional)
                 {
                     throw new Exception($"Failed to resolve dependency of type {field.FieldType}");
                 }
-                field.SetValue(obj, value);
+                field.SetValue(obj, instance);
             }
         }
     }
