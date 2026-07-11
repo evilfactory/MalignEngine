@@ -35,7 +35,7 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
 
     public PhysicsSystem2D(IServiceContainer serviceContainer) : base(serviceContainer)
     {
-        _physicsWorld = new PhysicsWorld(new AVector2(0, 0f));
+        _physicsWorld = new PhysicsWorld(new AVector2(0, -9.81f));
     }
 
     public void RayCast(Func<Entity, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)

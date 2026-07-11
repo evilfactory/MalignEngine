@@ -27,7 +27,7 @@ public abstract class Replicator<T> : IReplicator where T : IComponent
 
     public bool HasChanged(ReplicationContext context, Entity entity)
     {
-        if (RequiresComponent != null && entity.Has(RequiresComponent))
+        if (RequiresComponent != null && !entity.Has(RequiresComponent))
         {
             return false;
         }

@@ -5,7 +5,7 @@ namespace SteamBolt;
 
 public class OwnerReplicator : Replicator<OwnerComponent>
 {
-    public override PacketChannel Channel => throw new NotImplementedException();
+    public override PacketChannel Channel => PacketChannel.Reliable;
 
     protected override bool HasChanged(OwnerComponent prevComponent, OwnerComponent currComponent)
     {

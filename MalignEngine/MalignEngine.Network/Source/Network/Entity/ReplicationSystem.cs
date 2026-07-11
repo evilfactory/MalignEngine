@@ -43,9 +43,14 @@ public class ReplicationSystem : EntitySystem
             var entityId = new NetEntityId() { Value = readMessage.ReadUInt32() };
             var replicatorId = readMessage.ReadUInt16();
 
-            Entity entity = _entityNetwork.FindEntityByNetId(entityId);
-
-            _replicators[replicatorId].Deserialize(new ReplicationContext(null!), entity, readMessage);
+            if (_entityNetwork.TryGetEntityFromId(entityId, out Entity entity))
+            {
+                _replicators[replicatorId].Deserialize(new ReplicationContext(null!), entity, readMessage);
+            }
+            else
+            {
+                Logger.LogError($"Failed to find entity with id {entityId}");
+            }
         }
     }
 

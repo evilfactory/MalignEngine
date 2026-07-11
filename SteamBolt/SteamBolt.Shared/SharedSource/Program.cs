@@ -49,6 +49,7 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerInputSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
+        entityManager.WorldContainer.RegisterAll<PlayerCameraSystem>();
 #elif SERVER
         entityManager.WorldContainer.RegisterAll<PlayerSpawnerSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();

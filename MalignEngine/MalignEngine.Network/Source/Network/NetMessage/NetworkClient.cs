@@ -11,6 +11,7 @@ public interface INetworkClient
     void Start(IPEndPoint endpoint);
     void Stop();
     void Send<T>(T message) where T : NetMessage;
+    void SetTransport(IClientTransport transport);
 }
 
 public interface IConnectedToServer : ISchedule

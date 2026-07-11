@@ -30,7 +30,7 @@ public abstract class ClientId
         return a.Equals(b);
     }
 
-    public static bool operator != (ClientId a, ClientId b)
+    public static bool operator != (ClientId? a, ClientId? b)
     {
         return !(a == b);
     }

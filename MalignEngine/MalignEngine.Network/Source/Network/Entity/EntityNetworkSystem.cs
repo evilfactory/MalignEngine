@@ -54,7 +54,7 @@ public class NetEntitySyncNetMessage : NetMessage
 public interface IEntityNetwork
 {
     IEnumerable<NetworkConnection> SyncedClients { get; }
-    Entity FindEntityByNetId(NetEntityId id);
+    bool TryGetEntityFromId(NetEntityId id, out Entity entity);
 }
 
 public class EntityNetworkSystem : EntitySystem, IEntityNetwork
@@ -141,8 +141,8 @@ public class EntityNetworkSystem : EntitySystem, IEntityNetwork
         _syncedClients.Add(connection);
     }
 
-    public Entity FindEntityByNetId(NetEntityId id)
+    public bool TryGetEntityFromId(NetEntityId id, out Entity entity)
     {
-        return _netEntities[id];
+        return _netEntities.TryGetValue(id, out entity);
     }
 }

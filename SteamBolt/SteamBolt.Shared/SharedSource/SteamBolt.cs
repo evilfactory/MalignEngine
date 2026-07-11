@@ -7,18 +7,11 @@ namespace SteamBolt;
 
 public class SteamBolt : ISystem
 {
-#if SERVER
     public SteamBolt(ILoggerService loggerService,
-        NetworkServer server,
-        IAssetService assetService)
+        INetworkService _network,
+        IAssetService assetService,
+        SceneSystem sceneSystem)
     {
-#elif CLIENT
-    public SteamBolt(ILoggerService loggerService,
-        NetworkClient client,
-        IAssetService assetService)
-    {
-#endif
-
         assetService.Mount("/Content/", new FileAssetSource("Content/"));
 
         AssetManifest manifest = new AssetManifest([
@@ -27,13 +20,18 @@ public class SteamBolt : ISystem
 
         assetService.PreLoadAsync(manifest).Wait();
 
-#if SERVER
-        server.AddTransport(new LidgrenServerTransport(new NetPeerConfiguration("SteamBolt") { Port = 7430 }));
-        server.Start();
+        Scene scene = assetService.FromPath<Scene>("/Content/Map.xml");
+        Entity entity = sceneSystem.Instantiate(scene);
 
-#elif CLIENT
-        client.SetTransport(new LidgrenClientTransport("SteamBolt"));
-        client.Start(IPEndPoint.Parse("127.0.0.1:7430"));
-#endif
+        if (_network.Server != null)
+        {
+            _network.Server.AddTransport(new LidgrenServerTransport(new NetPeerConfiguration("SteamBolt") { Port = 7430 }));
+            _network.Server.Start();
+        }
+        else if (_network.Client != null)
+        {
+            _network.Client.SetTransport(new LidgrenClientTransport("SteamBolt"));
+            _network.Client.Start(IPEndPoint.Parse("127.0.0.1:7430"));
+        }
     }
 }

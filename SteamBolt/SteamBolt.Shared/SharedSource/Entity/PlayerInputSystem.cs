@@ -8,10 +8,12 @@ public class PlayerInputSystem : EntitySystem
 {
     private readonly IInputService _inputService;
     private readonly ClientSessionSystem _clientSessionSystem;
+    private readonly INetworkService _network;
 
-    public PlayerInputSystem(IServiceContainer serviceContainer, IInputService inputService, ClientSessionSystem clientSessionSystem) : base(serviceContainer)
+    public PlayerInputSystem(IServiceContainer serviceContainer, IInputService inputService, ClientSessionSystem clientSessionSystem, INetworkService network) : base(serviceContainer)
     {
         _inputService = inputService;
+        _network = network;
         _clientSessionSystem = clientSessionSystem;
     }
 
