@@ -3,18 +3,21 @@ using MalignEngine.Network;
 
 namespace SteamBolt;
 
-public class OwnerReplicator : IReplicator
+public class OwnerReplicator : Replicator<OwnerComponent>
 {
-    public PacketChannel Channel => PacketChannel.Reliable;
+    public override PacketChannel Channel => throw new NotImplementedException();
 
-    public Type ComponentType => typeof(OwnerComponent);
+    protected override bool HasChanged(OwnerComponent prevComponent, OwnerComponent currComponent)
+    {
+        return prevComponent.ClientId != currComponent.ClientId;
+    }
 
-    public void Deserialize(Entity entity, IReadMessage message)
+    protected override void Deserialize(Entity entity, IReadMessage message)
     {
         entity.AddOrSet(new OwnerComponent() { ClientId = new StringClientId(message.ReadString()) });
     }
 
-    public void Serialize(Entity entity, IWriteMessage message)
+    protected override void Serialize(Entity entity, IWriteMessage message)
     {
         message.WriteString(entity.Get<OwnerComponent>().ClientId.StringRepresentation);
     }

@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace MalignEngine.Network;
 
 public class AuthRequestNetMessage : NetMessage
@@ -54,7 +56,7 @@ public class ServerSessionSystem : BaseSystem, IClientDisconnectedFromServer
         server.Register<AuthRequestNetMessage>(ReceiveAuthRequest);
     }
 
-    public bool TryGetSession<T>(NetworkConnection connection, out T? session) where T : IClientSession
+    public bool TryGetSession<T>(NetworkConnection connection, [NotNullWhen(true)] out T? session) where T : IClientSession
     {
         if (_sessions.TryGetValue(connection, out var sessionValue))
         {

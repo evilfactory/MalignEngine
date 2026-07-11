@@ -9,6 +9,7 @@ public interface IWorldEntity
     void AddOrSet(IComponent component);
     IEnumerable<IComponent> GetComponents();
     bool Has<T>() where T : IComponent;
+    bool Has(Type type);
     void Remove<T>() where T : IComponent;
     bool IsAlive();
 }
@@ -42,8 +43,9 @@ public struct Entity : IWorldEntity
 
     public IEnumerable<IComponent> GetComponents() => World.GetComponents(this);
 
-    public bool Has<T>() where T : IComponent
-        => World.HasComponent<T>(this);
+    public bool Has<T>() where T : IComponent => World.HasComponent<T>(this);
+
+    public bool Has(Type type) => World.HasComponent(this, type);
 
     public void Remove<T>() where T : IComponent
         => World.RemoveComponent<T>(this);

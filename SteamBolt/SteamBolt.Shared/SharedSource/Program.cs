@@ -57,6 +57,7 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<NetworkService>();
         entityManager.WorldContainer.RegisterAll<ReplicationSystem>();
         entityManager.WorldContainer.RegisterAll<OwnerReplicator>();
+        entityManager.WorldContainer.RegisterAll<TransformReplicator>();
 
         entityManager.WorldContainer.RegisterAll<TransformSystem>();
         entityManager.WorldContainer.RegisterAll<HierarchySystem>();

@@ -41,10 +41,11 @@ public class ReplicationSystem : EntitySystem
         for (int i = 0; i < count; i++)
         {
             var entityId = new NetEntityId() { Value = readMessage.ReadUInt32() };
-            Logger.LogInfo($"Entity id: {entityId.Value}");
             var replicatorId = readMessage.ReadUInt16();
 
-            _replicators[replicatorId].Deserialize(_entityNetwork.FindEntityByNetId(entityId), readMessage);
+            Entity entity = _entityNetwork.FindEntityByNetId(entityId);
+
+            _replicators[replicatorId].Deserialize(new ReplicationContext(null!), entity, readMessage);
         }
     }
 
@@ -52,29 +53,33 @@ public class ReplicationSystem : EntitySystem
     {
         if (_network.Server == null) { return; }
 
-        List<IWriteMessage> messages = new List<IWriteMessage>();
-
-        EntityManager.Query(new Query().Include<NetEntityId>(), entity =>
-        {
-            for (int i = 0; i < _replicators.Count; i++)
-            {
-                if (EntityManager.HasComponent(entity, _replicators[i].ComponentType))
-                {
-                    var message = new WriteOnlyMessage();
-                    message.WriteUInt32(entity.Get<NetEntityId>().Value);
-                    message.WriteUInt16((UInt16)i);
-                    _replicators[i].Serialize(entity, message);
-                    messages.Add(message);
-                }
-            }
-        });
-
-        IWriteMessage data = new WriteOnlyMessage();
-        data.WriteInt32(messages.Count);
-        messages.ForEach(message => data.WriteBytes(message.Buffer, 0, message.LengthBytes));
-
         foreach (var connection in _entityNetwork.SyncedClients)
         {
+            ReplicationContext context = new ReplicationContext(connection);
+
+            List<IWriteMessage> messages = new List<IWriteMessage>();
+
+            EntityManager.Query(new Query().Include<NetEntityId>(), entity =>
+            {
+                for (int i = 0; i < _replicators.Count; i++)
+                {
+                    IReplicator replicator = _replicators[i];
+
+                    if (EntityManager.HasComponent(entity, replicator.ComponentType) && replicator.HasChanged(context, entity))
+                    {
+                        var message = new WriteOnlyMessage();
+                        message.WriteUInt32(entity.Get<NetEntityId>().Value);
+                        message.WriteUInt16((UInt16)i);
+                        _replicators[i].Replicate(context, entity, message);
+                        messages.Add(message);
+                    }
+                }
+            });
+
+            IWriteMessage data = new WriteOnlyMessage();
+            data.WriteInt32(messages.Count);
+            messages.ForEach(message => data.WriteBytes(message.Buffer, 0, message.LengthBytes));
+
             _network.Server.Send(connection, new ReplicationNetMessage()
             {
                 Data = data.Buffer,

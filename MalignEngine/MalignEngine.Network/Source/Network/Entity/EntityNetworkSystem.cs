@@ -25,40 +25,9 @@ public class NetEntitySpawnNetMessage : NetMessage
     }
 }
 
-public class NetEntityStateNetMessage : NetMessage
-{
-    public NetEntityId NetEntityId;
-    public List<byte[]> States = new List<byte[]>();
-
-    public override void Deserialize(IReadMessage message)
-    {
-        NetEntityId = new NetEntityId() { Value = message.ReadUInt32() };
-        int count = message.ReadInt32();
-        States = new List<byte[]>(count);
-        for (int i = 0; i < count; i++)
-        {
-            int length = message.ReadInt32();
-            byte[] state = message.ReadBytes(length);
-            States.Add(state);
-        }
-    }
-
-    public override void Serialize(IWriteMessage message)
-    {
-        message.WriteUInt32(NetEntityId.Value);
-        message.WriteInt32(States.Count);
-        foreach (byte[] state in States)
-        {
-            message.WriteInt32(state.Length);
-            message.WriteBytes(state, 0, state.Length);
-        }
-    }
-}
-
 public class NetEntitySyncNetMessage : NetMessage
 {
     public required NetEntitySpawnNetMessage[] Entities;
-    public required NetEntityStateNetMessage[] States;
 
     public override void Deserialize(IReadMessage message)
     {
@@ -70,15 +39,6 @@ public class NetEntitySyncNetMessage : NetMessage
             entity.Deserialize(message);
             Entities[i] = entity;
         }
-
-        count = message.ReadInt32();
-        States = new NetEntityStateNetMessage[count];
-        for (int i = 0; i < count; i++)
-        {
-            NetEntityStateNetMessage state = new NetEntityStateNetMessage();
-            state.Deserialize(message);
-            States[i] = state;
-        }
     }
 
     public override void Serialize(IWriteMessage message)
@@ -88,12 +48,6 @@ public class NetEntitySyncNetMessage : NetMessage
         {
             entity.Serialize(message);
         }
-
-        message.WriteInt32(States.Length);
-        foreach (NetEntityStateNetMessage state in States)
-        {
-            state.Serialize(message);
-        }
     }
 }
 
@@ -102,7 +56,6 @@ public interface IEntityNetwork
     IEnumerable<NetworkConnection> SyncedClients { get; }
     Entity FindEntityByNetId(NetEntityId id);
 }
-
 
 public class EntityNetworkSystem : EntitySystem, IEntityNetwork
 {
@@ -183,7 +136,7 @@ public class EntityNetworkSystem : EntitySystem, IEntityNetwork
             spawnMessages.Add(new NetEntitySpawnNetMessage() { NetEntityId = netId, SceneId = entity.Get<SceneComponent>().SceneId });
         }
 
-        _network.Server.Send(connection, new NetEntitySyncNetMessage() { Entities = spawnMessages.ToArray(), States = [] });
+        _network.Server.Send(connection, new NetEntitySyncNetMessage() { Entities = spawnMessages.ToArray() });
 
         _syncedClients.Add(connection);
     }
