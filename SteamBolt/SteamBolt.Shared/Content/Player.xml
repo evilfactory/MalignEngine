@@ -7,7 +7,7 @@
 				<PlayerInputComponent />
 				<PhysicsBody2D BodyType="Dynamic" Mass="1">
 						<Fixtures>
-								<Fixture Density="10" Friction="0.2" type="RectangleShape2D" width="1" height="1"/>
+								<Fixture Density="10" Friction="0.2" Restitution="0" Type="RectangleShape2D" Width="1" Height="1"/>
 						</Fixtures>
 				</PhysicsBody2D>
 		</Entity>

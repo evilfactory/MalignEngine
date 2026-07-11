@@ -20,14 +20,14 @@ public class FixtureDataFieldSerializer : IDataFieldSerializer
             {
                 IPhysicsShape2D? shape = null;
 
-                string type = fixture.GetAttributeString("type", "");
+                string type = fixture.GetAttributeString("Type", "");
                 if (type == "RectangleShape2D")
                 {
-                    shape = new RectangleShape2D(fixture.GetAttributeFloat("width", 1f), fixture.GetAttributeFloat("height", 1f));
+                    shape = new RectangleShape2D(fixture.GetAttributeFloat("Width", 1f), fixture.GetAttributeFloat("Height", 1f));
                 }
                 else if (type == "CircleShape2D")
                 {
-                    shape = new CircleShape2D(fixture.GetAttributeFloat("radius", 1f));
+                    shape = new CircleShape2D(fixture.GetAttributeFloat("Radius", 1f));
                 }
 
                 if (shape == null)
@@ -36,9 +36,9 @@ public class FixtureDataFieldSerializer : IDataFieldSerializer
                 }
 
                 fixturesList.Add(new FixtureData2D(shape,
-                    fixture.GetAttributeFloat("density", 1f),
-                    fixture.GetAttributeFloat("friction", 0.5f),
-                    fixture.GetAttributeFloat("restitution", 0.5f)));
+                    fixture.GetAttributeFloat("Density", 1f),
+                    fixture.GetAttributeFloat("Friction", 0.5f),
+                    fixture.GetAttributeFloat("Restitution", 0.5f)));
             }
         }
 

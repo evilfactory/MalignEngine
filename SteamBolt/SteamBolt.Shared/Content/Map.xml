@@ -4,7 +4,7 @@
 				<SpriteRenderer Sprite="/Content/PlayerSprite.xml" Color="255,0,0,255" Layer="0" />
 				<PhysicsBody2D BodyType="Static" Mass="1">
 						<Fixtures>
-								<Fixture Density="10" Friction="0.2" type="RectangleShape2D" width="100" height="1"/>
+								<Fixture Density="10" Friction="0.2" Restitution="0" Type="RectangleShape2D" Width="100" Height="1"/>
 						</Fixtures>
 				</PhysicsBody2D>
 		</Entity>

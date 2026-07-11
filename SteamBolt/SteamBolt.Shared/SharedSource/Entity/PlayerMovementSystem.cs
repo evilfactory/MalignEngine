@@ -36,6 +36,9 @@ public class PlayerMovementSystem : EntitySystem
     [Dependency]
     private EntityNetworkSystem _entityNetwork = null!;
 
+    [Dependency]
+    private IPhysicsSystem2D _physicsSystem = null!;
+
     public PlayerMovementSystem(IServiceContainer serviceContainer, INetworkService network) : base(serviceContainer)
     {
         _network = network;
@@ -74,11 +77,13 @@ public class PlayerMovementSystem : EntitySystem
     {
         World.Query(new Query()
             .Include<PlayerMovementComponent>()
-            .Include<PlayerInputComponent>(),
+            .Include<PlayerInputComponent>()
+            .Include<Transform>(),
             entity =>
         {
             ref var input = ref entity.Get<PlayerInputComponent>();
             ref var movement = ref entity.Get<PlayerMovementComponent>();
+            ref var transform = ref entity.Get<Transform>();
 
             Vector2 force = Vector2.Zero;
 
@@ -92,10 +97,20 @@ public class PlayerMovementSystem : EntitySystem
                 force.X += movement.MoveSpeed;
             }
 
-            if (input.Up && movement.IsGrounded)
+            bool grounded = false;
+            _physicsSystem.RayCast((collider, point, normal, fraction) =>
             {
-                force.Y -= movement.JumpForce;
-                movement.IsGrounded = false;
+                if (collider != entity)
+                {
+                    grounded = true;
+                }
+
+                return 1f;
+            }, transform.Position.ToVector2(), transform.Position.ToVector2() - Vector2.UnitY);
+
+            if (input.Up && grounded)
+            {
+                force.Y += movement.JumpForce;
             }
 
             if (force != Vector2.Zero)
@@ -106,7 +121,7 @@ public class PlayerMovementSystem : EntitySystem
                 });
             }
 
-            if (_clientSession != null && entity.Get<OwnerComponent>().ClientId == _clientSession.ClientId)
+            if (_clientSession != null && entity.Has<OwnerComponent>() && entity.Get<OwnerComponent>().ClientId == _clientSession.ClientId)
             {
                 if (_network.Client != null)
                 {
