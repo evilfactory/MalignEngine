@@ -4,13 +4,22 @@ using System.Xml.Linq;
 
 namespace MalignEngine;
 
+public interface IDataFieldSerializer
+{
+    bool SupportsType(Type type);
+    void Serialize(DataFieldAttribute dataField, object? obj, XElement element);
+    object Deserialize(DataFieldAttribute dataField, XElement element);
+}
+
 public class XmlSerializer : IService
 {
     private IAssetService _assetService;
+    private List<IDataFieldSerializer> _dataFieldSerializers;
 
-    public XmlSerializer(IAssetService assetService)
+    public XmlSerializer(IAssetService assetService, IEnumerable<IDataFieldSerializer> dataFieldSerializers)
     {
         _assetService = assetService;
+        _dataFieldSerializers = dataFieldSerializers.ToList();
     }
 
     private bool IsSupportedType(Type type)
@@ -64,12 +73,15 @@ public class XmlSerializer : IService
             }
             else
             {
-                bool handled = false;
+                IDataFieldSerializer? serializer = _dataFieldSerializers.FirstOrDefault(d => d.SupportsType(memberType));
 
-
-                if (!handled)
+                if (serializer == null)
                 {
                     throw new Exception($"Unknown type {memberType}");
+                }
+                else
+                {
+                    serializer.Serialize(dataField, value, element);
                 }
             }
         }
@@ -85,14 +97,17 @@ public class XmlSerializer : IService
             Type memberType = member is PropertyInfo ? ((PropertyInfo)member).PropertyType : ((FieldInfo)member).FieldType;
             Action<object, object> setValue = member is PropertyInfo ? ((PropertyInfo)member).SetValue : ((FieldInfo)member).SetValue;
 
-
             if (!IsSupportedType(memberType))
             {
-                bool handled = false;
+                IDataFieldSerializer? serializer = _dataFieldSerializers.FirstOrDefault(d => d.SupportsType(memberType));
 
-                if (!handled)
+                if (serializer == null)
                 {
                     throw new Exception($"Unknown type {memberType}");
+                }
+                else
+                {
+                    setValue(obj, serializer.Deserialize(dataField, element));
                 }
 
                 continue;

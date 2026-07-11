@@ -1,5 +1,3 @@
-
-using nkast.Aether.Physics2D.Dynamics;
 using System.Numerics;
 
 namespace MalignEngine;
@@ -22,5 +20,6 @@ public struct PhysicsBody2D : IComponent
     public Vector2 LinearVelocity;
     public float AngularVelocity;
 
+    [DataField("Fixtures")]
     public FixtureData2D[] Fixtures;
 }

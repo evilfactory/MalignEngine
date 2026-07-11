@@ -27,6 +27,7 @@ internal class Program
         application.ServiceContainer.RegisterAll<XmlSerializer>();
         application.ServiceContainer.RegisterAll<TileListXmlLoader>();
         application.ServiceContainer.RegisterAll<SceneXmlLoader>();
+        application.ServiceContainer.RegisterAll<FixtureDataFieldSerializer>();
 
         // Networking
 #if SERVER

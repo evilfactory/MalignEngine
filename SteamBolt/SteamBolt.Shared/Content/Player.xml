@@ -5,6 +5,10 @@
 				<OrthographicCamera ViewSize="20" IsMain="True" ClearColor="0.7,0.7,1,1" />
 				<PlayerMovementComponent MoveSpeed="10" JumpForce="15" />
 				<PlayerInputComponent />
-				<PhysicsBody2D BodyType="Dynamic" Mass="1" />
+				<PhysicsBody2D BodyType="Dynamic" Mass="1">
+						<Fixtures>
+								<Fixture Density="10" Friction="0.2" type="RectangleShape2D" width="1" height="1"/>
+						</Fixtures>
+				</PhysicsBody2D>
 		</Entity>
 </Scene>
