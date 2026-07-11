@@ -13,19 +13,17 @@ public interface ITileSystem : IService
     IEnumerable<Entity> GetTiles(Entity tileMap, string layer);
 }
 
-/*
+
 public class TileSystem : ITileSystem, IUpdate
 {
-    private IEventService _eventService;
     private IPhysicsSystem2D _physicsSystem;
     private IEntityManager _entityManager;
     private HierarchySystem _parentSystem;
     private SceneSystem _sceneSystem;
 
-    public TileSystem(IEntityManager entityManager, IEventService eventService, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem, HierarchySystem parentSystem)
+    public TileSystem(IEntityManager entityManager, SceneSystem sceneSystem, IPhysicsSystem2D physicsSystem, HierarchySystem parentSystem)
     {
         _entityManager = entityManager;
-        _eventService = eventService;
         _sceneSystem = sceneSystem;
         _physicsSystem = physicsSystem;
         _parentSystem = parentSystem;
@@ -42,7 +40,7 @@ public class TileSystem : ITileSystem, IUpdate
         Entity entity = _entityManager.World.CreateEntity();
         entity.AddOrSet(new TileMapComponent()
         {
-            layers = dLayers
+            Layers = dLayers
         });
 
         return entity;
@@ -50,12 +48,12 @@ public class TileSystem : ITileSystem, IUpdate
 
     public IEnumerable<Entity> GetTiles(Entity tileMap, string layer)
     {
-        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
+        if (!tileMap.TryGet(out ComponentRef<TileMapComponent> tileMapComponent))
         {
             throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
+        if (!tileMapComponent.Value.Layers.TryGetValue(layer, out TileLayer? tileLayer))
         {
             throw new ArgumentException("Tile Layer not found");
         }
@@ -65,19 +63,19 @@ public class TileSystem : ITileSystem, IUpdate
 
     public bool RemoveTile(Entity tileMap, string layer, Vector2D<int> position)
     {
-        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
+        if (!tileMap.TryGet(out ComponentRef<TileMapComponent> tileMapComponent))
         {
             throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
+        if (!tileMapComponent.Value.Layers.TryGetValue(layer, out TileLayer tileLayer))
         {
             throw new ArgumentException("Tile Layer not found");
         }
 
         if (tileLayer.TryGetTile(position, out Entity entity))
         {
-            entity.Destroy();
+            _entityManager.Destroy(entity);
             tileLayer.RemoveTile(position);
 
             return true;
@@ -88,12 +86,12 @@ public class TileSystem : ITileSystem, IUpdate
 
     public Entity CreateTile(Entity tileMap, TileData tileData, Vector2D<int> position)
     {
-        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
+        if (!tileMap.TryGet(out ComponentRef<TileMapComponent> tileMapComponent))
         {
             throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        if (!tileMapComponent.layers.TryGetValue(tileData.LayerId, out TileLayer tileLayer))
+        if (!tileMapComponent.Value.Layers.TryGetValue(tileData.LayerId, out TileLayer? tileLayer))
         {
             throw new ArgumentException("Tile Layer not found");
         }
@@ -101,20 +99,20 @@ public class TileSystem : ITileSystem, IUpdate
         if (tileLayer.TryGetTile(position, out Entity entity))
         {
             tileLayer.RemoveTile(position);
-            entity.Destroy();
+            _entityManager.Destroy(entity);
         }
 
         entity = _sceneSystem.Instantiate(tileData.Scene);
         entity.AddOrSet(new TilePosition() { X = position.X, Y = position.Y });
         entity.AddOrSet(new ParentOf() { Parent = tileMap });
-        ref Transform transform = ref entity.AddOrGet<Transform>();
+        ref Transform transform = ref entity.Get<Transform>();
         transform.Scale = Vector3.One;
         transform.Position = new Vector3(position.X, position.Y, tileLayer.Order);
         tileLayer.SetTile(position, entity);
 
         if (tileLayer.HasCollision)
         {
-            tileMapComponent.ColliderNeedsUpdate = true;
+            tileMapComponent.Value.ColliderNeedsUpdate = true;
         }
 
         return entity;
@@ -122,12 +120,12 @@ public class TileSystem : ITileSystem, IUpdate
 
     public bool TryGetTile(Entity tileMap, string layer, Vector2D<int> position, out Entity tile)
     {
-        if (!tileMap.TryGet(out TileMapComponent tileMapComponent))
+        if (!tileMap.TryGet(out ComponentRef<TileMapComponent> tileMapComponent))
         {
             throw new ArgumentException("Tried to get tiles from tilemap entity but tilemap entity is not a tilemap entity");
         }
 
-        if (!tileMapComponent.layers.TryGetValue(layer, out TileLayer tileLayer))
+        if (!tileMapComponent.Value.Layers.TryGetValue(layer, out TileLayer? tileLayer))
         {
             throw new ArgumentException("Tile Layer not found");
         }
@@ -139,9 +137,10 @@ public class TileSystem : ITileSystem, IUpdate
     {
         List<Entity> tilemapsToUpdate = new List<Entity>();
 
-        var query = _entityManager.World.CreateQuery().WithAll<TileMapComponent>();
-        _entityManager.World.Query(in query, (Entity entity, ref TileMapComponent tileMap) =>
+        _entityManager.Query(new Query().Include<TileMapComponent>(), (Entity entity) =>
         {
+            ref TileMapComponent tileMap = ref entity.Get<TileMapComponent>();
+
             if (tileMap.ColliderNeedsUpdate)
             {
                 tileMap.ColliderNeedsUpdate = false;
@@ -161,15 +160,12 @@ public class TileSystem : ITileSystem, IUpdate
 
             List<FixtureData2D> fixtures = new List<FixtureData2D>();
 
-            foreach ((Vector2D<int> position, Entity tile) in tilemap.Get<TileMapComponent>().layers.SelectMany(x => x.Value.Tiles))
+            foreach ((Vector2D<int> position, Entity tile) in tilemap.Get<TileMapComponent>().Layers.SelectMany(x => x.Value.Tiles))
             {
                 fixtures.Add(new FixtureData2D(new RectangleShape2D(1, 1, new Vector2(position.X, position.Y)), 0, 0.5f, 0));
             }
 
             body.Fixtures = fixtures.ToArray();
-
-            _physicsSystem.UpdateFixtures(tilemap);
         }
     }
 }
-*/

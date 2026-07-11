@@ -2,10 +2,11 @@ using Silk.NET.Maths;
 
 namespace MalignEngine;
 
+[Serializable]
 public class TileMapComponent : IComponent
 {
     //[Access(typeof(TileSystem), Other = AccessPermissions.None)]
-    public Dictionary<string, TileLayer> layers;
+    public Dictionary<string, TileLayer> Layers;
 
     public bool ColliderNeedsUpdate;
 }

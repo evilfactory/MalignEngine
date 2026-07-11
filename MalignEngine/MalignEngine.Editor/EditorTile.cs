@@ -5,7 +5,6 @@ using System.Xml.Linq;
 
 namespace MalignEngine.Editor;
 
-/*
 public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 {
     [Dependency]
@@ -40,9 +39,10 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
     private string _fileName = "Content/tilemap.xml";
 
-    public EditorTile(ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
-        : base(loggerService, scheduleManager, editorSystem, imGuiService)
+    public EditorTile(IServiceContainer serviceContainer, ILoggerService loggerService, IScheduleManager scheduleManager, EditorSystem editorSystem, ImGuiSystem imGuiService) 
+        : base(serviceContainer, editorSystem, imGuiService)
     {
+        scheduleManager.Register<ICameraDraw>(this);
     }
 
     private string GetTileName(Entity tilemap)
@@ -120,8 +120,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
             // make a grid of all tiles
 
-            int gridMax = Math.Max((int)MathF.Floor((ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X) / 100f), 1) - 1;
-            ImGui.Columns(gridMax, null, false);
+            ImGui.Columns(selectedTileList.Tiles.Count, null, false);
 
             foreach (TileData tile in selectedTileList.Tiles)
             {
@@ -175,4 +174,3 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
         });
     }
 }
-*/
