@@ -54,6 +54,7 @@ public class NetEntitySyncNetMessage : NetMessage
 public interface IEntityNetwork
 {
     IEnumerable<NetworkConnection> SyncedClients { get; }
+    void BroadcastSynced<T>(T netMessage) where T : NetMessage;
     bool TryGetEntityFromId(NetEntityId id, out Entity entity);
 }
 
@@ -144,5 +145,18 @@ public class EntityNetworkSystem : EntitySystem, IEntityNetwork
     public bool TryGetEntityFromId(NetEntityId id, out Entity entity)
     {
         return _netEntities.TryGetValue(id, out entity);
+    }
+
+    public void BroadcastSynced<T>(T netMessage) where T : NetMessage
+    {
+        if (_network.Server == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        foreach (NetworkConnection connection in SyncedClients)
+        {
+            _network.Server.Send(connection, netMessage);
+        }
     }
 }

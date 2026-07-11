@@ -120,7 +120,7 @@ public class PlayerMovementSystem : EntitySystem
 
             if (_network.Server != null)
             {
-                _network.Server.Broadcast(new PlayerMoveNetMessage
+                _entityNetwork.BroadcastSynced(new PlayerMoveNetMessage
                 {
                     EntityId = entity.Get<NetEntityId>(),
                     Position = entity.Get<Transform>().Position.ToVector2()
