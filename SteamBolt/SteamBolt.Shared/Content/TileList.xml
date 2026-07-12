@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<TileList>
-		<TileData Icon="/Content/PlayerSprite.xml" Scene="test" Layer="Wall" />
-</TileList>

@@ -69,8 +69,8 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
 
         ImGui.Begin("Scene View");
 
-        _camera.Get<OrthographicCamera>().Width = (int)ImGui.GetWindowSize().X;
-        _camera.Get<OrthographicCamera>().Height = (int)ImGui.GetWindowSize().Y;
+        _camera.Get<OrthographicCamera>().Width = (int)ImGui.GetContentRegionAvail().X;
+        _camera.Get<OrthographicCamera>().Height = (int)ImGui.GetContentRegionAvail().Y;
 
         if (ImGui.IsWindowHovered())
         {

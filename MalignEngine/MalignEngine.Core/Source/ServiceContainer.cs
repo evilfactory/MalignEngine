@@ -89,6 +89,11 @@ public interface IServiceContainer : IDisposable
     /// Injects implementations to all [Dependency] attributes in the instance
     /// </summary>
     public void InjectAll(object obj);
+    /// <summary>
+    /// Goes through the entire assembly and calls <see cref="RegisterAll{T}(ILifeTime?)"/> on all types that implement IService.
+    /// </summary>
+    /// <param name="assembly"></param>
+    public void RegisterAssembly(Assembly assembly);
 }
 
 public class ServiceContainer : IServiceContainer
@@ -292,5 +297,16 @@ public class ServiceContainer : IServiceContainer
 
         instance = default;
         return false;
+    }
+
+    public void RegisterAssembly(Assembly assembly)
+    {
+        foreach (Type type in assembly.GetTypes())
+        {
+            if (type.IsAssignableTo(typeof(IService)))
+            {
+                RegisterAll(type);
+            }
+        }
     }
 }

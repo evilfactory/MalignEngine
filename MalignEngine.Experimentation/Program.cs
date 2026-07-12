@@ -24,7 +24,6 @@ class Program
         application.ServiceContainer.RegisterAll<PerformanceProfiler>();
         application.ServiceContainer.RegisterAll<XmlSerializer>();
         application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
-        application.ServiceContainer.RegisterAll<TileListXmlLoader>();
         application.ServiceContainer.RegisterAll<SceneXmlLoader>();
         application.ServiceContainer.RegisterAll<ShaderAssetLoader>();
 

@@ -51,6 +51,8 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<PlayerInputSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerCameraSystem>();
+        entityManager.WorldContainer.RegisterAll<TileRenderer>();
+
 #elif SERVER
         entityManager.WorldContainer.RegisterAll<PlayerSpawnerSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
@@ -60,6 +62,9 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<ReplicationSystem>();
         entityManager.WorldContainer.RegisterAll<OwnerReplicator>();
         entityManager.WorldContainer.RegisterAll<TransformReplicator>();
+
+        entityManager.WorldContainer.RegisterAll<TileSystem>();
+        entityManager.WorldContainer.RegisterAll<TileCollision>();
 
         entityManager.WorldContainer.RegisterAll<TransformSystem>();
         entityManager.WorldContainer.RegisterAll<HierarchySystem>();
@@ -75,6 +80,7 @@ internal class Program
         application.ServiceContainer.RegisterAll<EditorAssetViewer>();
         entityManager.WorldContainer.RegisterAll<EditorSceneViewSystem>();
         entityManager.WorldContainer.RegisterAll<EditorInspectorSystem>();
+        entityManager.WorldContainer.RegisterAll<EditorTile>();
 #endif
 
 

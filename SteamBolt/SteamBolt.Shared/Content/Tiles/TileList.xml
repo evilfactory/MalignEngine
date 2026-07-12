@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<TileList>
+		<TileData Identifier="test" Sprite="/Content/Tiles/WallSprite.xml" Layer="wall" />
+</TileList>
