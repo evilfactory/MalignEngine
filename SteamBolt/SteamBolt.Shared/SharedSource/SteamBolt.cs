@@ -8,9 +8,13 @@ namespace SteamBolt;
 
 public class SteamBolt : ISystem
 {
+    public static Entity ShipExterior;
+    public static Entity ShipInterior;
+
     public SteamBolt(ILoggerService loggerService,
         INetworkService _network,
         IAssetService assetService,
+        IEntityManager entityManager,
         ITileSystem tileSystem,
         SceneSystem sceneSystem)
     {
@@ -25,17 +29,40 @@ public class SteamBolt : ISystem
 
         Scene scene = assetService.FromPath<Scene>("/Content/Map.xml");
         Entity entity = sceneSystem.Instantiate(scene);
+        
+        Entity ship = entityManager.Create();
 
-        Entity tilemap = tileSystem.CreateEmptyTileMap();
+        Entity interior = tileSystem.CreateEmptyTileMap();
 
-        tilemap.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic });
-        tilemap.AddOrSet(new Transform() { Scale = Vector3.One });
+        interior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
+        interior.AddOrSet(new Transform() { Position = new Vector3(-1000f, 0, 0), Scale = Vector3.One });
+        interior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
+        interior.AddOrSet(new PhysicsSpace() { Origin = new Vector2(-1000f, 0f) });
+        interior.AddOrSet(new ParentOf() { Parent = interior });
 
-        tileSystem.SetTile(
-            tilemap.Get<TileMapComponent>(), 
-            "wall", 
-            new Silk.NET.Maths.Vector2D<int>(0, 0), 
-            assetService.FromPath<TileList>("/Content/Tiles/TileList.xml").Asset.Definitions.First());
+        Entity exterior = entityManager.Create();
+        exterior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic });
+        exterior.AddOrSet(new Transform() { Scale = Vector3.One });
+        exterior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
+        exterior.AddOrSet(new TileRendererComponent() { TileMapEntity = interior });
+
+        for (int i = 0; i < 4; i++)
+        {
+            tileSystem.SetTile(
+                interior,
+                "wall",
+                new Silk.NET.Maths.Vector2D<int>(i, 0),
+                assetService.FromPath<TileList>("/Content/Tiles/TileList.xml").Asset.Definitions.First());
+        }
+
+        ShipExterior = exterior;
+        ShipInterior = interior;
+
+        ship.AddOrSet(new ShipPhysicsComponent()
+        {
+            Interior = interior,
+            Exterior = exterior
+        });
 
         if (_network.Server != null)
         {

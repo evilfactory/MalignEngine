@@ -44,11 +44,11 @@ public class CameraSystem : EntitySystem
             });
         });
 
-        World.Query(new Query().WithAll<OrthographicCamera, CameraRenderData, Transform>(), (Entity entity) =>
+        World.Query(new Query().WithAll<OrthographicCamera, CameraRenderData, WorldTransform>(), (Entity entity) =>
         {
             ref OrthographicCamera camera = ref entity.Get<OrthographicCamera>();
             ref CameraRenderData renderData = ref entity.Get<CameraRenderData>();
-            ref Transform transform = ref entity.Get<Transform>();
+            ref WorldTransform worldTransform = ref entity.Get<WorldTransform>();
 
             if (renderData.Output == null)
             {
@@ -62,7 +62,7 @@ public class CameraSystem : EntitySystem
                 camera.Height = _windowService.FrameSize.Y;
             }
 
-            camera.Matrix = CreateOrthographicMatrix(renderData.Output.Width, renderData.Output.Height, camera.ViewSize, transform.Position.ToVector2());
+            camera.Matrix = CreateOrthographicMatrix(renderData.Output.Width, renderData.Output.Height, camera.ViewSize, worldTransform.Position.ToVector2());
 
             cameraEntities.Add(entity);
 

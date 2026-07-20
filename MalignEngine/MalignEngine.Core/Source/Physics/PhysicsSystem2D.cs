@@ -112,6 +112,12 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
                 ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
                 ref PhysicsSim physicsSim = ref entity.Get<PhysicsSim>();
 
+                Vector2 origin = Vector2.Zero;
+                if (entity.TryGet(out ComponentRef<PhysicsSpaceMember> spaceMemberComponent))
+                {
+                    origin = spaceMemberComponent.Value.Space.Get<PhysicsSpace>().Origin;
+                }
+
                 physicsSim.Body.LinearVelocity = new AVector2(physicsBody2D.LinearVelocity.X, physicsBody2D.LinearVelocity.Y);
                 physicsSim.Body.AngularVelocity = physicsBody2D.AngularVelocity;
 
@@ -128,8 +134,8 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
 
                 if (entity.TryGet(out ComponentRef<Transform> transform))
                 {
-                    physicsSim.Body.Position = new AVector2(transform.Value.Position.X, transform.Value.Position.Y);
-                    physicsSim.Body.Rotation = transform.Value.EulerAngles.Z;
+                    physicsSim.Body.Position = new AVector2(origin.X + transform.Value.Position.X, origin.Y + transform.Value.Position.Y);
+                    physicsSim.Body.Rotation = transform.Value.GetRotation2D();
                 }
 
                 if (entity.TryGet(out ComponentRef<ApplyForce> applyForce))
@@ -148,10 +154,16 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
         using (_performanceProfiler?.BeginSample("PhysicsSystem2D.BringTransformations"))
         {
             // Bring transformations from simulation
-            EntityManager.World.Query(new Query().WithAll<PhysicsBody2D, PhysicsSim, Transform>(), (Entity entity) =>
+            EntityManager.World.Query(new Query().WithAll<PhysicsBody2D, PhysicsSim>(), (Entity entity) =>
             {
                 ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
                 ref PhysicsSim physicsSim = ref entity.Get<PhysicsSim>();
+
+                Vector2 origin = Vector2.Zero;
+                if (entity.TryGet(out ComponentRef<PhysicsSpaceMember> spaceMemberComponent))
+                {
+                    origin = spaceMemberComponent.Value.Space.Get<PhysicsSpace>().Origin;
+                }
 
                 physicsBody2D.LinearVelocity = new Vector2(physicsSim.Body.LinearVelocity.X, physicsSim.Body.LinearVelocity.Y);
                 physicsBody2D.AngularVelocity = physicsSim.Body.AngularVelocity;
@@ -163,7 +175,7 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
 
                 if (entity.TryGet(out ComponentRef<Transform> transform))
                 {
-                    transform.Value.Position = new Vector3(physicsSim.Body.Position.X, physicsSim.Body.Position.Y, transform.Value.Position.Z);
+                    transform.Value.Position = new Vector3(physicsSim.Body.Position.X - origin.X, physicsSim.Body.Position.Y - origin.Y, transform.Value.Position.Z);
                     transform.Value.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, physicsSim.Body.Rotation);
                 }
             });

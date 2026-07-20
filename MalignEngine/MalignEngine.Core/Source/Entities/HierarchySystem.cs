@@ -20,7 +20,7 @@ public class HierarchySystem : EntitySystem
     {
         get
         {
-            Query roots = new Query().Include<Transform>().Exclude<ParentOf>().Exclude<Destroyed>();
+            Query roots = new Query().Include<Transform>().Exclude<ParentOf>();
             List<Entity> root = new List<Entity>();
             World.Query(roots, root.Add);
             return root;
@@ -124,8 +124,6 @@ public class HierarchySystem : EntitySystem
                 entity.Remove<Children>();
             }
         });
-
-
     }
 
     private void CleanupRemovedParents()

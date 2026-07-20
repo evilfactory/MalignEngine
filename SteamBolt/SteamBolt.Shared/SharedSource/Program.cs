@@ -57,6 +57,7 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<PlayerSpawnerSystem>();
         entityManager.WorldContainer.RegisterAll<PlayerMovementSystem>();
 #endif
+        entityManager.WorldContainer.RegisterAll<EventService>();
         entityManager.WorldContainer.RegisterAll<EntityNetworkSystem>();
         entityManager.WorldContainer.RegisterAll<NetworkService>();
         entityManager.WorldContainer.RegisterAll<ReplicationSystem>();
@@ -71,6 +72,7 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<SceneSystem>();
         entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
         entityManager.WorldContainer.RegisterAll<SteamBolt>();
+        entityManager.WorldContainer.RegisterAll<ShipSystem>();
 
 #if CLIENT
         application.ServiceContainer.RegisterAll<ImGuiSystem>();

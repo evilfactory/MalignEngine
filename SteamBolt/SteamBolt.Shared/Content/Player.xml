@@ -1,9 +1,16 @@
 <Scene Id="test">
 		<Entity Id="0">
-				<Transform EulerAngles="0,0,0" Position="0,0,0" Scale="1,1,1" />
-				<SpriteRenderer Sprite="/Content/PlayerSprite.xml" Color="255,0,0,255" Layer="0" />
+				<Transform EulerAngles="0,0,0" Position="0,1,0" Scale="1,1,1" />
+				<SpriteRenderer Sprite="/Content/PlayerSprite.xml" Color="255,0,0,255" Layer="1" />
 				<OrthographicCamera ViewSize="20" IsMain="True" ClearColor="0.7,0.7,1,1" />
-				<PlayerMovementComponent MoveSpeed="10" JumpForce="15" />
+				<PlayerMovementComponent 
+						MoveSpeed="10" 
+						JumpVelocity="5"
+						JumpCutMultiplier="0.9" 
+						GroundAcceleration="100" 
+						GroundDeceleration ="30" 
+						AirAcceleration = "20" 
+						AirDeceleration = "10" />
 				<PlayerInputComponent />
 				<PhysicsBody2D BodyType="Dynamic" Mass="1">
 						<Fixtures>

@@ -47,7 +47,7 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
 
             for (int i = 0; i < renderData.Count; i++)
             {
-                DrawSprite(renderData[i].SpriteRenderer.Sprite, renderData[i].Transform.Position.ToVector2(), renderData[i].Transform.Scale.ToVector2(), renderData[i].SpriteRenderer.Color, renderData[i].Transform.ZAxis, renderData[i].SpriteRenderer.Layer);
+                DrawSprite(renderData[i].SpriteRenderer.Sprite, renderData[i].Transform.Position.ToVector2(), renderData[i].Transform.Scale.ToVector2(), renderData[i].SpriteRenderer.Color, renderData[i].Transform.GetRotation2D(), renderData[i].SpriteRenderer.Layer);
             }
 
             _renderer2D.End();

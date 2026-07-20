@@ -20,73 +20,104 @@ public class TransformSystem : EntitySystem, IPostUpdate
 
     public void OnPostUpdate(float deltaTime)
     {
-        foreach (Entity entity in _hierarchySystem.RootEntities)
+        foreach (Entity root in _hierarchySystem.RootEntities)
         {
-            UpdateTransformTree(entity);
+            UpdateTransformTree(root, null);
         }
     }
 
-    public void UpdateTransformTree(Entity root)
+    private void UpdateTransformTree(Entity entity, WorldTransform? parent)
     {
-        if (root.TryGet(out ComponentRef<Transform> parentTransform))
+        if (!entity.TryGet(out ComponentRef<Transform> local))
         {
-            if (!root.Has<ParentOf>())
-            {
-                root.AddOrSet(new WorldTransform(parentTransform.Value));
-            }
+            return;
         }
 
-        if (root.TryGet(out ComponentRef<Children> children))
-        {
-            foreach (Entity child in children.Value.Values)
-            {
-                // Update WorldPosition
-                if (child.TryGet(out ComponentRef<Transform> transform))
-                {
-                    if (root.TryGet(out ComponentRef<WorldTransform> parentWorldTransform))
-                    {
-                        // put WorldTransform which is the world position/rotation relative to the root entity
-                        child.AddOrSet(new WorldTransform(transform.Value.Position + parentWorldTransform.Value.Position, transform.Value.Rotation, transform.Value.Scale));
-                    }
-                    else
-                    {
-                        child.AddOrSet(new WorldTransform(transform.Value));
-                    }
-                }
+        WorldTransform world;
 
-                UpdateTransformTree(child);
-            }
+        if (parent is null)
+        {
+            world = CreateRoot(local.Value);
         }
+        else
+        {
+            world = Compose(local.Value, parent.Value);
+        }
+            
+        entity.AddOrSet(world);
+
+        if (!entity.TryGet(out ComponentRef<Children> children)) 
+        { 
+            return;
+        }
+
+        foreach (Entity child in children.Value.Values)
+        {
+            UpdateTransformTree(child, world);
+        }
+    }
+
+    private static WorldTransform CreateRoot(Transform local)
+    {
+        WorldTransform world = new();
+
+        world.Position = local.Position;
+        world.Rotation = local.Rotation;
+        world.Scale = local.Scale;
+
+        world.Matrix =
+            Matrix4x4.CreateScale(world.Scale) *
+            Matrix4x4.CreateFromQuaternion(world.Rotation) *
+            Matrix4x4.CreateTranslation(world.Position);
+
+        return world;
+    }
+
+    public static WorldTransform Compose(Transform local, WorldTransform parent)
+    {
+        WorldTransform world = new();
+
+        world.Scale = parent.Scale * local.Scale;
+
+        world.Rotation = parent.Rotation * local.Rotation;
+
+        world.Position = parent.Position + Vector3.Transform(local.Position * parent.Scale, parent.Rotation);
+
+        world.Matrix =
+            Matrix4x4.CreateScale(world.Scale) *
+            Matrix4x4.CreateFromQuaternion(world.Rotation) *
+            Matrix4x4.CreateTranslation(world.Position);
+
+        return world;
+    }
+}
+
+public static class TransformExtensions
+{
+    public static float GetRotation2D(this Transform t) => MathHelper.ToEulerAngles(t.Rotation).Z;
+
+    public static void SetRotation2D(this ref Transform t, float angle)
+    {
+        t.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, angle);
+    }
+
+    public static float GetRotation2D(this WorldTransform t) => MathHelper.ToEulerAngles(t.Rotation).Z;
+
+    public static void SetRotation2D(this ref WorldTransform t, float angle)
+    {
+        t.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, angle);
     }
 }
 
 [Serializable]
 public struct Transform : IComponent
 {
-    [DataField("Position", save: true)] public Vector3 Position;
+    [DataField("Position", save: true)] 
+    public Vector3 Position;
+    [DataField("Rotation", save: true)]
     public Quaternion Rotation;
-    [DataField("Scale", save: true)] public Vector3 Scale;
-
-    [DataField("EulerAngles", save: true)] 
-    public Vector3 EulerAngles
-    {
-        get => MathHelper.ToEulerAngles(Rotation);
-        set => Rotation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
-    }
-
-    [DataField("ZAxis", save: false)]
-    public float ZAxis
-    {
-        get => EulerAngles.Z;
-        set
-        {
-            Vector3 euler = MathHelper.ToEulerAngles(Rotation);
-            euler.Z = value;
-            Rotation = Quaternion.CreateFromYawPitchRoll(euler.Y, euler.X, euler.Z);
-        }
-    }
-
-    public Vector3 LastPosition;
+    [DataField("Scale", save: true)] 
+    public Vector3 Scale;
 
     public Transform()
     {
@@ -94,135 +125,12 @@ public struct Transform : IComponent
         Rotation = Quaternion.Identity;
         Scale = Vector3.One;
     }
-
-    public Transform(Vector3 position, Quaternion rotation, Vector3 scale)
-    {
-        Position = position;
-        Rotation = rotation;
-        Scale = scale;
-    }
-
-    public Transform(Vector3 position, Vector3 eulerAngles, Vector3 scale)
-    {
-        Position = position;
-        Rotation = Quaternion.CreateFromYawPitchRoll(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
-        Scale = scale;
-    }
-
-    public Transform(Vector3 position, Vector3 eulerAngles)
-    {
-        Position = position;
-        Rotation = Quaternion.CreateFromYawPitchRoll(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
-        Scale = Vector3.One;
-    }
-
-    public Transform(Vector3 position)
-    {
-        Position = position;
-        Rotation = Quaternion.Identity;
-        Scale = Vector3.One;
-    }
-
-    public Transform(Vector2 position)
-    {
-        Position = position.ToVector3();
-        Rotation = Quaternion.Identity;
-        Scale = Vector3.One;
-    }
-
-    public Transform(Vector2 position, float rotation, Vector2 scale)
-    {
-        Position = position.ToVector3();
-        Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, rotation);
-        Scale = new Vector3(scale, 1);
-    }
-
-    public Transform(Vector2 position, float rotation)
-    {
-        Position = new Vector3(position, 0);
-        Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, rotation);
-        Scale = Vector3.One;
-    }
 }
 
 public struct WorldTransform : IComponent
 {
+    public Matrix4x4 Matrix;
     public Vector3 Position;
     public Quaternion Rotation;
     public Vector3 Scale;
-
-    public Vector3 LastPosition;
-
-    public Vector3 EulerAngles
-    {
-        get => MathHelper.ToEulerAngles(Rotation);
-        set => Rotation = Quaternion.CreateFromYawPitchRoll(value.Y, value.X, value.Z);
-    }
-
-    public float ZAxis
-    {
-        get => EulerAngles.Z;
-        set
-        {
-            Vector3 euler = MathHelper.ToEulerAngles(Rotation);
-            euler.Z = value;
-            Rotation = Quaternion.CreateFromYawPitchRoll(euler.Y, euler.X, euler.Z);
-        }
-    }
-
-    public WorldTransform()
-    {
-        Position = Vector3.Zero;
-        Rotation = Quaternion.Identity;
-        Scale = Vector3.One;
-    }
-
-    public WorldTransform(Transform transform)
-    {
-        Position = transform.Position;
-        Rotation = transform.Rotation;
-        Scale = transform.Scale;
-    }
-
-    public WorldTransform(Vector3 position, Quaternion rotation, Vector3 scale)
-    {
-        Position = position;
-        Rotation = rotation;
-        Scale = scale;
-    }
-
-    public WorldTransform(Vector3 position, Vector3 eulerAngles, Vector3 scale)
-    {
-        Position = position;
-        Rotation = Quaternion.CreateFromYawPitchRoll(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
-        Scale = scale;
-    }
-
-    public WorldTransform(Vector3 position, Vector3 eulerAngles)
-    {
-        Position = position;
-        Rotation = Quaternion.CreateFromYawPitchRoll(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
-        Scale = Vector3.One;
-    }
-
-    public WorldTransform(Vector3 position)
-    {
-        Position = position;
-        Rotation = Quaternion.Identity;
-        Scale = Vector3.One;
-    }
-
-    public WorldTransform(Vector2 position, float rotation, Vector2 scale)
-    {
-        Position = new Vector3(position, 0);
-        Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, rotation);
-        Scale = new Vector3(scale, 1);
-    }
-
-    public WorldTransform(Vector2 position, float rotation)
-    {
-        Position = new Vector3(position, 0);
-        Rotation = Quaternion.CreateFromYawPitchRoll(0, 0, rotation);
-        Scale = Vector3.One;
-    }
 }

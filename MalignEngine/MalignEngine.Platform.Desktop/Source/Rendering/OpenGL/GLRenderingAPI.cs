@@ -80,6 +80,7 @@ public class GLRenderingAPI : IRenderingAPI, IBeginFrame, IEndFrame, IDisposable
 
         _gl.BlendFunc(GLEnum.SrcAlpha, GLEnum.OneMinusSrcAlpha);
         _gl.Enable(GLEnum.Blend);
+        _gl.Enable(GLEnum.DepthTest);
         _gl.DepthFunc(GLEnum.Lequal);
 
         _gl.Enable(GLEnum.DebugOutput);

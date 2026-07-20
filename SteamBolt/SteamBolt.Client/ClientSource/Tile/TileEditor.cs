@@ -140,7 +140,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
 
             if (lastPlacePosition != tilePosition || lastPlacedTile != _selectedTileDefinition)
             {
-                TileSystem.SetTile(_selectedTileMap, _selectedTileDefinition.LayerId, tilePosition, _selectedTileDefinition);
+                TileSystem.SetTile(_selectedTileMapEntity, _selectedTileDefinition.LayerId, tilePosition, _selectedTileDefinition);
                 lastPlacePosition = tilePosition;
                 lastPlacedTile = _selectedTileDefinition;
             }

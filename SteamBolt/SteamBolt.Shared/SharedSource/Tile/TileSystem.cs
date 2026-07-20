@@ -3,10 +3,17 @@ using Silk.NET.Maths;
 
 namespace SteamBolt;
 
+public struct UpdateTileEvent : IEvent
+{
+    public Entity TileMapEntity;
+    public TileMapComponent TileMapComponent;
+    public TileLayer TileLayer;
+    public Vector2D<int> TilePosition;
+    public Tile? NewTile;
+}
 
 public class TileMapComponent : IComponent
 {
-    public bool NeedsColliderUpdate;
     public TileLayer[] Layers;
 
     public TileMapComponent(IEnumerable<TileLayer> layers)
@@ -18,9 +25,9 @@ public class TileMapComponent : IComponent
 public interface ITileSystem
 {
     Entity CreateEmptyTileMap();
-    void SetTile(TileMapComponent tileMap, string layerId, Vector2D<int> position, TileDefinition tileDefinition);
-    void RemoveTile(TileMapComponent tileMap, string layerId, Vector2D<int> position);
-    Tile? GetTile(TileMapComponent tileMap, string layerId, Vector2D<int> position);
+    void SetTile(Entity tileMapEntity, string layerId, Vector2D<int> position, TileDefinition tileDefinition);
+    void RemoveTile(Entity tileMapEntity, string layerId, Vector2D<int> position);
+    Tile? GetTile(Entity tileMapEntity, string layerId, Vector2D<int> position);
 }
 
 public class TileSystem : EntitySystem, ITileSystem
@@ -40,30 +47,47 @@ public class TileSystem : EntitySystem, ITileSystem
         return entity;
     }
 
-    public void SetTile(TileMapComponent tileMap, string layerId, Vector2D<int> position, TileDefinition tileDefinition)
+    public void SetTile(Entity tileMapEntity, string layerId, Vector2D<int> position, TileDefinition tileDefinition)
     {
-        TileLayer layer = tileMap.Layers.First(layer => layer.LayerId == layerId);
-
-        if (layer.HasCollision) { tileMap.NeedsColliderUpdate = true; }
+        TileMapComponent tileMapComponent = tileMapEntity.Get<TileMapComponent>();
+        TileLayer layer = tileMapComponent.Layers.First(layer => layer.LayerId == layerId);
 
         layer.Tiles[position] = new Tile()
         {
             Definition = tileDefinition
         };
+
+        EventService.Send(new UpdateTileEvent()
+        {
+            TileMapEntity = tileMapEntity,
+            TileMapComponent = tileMapComponent,
+            TileLayer = layer,
+            TilePosition = position,
+            NewTile = layer.Tiles[position]
+        });
     }
 
-    public void RemoveTile(TileMapComponent tileMap, string layerId, Vector2D<int> position)
+    public void RemoveTile(Entity tileMapEntity, string layerId, Vector2D<int> position)
     {
-        TileLayer layer = tileMap.Layers.First(layer => layer.LayerId == layerId);
-
-        if (layer.HasCollision) { tileMap.NeedsColliderUpdate = true; }
+        TileMapComponent tileMapComponent = tileMapEntity.Get<TileMapComponent>();
+        TileLayer layer = tileMapComponent.Layers.First(layer => layer.LayerId == layerId);
 
         layer.Tiles.Remove(position);
+
+        EventService.Send(new UpdateTileEvent()
+        {
+            TileMapEntity = tileMapEntity,
+            TileMapComponent = tileMapComponent,
+            TileLayer = layer,
+            TilePosition = position,
+            NewTile = null
+        });
     }
 
-    public Tile? GetTile(TileMapComponent tileMap, string layerId, Vector2D<int> position)
+    public Tile? GetTile(Entity tileMapEntity, string layerId, Vector2D<int> position)
     {
-        TileLayer layer = tileMap.Layers.First(layer => layer.LayerId == layerId);
+        TileMapComponent tileMapComponent = tileMapEntity.Get<TileMapComponent>();
+        TileLayer layer = tileMapComponent.Layers.First(layer => layer.LayerId == layerId);
 
         if (layer.Tiles.TryGetValue(position, out Tile tile))
         {

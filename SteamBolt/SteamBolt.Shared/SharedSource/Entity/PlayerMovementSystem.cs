@@ -78,47 +78,93 @@ public class PlayerMovementSystem : EntitySystem
         World.Query(new Query()
             .Include<PlayerMovementComponent>()
             .Include<PlayerInputComponent>()
-            .Include<Transform>(),
+            .Include<Transform>()
+            .Include<WorldTransform>()
+            .Include<PhysicsBody2D>(),
             entity =>
         {
             ref var input = ref entity.Get<PlayerInputComponent>();
             ref var movement = ref entity.Get<PlayerMovementComponent>();
             ref var transform = ref entity.Get<Transform>();
+            ref var worldTransform = ref entity.Get<WorldTransform>();
+            ref var body = ref entity.Get<PhysicsBody2D>();
 
-            Vector2 force = Vector2.Zero;
-
-            if (input.Left)
-            {
-                force.X -= movement.MoveSpeed;
-            }
-
-            if (input.Right)
-            {
-                force.X += movement.MoveSpeed;
-            }
+            transform.SetRotation2D(0f);
 
             bool grounded = false;
+
+            Vector3 local = worldTransform.Position - SteamBolt.ShipExterior.Get<WorldTransform>().Position;
+
+            Vector3 transformPos = transform.Position;
+            Vector3 worldTransformPos = worldTransform.Position;
+
             _physicsSystem.RayCast((collider, point, normal, fraction) =>
             {
                 if (collider != entity)
                 {
                     grounded = true;
+
+                    if (collider == SteamBolt.ShipExterior && !entity.Has<PhysicsSpaceMember>())
+                    {
+
+                        entity.AddOrSet(new ParentOf() { Parent = SteamBolt.ShipExterior });
+                        entity.AddOrSet(new PhysicsSpaceMember() { Space = SteamBolt.ShipInterior });
+
+                        transformPos = local;
+                    }
                 }
 
-                return 1f;
-            }, transform.Position.ToVector2(), transform.Position.ToVector2() - Vector2.UnitY);
+                return fraction;
+            }, worldTransform.Position.ToVector2(), worldTransform.Position.ToVector2() - Vector2.UnitY * 0.7f);
 
-            if (input.Up && grounded)
+            transform.Position = transformPos;
+
+            if (!grounded && entity.Has<PhysicsSpaceMember>())
             {
-                force.Y += movement.JumpForce;
+                Vector3 world = SteamBolt.ShipExterior.Get<WorldTransform>().Position + transform.Position;
+
+                entity.Remove<ParentOf>();
+                entity.Remove<PhysicsSpaceMember>();
+                transform.Position = world;
             }
 
-            if (force != Vector2.Zero)
+            float inputX = 0;
+
+            if (input.Left) 
+            { 
+                inputX -= 1; 
+            }
+            if (input.Right) 
+            { 
+                inputX += 1; 
+            }
+
+            float targetSpeed = inputX * movement.MoveSpeed;
+
+            float acceleration = grounded ? movement.GroundAcceleration : movement.AirAcceleration;
+            float deceleration = grounded ? movement.GroundDeceleration : movement.AirDeceleration;
+
+            float current = body.LinearVelocity.X;
+
+            if (MathF.Abs(targetSpeed) > 0.01f)
             {
-                entity.AddOrSet(new ApplyForce
-                {
-                    Force = force
-                });
+                current = MoveTowards(current, targetSpeed, acceleration * deltaTime);
+            }
+            else
+            {
+                current = MoveTowards(current, 0, deceleration * deltaTime);
+            }
+
+            body.LinearVelocity.X = current;
+
+            if (grounded && input.Up)
+            {
+                body.LinearVelocity.Y = movement.JumpVelocity;
+            }
+
+            if (!input.Up && body.LinearVelocity.Y > 0)
+            {
+                body.LinearVelocity.Y *= movement.JumpCutMultiplier;
             }
 
             if (_clientSession != null && entity.Has<OwnerComponent>() && entity.Get<OwnerComponent>().ClientId == _clientSession.ClientId)
@@ -142,5 +188,15 @@ public class PlayerMovementSystem : EntitySystem
                 });
             }
         });
+    }
+
+    private static float MoveTowards(float current, float target, float maxDelta)
+    {
+        if (MathF.Abs(target - current) <= maxDelta)
+        {
+            return target;
+        }
+
+        return current + MathF.Sign(target - current) * maxDelta;
     }
 }
