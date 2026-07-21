@@ -8,9 +8,6 @@ namespace SteamBolt;
 
 public class SteamBolt : ISystem
 {
-    public static Entity ShipExterior;
-    public static Entity ShipInterior;
-
     public SteamBolt(ILoggerService loggerService,
         INetworkService _network,
         IAssetService assetService,
@@ -38,13 +35,14 @@ public class SteamBolt : ISystem
         interior.AddOrSet(new Transform() { Position = new Vector3(-1000f, 0, 0), Scale = Vector3.One });
         interior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
         interior.AddOrSet(new PhysicsSpace() { Origin = new Vector2(-1000f, 0f) });
-        interior.AddOrSet(new ParentOf() { Parent = interior });
+        interior.AddOrSet(new ShipInteriorComponent() { Ship = ship });
 
         Entity exterior = entityManager.Create();
         exterior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic });
         exterior.AddOrSet(new Transform() { Scale = Vector3.One });
         exterior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
         exterior.AddOrSet(new TileRendererComponent() { TileMapEntity = interior });
+        exterior.AddOrSet(new ShipExteriorComponent() { Ship = ship });
 
         for (int i = 0; i < 4; i++)
         {
@@ -54,9 +52,6 @@ public class SteamBolt : ISystem
                 new Silk.NET.Maths.Vector2D<int>(i, 0),
                 assetService.FromPath<TileList>("/Content/Tiles/TileList.xml").Asset.Definitions.First());
         }
-
-        ShipExterior = exterior;
-        ShipInterior = interior;
 
         ship.AddOrSet(new ShipPhysicsComponent()
         {

@@ -73,6 +73,7 @@ internal class Program
         entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
         entityManager.WorldContainer.RegisterAll<SteamBolt>();
         entityManager.WorldContainer.RegisterAll<ShipSystem>();
+        entityManager.WorldContainer.RegisterAll<ShipSpaceController>();
 
 #if CLIENT
         application.ServiceContainer.RegisterAll<ImGuiSystem>();

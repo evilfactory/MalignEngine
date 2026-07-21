@@ -3,6 +3,22 @@ using System.Numerics;
 
 namespace SteamBolt;
 
+public struct ShipPhysicsComponent : IComponent
+{
+    public Entity Interior;
+    public Entity Exterior;
+}
+
+public struct ShipExteriorComponent : IComponent
+{
+    public Entity Ship;
+}
+
+public struct ShipInteriorComponent : IComponent
+{
+    public Entity Ship;
+}
+
 public class ShipSystem : EntitySystem
 {
     [Dependency(optional: true)]

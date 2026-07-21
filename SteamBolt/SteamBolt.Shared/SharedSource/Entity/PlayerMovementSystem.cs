@@ -93,40 +93,15 @@ public class PlayerMovementSystem : EntitySystem
 
             bool grounded = false;
 
-            Vector3 local = worldTransform.Position - SteamBolt.ShipExterior.Get<WorldTransform>().Position;
-
-            Vector3 transformPos = transform.Position;
-            Vector3 worldTransformPos = worldTransform.Position;
-
             _physicsSystem.RayCast((collider, point, normal, fraction) =>
             {
                 if (collider != entity)
                 {
                     grounded = true;
-
-                    if (collider == SteamBolt.ShipExterior && !entity.Has<PhysicsSpaceMember>())
-                    {
-
-                        entity.AddOrSet(new ParentOf() { Parent = SteamBolt.ShipExterior });
-                        entity.AddOrSet(new PhysicsSpaceMember() { Space = SteamBolt.ShipInterior });
-
-                        transformPos = local;
-                    }
                 }
 
                 return fraction;
             }, worldTransform.Position.ToVector2(), worldTransform.Position.ToVector2() - Vector2.UnitY * 0.7f);
-
-            transform.Position = transformPos;
-
-            if (!grounded && entity.Has<PhysicsSpaceMember>())
-            {
-                Vector3 world = SteamBolt.ShipExterior.Get<WorldTransform>().Position + transform.Position;
-
-                entity.Remove<ParentOf>();
-                entity.Remove<PhysicsSpaceMember>();
-                transform.Position = world;
-            }
 
             float inputX = 0;
 

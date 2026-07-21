@@ -18,6 +18,8 @@ public interface IPhysicsSystem2D : IService
     Vector2 Gravity { get; set; }
     void RayCast(Func<Entity, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end);
     void QueryAABB(Func<Entity, bool> action, Vector2 min, Vector2 max);
+    Vector2 ToPhysics(Entity entity, Vector2 local);
+    Vector2 FromPhysics(Entity entity, Vector2 physics);
 }
 
 public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
@@ -36,6 +38,27 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
     public PhysicsSystem2D(IServiceContainer serviceContainer) : base(serviceContainer)
     {
         _physicsWorld = new PhysicsWorld(new AVector2(0, -9.81f));
+    }
+
+    public Vector2 ToPhysics(Entity entity, Vector2 local)
+    {
+        if (!entity.TryGet<PhysicsSpaceMember>(out var member))
+        {
+            return local;
+        }
+
+        return local + member.Value.Space.Get<PhysicsSpace>().Origin;
+    }
+
+    public Vector2 FromPhysics(Entity entity, Vector2 physics)
+    {
+        if (!entity.TryGet<PhysicsSpaceMember>(out var member))
+        {
+            return physics;
+        }
+
+        return physics - member.Value.Space.Get<PhysicsSpace>().Origin;
+
     }
 
     public void RayCast(Func<Entity, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)
@@ -112,12 +135,6 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
                 ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
                 ref PhysicsSim physicsSim = ref entity.Get<PhysicsSim>();
 
-                Vector2 origin = Vector2.Zero;
-                if (entity.TryGet(out ComponentRef<PhysicsSpaceMember> spaceMemberComponent))
-                {
-                    origin = spaceMemberComponent.Value.Space.Get<PhysicsSpace>().Origin;
-                }
-
                 physicsSim.Body.LinearVelocity = new AVector2(physicsBody2D.LinearVelocity.X, physicsBody2D.LinearVelocity.Y);
                 physicsSim.Body.AngularVelocity = physicsBody2D.AngularVelocity;
 
@@ -134,7 +151,8 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
 
                 if (entity.TryGet(out ComponentRef<Transform> transform))
                 {
-                    physicsSim.Body.Position = new AVector2(origin.X + transform.Value.Position.X, origin.Y + transform.Value.Position.Y);
+                    Vector2 physicsPosition = ToPhysics(entity, transform.Value.Position.ToVector2());
+                    physicsSim.Body.Position = new AVector2(physicsPosition.X, physicsPosition.Y);
                     physicsSim.Body.Rotation = transform.Value.GetRotation2D();
                 }
 
@@ -159,12 +177,6 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
                 ref PhysicsBody2D physicsBody2D = ref entity.Get<PhysicsBody2D>();
                 ref PhysicsSim physicsSim = ref entity.Get<PhysicsSim>();
 
-                Vector2 origin = Vector2.Zero;
-                if (entity.TryGet(out ComponentRef<PhysicsSpaceMember> spaceMemberComponent))
-                {
-                    origin = spaceMemberComponent.Value.Space.Get<PhysicsSpace>().Origin;
-                }
-
                 physicsBody2D.LinearVelocity = new Vector2(physicsSim.Body.LinearVelocity.X, physicsSim.Body.LinearVelocity.Y);
                 physicsBody2D.AngularVelocity = physicsSim.Body.AngularVelocity;
 
@@ -175,7 +187,7 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
 
                 if (entity.TryGet(out ComponentRef<Transform> transform))
                 {
-                    transform.Value.Position = new Vector3(physicsSim.Body.Position.X - origin.X, physicsSim.Body.Position.Y - origin.Y, transform.Value.Position.Z);
+                    transform.Value.Position = FromPhysics(entity, new Vector2(physicsSim.Body.Position.X, physicsSim.Body.Position.Y)).ToVector3();
                     transform.Value.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, physicsSim.Body.Rotation);
                 }
             });
