@@ -24,40 +24,43 @@ public class SteamBolt : ISystem
 
         assetService.PreLoadAsync(manifest).Wait();
 
-        Scene scene = assetService.FromPath<Scene>("/Content/Map.xml");
-        Entity entity = sceneSystem.Instantiate(scene);
-        
-        Entity ship = entityManager.Create();
-
-        Entity interior = tileSystem.CreateEmptyTileMap();
-
-        interior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
-        interior.AddOrSet(new Transform() { Position = new Vector3(-1000f, 0, 0), Scale = Vector3.One });
-        interior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
-        interior.AddOrSet(new PhysicsSpace() { Origin = new Vector2(-1000f, 0f) });
-        interior.AddOrSet(new ShipInteriorComponent() { Ship = ship });
-
-        Entity exterior = entityManager.Create();
-        exterior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic });
-        exterior.AddOrSet(new Transform() { Scale = Vector3.One });
-        exterior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
-        exterior.AddOrSet(new TileRendererComponent() { TileMapEntity = interior });
-        exterior.AddOrSet(new ShipExteriorComponent() { Ship = ship });
-
-        for (int i = 0; i < 4; i++)
+        for (int j = 1; j <= 2; j++)
         {
-            tileSystem.SetTile(
-                interior,
-                "wall",
-                new Silk.NET.Maths.Vector2D<int>(i, 0),
-                assetService.FromPath<TileList>("/Content/Tiles/TileList.xml").Asset.Definitions.First());
+            Scene scene = assetService.FromPath<Scene>("/Content/Map.xml");
+            Entity entity = sceneSystem.Instantiate(scene);
+
+            Entity ship = entityManager.Create();
+
+            Entity interior = tileSystem.CreateEmptyTileMap();
+
+            interior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
+            interior.AddOrSet(new Transform() { Position = new Vector3(-1000f * j, 0, 0), Scale = Vector3.One });
+            interior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
+            interior.AddOrSet(new PhysicsSpace() { Origin = new Vector2(-1000f * j, 0f) });
+            interior.AddOrSet(new ShipInteriorComponent() { Ship = ship });
+
+            Entity exterior = entityManager.Create();
+            exterior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic });
+            exterior.AddOrSet(new Transform() { Position = new Vector3(5 * (j - 1), 0, 0), Scale = Vector3.One });
+            exterior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
+            exterior.AddOrSet(new TileRendererComponent() { TileMapEntity = interior });
+            exterior.AddOrSet(new ShipExteriorComponent() { Ship = ship });
+
+            for (int i = 0; i < 4; i++)
+            {
+                tileSystem.SetTile(
+                    interior,
+                    "wall",
+                    new Silk.NET.Maths.Vector2D<int>(i, 0),
+                    assetService.FromPath<TileList>("/Content/Tiles/TileList.xml").Asset.Definitions.First());
+            }
+
+            ship.AddOrSet(new ShipPhysicsComponent()
+            {
+                Interior = interior,
+                Exterior = exterior
+            });
         }
-
-        ship.AddOrSet(new ShipPhysicsComponent()
-        {
-            Interior = interior,
-            Exterior = exterior
-        });
 
         if (_network.Server != null)
         {
