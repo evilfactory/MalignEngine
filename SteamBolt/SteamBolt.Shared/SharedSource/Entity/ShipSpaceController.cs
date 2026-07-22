@@ -35,6 +35,7 @@ public class ShipSpaceController : EntitySystem
             {
                 ref var transform = ref entity.Get<Transform>();
                 ref var worldTransform = ref entity.Get<WorldTransform>();
+                ref var physicsBody = ref entity.Get<PhysicsBody2D>();
                 ref var shipSpaceController = ref entity.Get<ShipSpaceControllerComponent>();
 
                 Vector3 transformPos = transform.Position;
@@ -73,6 +74,7 @@ public class ShipSpaceController : EntitySystem
                 {
                     Vector3 world = shipSpaceController.Current.Value.Get<WorldTransform>().Position + transform.Position;
 
+                    physicsBody.LinearVelocity = physicsBody.LinearVelocity + shipSpaceController.Current.Value.Get<PhysicsBody2D>().LinearVelocity;
                     entity.Remove<ParentOf>();
                     entity.Remove<PhysicsSpaceMember>();
                     shipSpaceController.Current = null;

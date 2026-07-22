@@ -58,7 +58,6 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
         }
 
         return physics - member.Value.Space.Get<PhysicsSpace>().Origin;
-
     }
 
     public void RayCast(Func<Entity, Vector2, Vector2, float, float> callback, Vector2 start, Vector2 end)
