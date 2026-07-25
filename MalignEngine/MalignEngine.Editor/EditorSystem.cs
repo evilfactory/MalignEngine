@@ -28,7 +28,7 @@ public class EditorSystem : BaseSystem, IDrawImGui
 
     public override void OnUpdate(float deltaTime)
     {
-        if (InputSystem.Keyboard.WasKeyPressed(Key.F1))
+        if (InputSystem.Keyboard.IsPressed(Key.F1))
         {
             hideAllWindows = !hideAllWindows;
         }

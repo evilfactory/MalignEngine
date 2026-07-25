@@ -134,7 +134,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
         if (_selectedTileMap == null || _selectedTileDefinition == null) { return; }
 
-        if (InputService.Mouse.IsButtonPressed(MouseButton.Left))
+        if (InputService.Mouse.IsDown(MouseButton.Left))
         {
             Vector2D<int> tilePosition = GetMouseTilePosition(_selectedTileMapEntity);
 

@@ -2,19 +2,37 @@
 
 namespace MalignEngine;
 
+public interface ITextInput : ISchedule
+{
+    void OnTextInput(char input);
+}
+
+public interface IKeyPressed : ISchedule
+{
+    void OnKeyPressed(Key key);
+}
+
+public interface IKeyReleased : ISchedule
+{
+    void OnKeyReleased(Key key);
+}
+
+
 public interface IMouse
 {
     Vector2 Position { get; }
     Vector2 Delta { get; }
     float ScrollDelta { get; }
-    bool IsButtonPressed(MouseButton button);
-    bool WasButtonPressed(MouseButton button);
+    bool IsDown(MouseButton button);
+    bool IsPressed(MouseButton button);
+    bool IsReleased(MouseButton button);
 }
 
 public interface IKeyboard
 {
-    bool IsKeyPressed(Key key);
-    bool WasKeyPressed(Key key);
+    bool IsDown(Key key);
+    bool IsPressed(Key key);
+    bool IsReleased(Key key);
 }
 
 public interface IInputService : IService

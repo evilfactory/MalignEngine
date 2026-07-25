@@ -33,14 +33,14 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
     {
         if (!IsWindowHovered) { return; }
 
-        if (_inputService.Mouse.IsButtonPressed(MouseButton.Right))
+        if (_inputService.Mouse.IsDown(MouseButton.Right))
         {
             Vector2 delta = _inputService.Mouse.Delta * deltaTime;
             delta.X = -delta.X;
             _camera.Get<Transform>().Position += delta.ToVector3() * _camera.Get<OrthographicCamera>().ViewSize * 0.25f;
         }
 
-        if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
+        if (_inputService.Mouse.IsDown(MouseButton.Left))
         {
             _entityManager.World.Query(new Query().Include<Transform>(), (Entity entity) =>
             {
@@ -79,7 +79,7 @@ public class EditorSceneViewSystem : BaseEditorWindowSystem
 
             WorldMousePosition = mousePosition;
 
-            if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
+            if (_inputService.Mouse.IsDown(MouseButton.Left))
             {
                 //_renderer2D.Begin();
                 //_renderer2D.DrawTexture2D(Texture2D.White, mousePosition, new Vector2(0.1f, 0.1f), Color.Red, 0f, 15);

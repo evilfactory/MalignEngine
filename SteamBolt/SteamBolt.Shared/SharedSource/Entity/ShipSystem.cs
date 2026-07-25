@@ -40,22 +40,22 @@ public class ShipSystem : EntitySystem
 
             Vector2 force = Vector2.Zero;
 
-            if (InputService.Keyboard.IsKeyPressed(Key.UpArrow))
+            if (InputService.Keyboard.IsDown(Key.UpArrow))
             {
                 force += Vector2.UnitY;
             }
 
-            if (InputService.Keyboard.IsKeyPressed(Key.DownArrow))
+            if (InputService.Keyboard.IsDown(Key.DownArrow))
             {
                 force += -Vector2.UnitY;
             }
 
-            if (InputService.Keyboard.IsKeyPressed(Key.RightArrow))
+            if (InputService.Keyboard.IsDown(Key.RightArrow))
             {
                 force += Vector2.UnitX;
             }
 
-            if (InputService.Keyboard.IsKeyPressed(Key.LeftArrow))
+            if (InputService.Keyboard.IsDown(Key.LeftArrow))
             {
                 force += -Vector2.UnitX;
             }

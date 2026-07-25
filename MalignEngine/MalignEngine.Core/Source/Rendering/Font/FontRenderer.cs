@@ -30,17 +30,7 @@ public class FontRenderer : IFontRenderer, IService, IFontStashRenderer2
 
     public void DrawFont(Font font, int fontSize, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale)
     {
-        // move texture
-
-        //var dynFont = font.fontSystem.GetFont(fontSize);
-
-        //Vector2 size = dynFont.MeasureString(text, scale);
-
-        //position = new Vector2(position.X, position.Y - size.Y);
-
-        if (scale.Y < 0f) { _renderer2D.FlipY = false; }
         font.fontSystem.GetFont(fontSize).DrawText(this, text, position, new FontStashSharp.FSColor(color.R, color.G, color.B, color.A), rotation, origin, scale);
-        if (scale.Y < 0f) { _renderer2D.FlipY = true; }
     }
 
     public void DrawQuad(object texture, ref FontStashSharp.Interfaces.VertexPositionColorTexture topLeft, ref FontStashSharp.Interfaces.VertexPositionColorTexture topRight, ref FontStashSharp.Interfaces.VertexPositionColorTexture bottomLeft, ref FontStashSharp.Interfaces.VertexPositionColorTexture bottomRight)

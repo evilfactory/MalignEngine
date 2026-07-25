@@ -17,10 +17,10 @@ internal class Texture2DManager : ITexture2DManager
         return _renderAPI.CreateTexture(new TextureDescriptor() { Width = width, Height = height });
     }
 
-    public Point GetTextureSize(object texture)
+    public System.Drawing.Point GetTextureSize(object texture)
     {
         var t = (ITextureResource)texture;
-        return new Point((int)t.Width, (int)t.Height);
+        return new System.Drawing.Point((int)t.Width, (int)t.Height);
     }
 
     public void SetTextureData(object texture, System.Drawing.Rectangle bounds, byte[] data)

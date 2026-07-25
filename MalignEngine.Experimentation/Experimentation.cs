@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System.Numerics;
 using System.Xml.Linq;
+using SixLabors.ImageSharp;
 
 namespace MalignEngine.Experimentation;
 
@@ -41,7 +42,8 @@ class Experimentation : BaseSystem, ICameraDraw
         IEntityManager entityManager,
         SceneXmlLoader sceneXmlLoader,
         SceneSystem sceneSystem,
-        CameraSystem cameraSystem
+        CameraSystem cameraSystem,
+        UIManager uiManager
         )
         : base(serviceContainer)
     {
@@ -125,29 +127,127 @@ class Experimentation : BaseSystem, ICameraDraw
         AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene.xml");
         entity = _sceneSystem.Instantiate(scene);
         //assetService.FromAsset(new Texture2D(entity.Get<OrthographicCamera>().Output.GetColorAttachment(0)));
+
+        Theme theme = new Theme();
+
+        theme.Add("text", new TextStyle() { Font = _font, FontSize = 35, TextColor = Color.White });
+        theme.Add("button", new ButtonStyle() 
+        { 
+            TextStyle = theme.Get<TextStyle>("text"), 
+            ClickColor = Color.MediumVioletRed, 
+            Color = Color.IndianRed, 
+            HoverColor = Color.IndianRed * 0.8f 
+        });
+
+        theme.Add("textfield", new TextFieldStyle()
+        {
+            TextStyle = theme.Get<TextStyle>("text"),
+            Color = Color.IndianRed,
+            CursorColor = new Color(200, 200, 200, 150)
+        });
+
+        Border border = new Border()
+        {
+            Color = new Color(200, 200, 200, 50),
+            Width = Length.Percent(1f),
+            Height = Length.Percent(1f)
+        };
+
+        Stack stack = new Stack() 
+        { 
+            Width = Length.Percent(0.5f), 
+            Height = Length.Percent(0.5f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Spacing = 10f
+        };
+
+        TextBlock text = new TextBlock(theme.Get<TextStyle>("text"))
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Percent(0.2f),
+            Text = "This is an experiment",
+            FontSize = 100,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+
+        Button button = new Button(theme.Get<ButtonStyle>("button"))
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(60f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            IsHitTestVisibile = true,
+            Text = "Button1"
+        };
+
+        Button button2 = new Button(theme.Get<ButtonStyle>("button"))
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(60f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            IsHitTestVisibile = true,
+            Text = "Button2"
+        };
+
+        Button button3 = new Button(theme.Get<ButtonStyle>("button"))
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(60f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            IsHitTestVisibile = true,
+            Text = "Button3"
+        };
+
+        Button button4 = new Button(theme.Get<ButtonStyle>("button"))
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(60f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            IsHitTestVisibile = true,
+            Text = "Button3"
+        };
+
+        TextField textField = new TextField(theme.Get<TextFieldStyle>("textfield"))
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(60f),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            IsHitTestVisibile = true,
+        };
+
+        border.AddChild(stack);
+
+        stack.AddChild(text);
+        stack.AddChild(button);
+        stack.AddChild(button2);
+        stack.AddChild(button3);
+        stack.AddChild(button4);
+        stack.AddChild(textField);
+
+        uiManager.Root.AddChild(border);
     }
 
     public override void OnUpdate(float deltaTime)
     {
         Vector2 mov = Vector2.Zero;
-        if (_inputService.Keyboard.IsKeyPressed(Key.W))
+        if (_inputService.Keyboard.IsDown(Key.W))
         {
             mov.Y = 1f;
         }
-        if (_inputService.Keyboard.IsKeyPressed(Key.S))
+        if (_inputService.Keyboard.IsDown(Key.S))
         {
             mov.Y = -1f;
         }
-        if (_inputService.Keyboard.IsKeyPressed(Key.A))
+        if (_inputService.Keyboard.IsDown(Key.A))
         {
             mov.X = -1f;
         }
-        if (_inputService.Keyboard.IsKeyPressed(Key.D))
+        if (_inputService.Keyboard.IsDown(Key.D))
         {
             mov.X = 1f;
         }
 
-        if (_inputService.Mouse.IsButtonPressed(MouseButton.Right))
+        if (_inputService.Mouse.IsDown(MouseButton.Right))
         {
             AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene2.xml");
             var newEntity = _sceneSystem.Instantiate(scene);

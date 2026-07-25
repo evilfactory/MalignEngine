@@ -38,6 +38,9 @@ class Program
         entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
         entityManager.WorldContainer.RegisterAll<Experimentation>();
 
+        application.ServiceContainer.RegisterAll<UIManager>();
+        application.ServiceContainer.RegisterAll<UIPainter>();
+
         application.ServiceContainer.RegisterAll<ImGuiSystem>();
         application.ServiceContainer.RegisterAll<EditorSystem>();
         application.ServiceContainer.RegisterAll<EditorConsole>();

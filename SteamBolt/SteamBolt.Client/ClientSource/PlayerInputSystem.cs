@@ -31,10 +31,10 @@ public class PlayerInputSystem : EntitySystem
 
                 if (owner.ClientId.Equals(_clientSessionSystem.ClientId))
                 {
-                    input.Up = _inputService.Keyboard.IsKeyPressed(Key.W);
-                    input.Down = _inputService.Keyboard.IsKeyPressed(Key.S);
-                    input.Left = _inputService.Keyboard.IsKeyPressed(Key.A);
-                    input.Right = _inputService.Keyboard.IsKeyPressed(Key.D);
+                    input.Up = _inputService.Keyboard.IsDown(Key.W);
+                    input.Down = _inputService.Keyboard.IsDown(Key.S);
+                    input.Left = _inputService.Keyboard.IsDown(Key.A);
+                    input.Right = _inputService.Keyboard.IsDown(Key.D);
                 }
             });
     }

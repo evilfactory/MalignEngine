@@ -134,24 +134,24 @@ class Experimentation : BaseSystem, ICameraDraw
     public override void OnUpdate(float deltaTime)
     {
         Vector2 mov = Vector2.Zero;
-        if (_inputService.Keyboard.IsKeyPressed(Key.W))
+        if (_inputService.Keyboard.IsDown(Key.W))
         {
             mov.Y = 1f;
         }
-        if (_inputService.Keyboard.IsKeyPressed(Key.S))
+        if (_inputService.Keyboard.IsDown(Key.S))
         {
             mov.Y = -1f;
         }
-        if (_inputService.Keyboard.IsKeyPressed(Key.A))
+        if (_inputService.Keyboard.IsDown(Key.A))
         {
             mov.X = -1f;
         }
-        if (_inputService.Keyboard.IsKeyPressed(Key.D))
+        if (_inputService.Keyboard.IsDown(Key.D))
         {
             mov.X = 1f;
         }
 
-        if (_inputService.Mouse.IsButtonPressed(MouseButton.Left))
+        if (_inputService.Mouse.IsDown(MouseButton.Left))
         {
             AssetHandle<Scene> scene = _assetService.FromPath<Scene>("/Content/FooScene2.xml");
             var newEntity = _sceneSystem.Instantiate(scene);
@@ -182,7 +182,7 @@ class Experimentation : BaseSystem, ICameraDraw
 
             _render2D.Begin(ctx);
 
-            if (_inputService.Keyboard.IsKeyPressed(Key.W))
+            if (_inputService.Keyboard.IsDown(Key.W))
             {
                 _fontRenderer.DrawFont(_font, 120, "haha", Vector2.Zero, Color.Red);
             }

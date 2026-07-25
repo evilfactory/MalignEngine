@@ -11,7 +11,8 @@ public class Mouse : IMouse
     private readonly ISilkMouse _mouse;
 
     private Vector2 _lastPosition;
-    private bool[] _prevButtons = new bool[8];
+    private readonly bool[] _buttons = new bool[8];
+    private readonly bool[] _prevButtons = new bool[8];
 
     public Mouse(ISilkMouse mouse)
     {
@@ -23,25 +24,36 @@ public class Mouse : IMouse
     public Vector2 Delta { get; private set; }
     public float ScrollDelta { get; private set; }
 
-    public bool IsButtonPressed(MouseButton button)
-        => _mouse.IsButtonPressed((Silk.NET.Input.MouseButton)button);
-
-    public bool WasButtonPressed(MouseButton button)
+    public bool IsDown(MouseButton button)
     {
-        int index = (int)button;
-        return !_prevButtons[index] && _mouse.IsButtonPressed((Silk.NET.Input.MouseButton)button);
+        return _buttons[(int)button];
+    }
+
+    public bool IsPressed(MouseButton button)
+    {
+        int i = (int)button;
+        return _buttons[i] && !_prevButtons[i];
+    }
+
+    public bool IsReleased(MouseButton button)
+    {
+        int i = (int)button;
+        return !_buttons[i] && _prevButtons[i];
     }
 
     public void Update()
     {
         Position = _mouse.Position;
-        ScrollDelta = _mouse.ScrollWheels[0].Y;
         Delta = Position - _lastPosition;
-        _lastPosition = _mouse.Position;
+        _lastPosition = Position;
 
-        for (int i = 0; i < _prevButtons.Length; i++)
+        ScrollDelta = _mouse.ScrollWheels[0].Y;
+
+        Array.Copy(_buttons, _prevButtons, _buttons.Length);
+
+        for (int i = 0; i < _buttons.Length; i++)
         {
-            _prevButtons[i] = _mouse.IsButtonPressed((Silk.NET.Input.MouseButton)i);
+            _buttons[i] = _mouse.IsButtonPressed((Silk.NET.Input.MouseButton)i);
         }
     }
 }
@@ -49,29 +61,64 @@ public class Mouse : IMouse
 public class Keyboard : IKeyboard
 {
     private readonly ISilkKeyboard _keyboard;
-    private bool[] _prevKeys = new bool[512];
+
+    private readonly bool[] _currentKeys = new bool[512];
+    private readonly bool[] _previousKeys = new bool[512];
+
+    public Action<char>? OnTextInput { get; set; }
+    public Action<Key>? OnKeyPressed { get; set; }
+    public Action<Key>? OnKeyReleased { get; set; }
 
     public Keyboard(ISilkKeyboard keyboard)
     {
         _keyboard = keyboard;
+
+        _keyboard.KeyChar += Keyboard_KeyChar;
+        _keyboard.KeyDown += _keyboard_KeyDown;
+        _keyboard.KeyUp += _keyboard_KeyUp;
     }
 
-    public bool IsKeyPressed(Key key)
-        => _keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
-
-    public bool WasKeyPressed(Key key)
+    private void _keyboard_KeyUp(ISilkKeyboard arg1, Silk.NET.Input.Key arg2, int arg3)
     {
-        int index = (int)key;
-        return !_prevKeys[index] && _keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
+        OnKeyReleased?.Invoke((Key)arg2);
+    }
+
+    private void _keyboard_KeyDown(ISilkKeyboard arg1, Silk.NET.Input.Key arg2, int arg3)
+    {
+        OnKeyPressed?.Invoke((Key)arg2);
+    }
+
+    private void Keyboard_KeyChar(ISilkKeyboard arg1, char arg2)
+    {
+        OnTextInput?.Invoke(arg2);
+    }
+
+    public bool IsDown(Key key)
+    { 
+        return _currentKeys[(int)key];
+    }
+
+    public bool IsPressed(Key key)
+    {
+        int i = (int)key;
+        return _currentKeys[i] && !_previousKeys[i];
+    }
+
+    public bool IsReleased(Key key)
+    {
+        int i = (int)key;
+        return !_currentKeys[i] && _previousKeys[i];
     }
 
     public void Update()
     {
-        foreach (int key in Enum.GetValues(typeof(Silk.NET.Input.Key)))
-        {
-            if (key <= 0) { continue; }
+        Array.Copy(_currentKeys, _previousKeys, _currentKeys.Length);
 
-            _prevKeys[key] = _keyboard.IsKeyPressed((Silk.NET.Input.Key)key);
+        foreach (var key in Enum.GetValues<Silk.NET.Input.Key>())
+        {
+            if (key == Silk.NET.Input.Key.Unknown) { continue; }
+
+            _currentKeys[(int)key] = _keyboard.IsKeyPressed(key);
         }
     }
 }
@@ -105,9 +152,26 @@ public class InputService : BaseSystem, IInputService, ISilkInputContextProvider
             _mice.Add(new Mouse(mouse));
         }
 
-        foreach (var keyboard in _inputContext.Keyboards)
+        foreach (var silkKeyboard in _inputContext.Keyboards)
         {
-            _keyboards.Add(new Keyboard(keyboard));
+            Keyboard keyboard = new Keyboard(silkKeyboard);
+
+            _keyboards.Add(keyboard);
+
+            keyboard.OnTextInput = (char c) =>
+            {
+                ScheduleManager.Run<ITextInput>(x => x.OnTextInput(c));
+            };
+
+            keyboard.OnKeyPressed = (Key key) =>
+            {
+                ScheduleManager.Run<IKeyPressed>(x => x.OnKeyPressed(key));
+            };
+
+            keyboard.OnKeyReleased = (Key key) =>
+            {
+                ScheduleManager.Run<IKeyReleased>(x => x.OnKeyReleased(key));
+            };
         }
     }
 

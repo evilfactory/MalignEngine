@@ -28,19 +28,14 @@ public class WebMouse : IMouse
         }
     }
 
-    public bool IsButtonPressed(MouseButton button)
+    public bool IsDown(MouseButton button)
     {
         return _buttons.TryGetValue(button, out bool pressed) && pressed;
     }
 
-    public bool WasButtonPressed(MouseButton button)
+    public bool IsPressed(MouseButton button)
     {
         return _buttons[button] && !_prevButtons[button];
-    }
-
-    public bool WasButtonReleased(MouseButton button)
-    {
-        return !_buttons[button] && _prevButtons[button];
     }
 
     public void Update()
@@ -86,6 +81,11 @@ public class WebMouse : IMouse
     private void OnMouseWheel(object sender, int deltaX, int deltaY, int deltaZ, int deltaMode)
     {
         ScrollDelta += deltaY;
+    }
+
+    public bool IsReleased(MouseButton button)
+    {
+        throw new NotImplementedException();
     }
 }
 
@@ -185,7 +185,7 @@ public class WebKeyboard : IKeyboard
         window.OnKeyUp += OnKeyUp;
     }
 
-    public bool IsKeyPressed(Key key)
+    public bool IsDown(Key key)
     {
         if (key == Key.Any)
         {
@@ -195,7 +195,7 @@ public class WebKeyboard : IKeyboard
         return _keys.TryGetValue(key, out bool pressed) && pressed;
     }
 
-    public bool WasKeyPressed(Key key)
+    public bool IsPressed(Key key)
     {
         if (key == Key.Any)
         {
@@ -241,6 +241,11 @@ public class WebKeyboard : IKeyboard
         {
             _keys[translated] = false;
         }
+    }
+
+    public bool IsReleased(Key key)
+    {
+        throw new NotImplementedException();
     }
 }
 
