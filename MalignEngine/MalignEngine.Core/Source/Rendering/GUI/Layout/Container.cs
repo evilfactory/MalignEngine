@@ -4,15 +4,15 @@ namespace MalignEngine;
 
 public class Container : Widget
 {
-    protected RectangleF ArrangeChild(Widget child, RectangleF slot)
+    protected RectangleF ArrangeChild(Widget child, RectangleF slot, float? width = null, float? height = null)
     {
-        float width = LayoutHelper.ResolveWidth(slot, child, child.DesiredSize.X);
-        float height = LayoutHelper.ResolveHeight(slot, child, child.DesiredSize.Y);
+        width ??= LayoutHelper.ResolveWidth(slot, child, child.DesiredSize.X);
+        height ??= LayoutHelper.ResolveHeight(slot, child, child.DesiredSize.Y);
 
-        float x = LayoutHelper.ResolveHorizontal(slot, child, width);
-        float y = LayoutHelper.ResolveVertical(slot, child, height);
+        float x = LayoutHelper.ResolveHorizontal(slot, child, width.Value);
+        float y = LayoutHelper.ResolveVertical(slot, child, height.Value);
 
-        RectangleF bounds = new(x, y, width, height);
+        RectangleF bounds = new(x, y, width.Value, height.Value);
 
         child.Arrange(bounds);
 

@@ -19,11 +19,10 @@ public struct VertexPositionColorTexture
 
 public interface IRenderer2D : IService
 {
-    public bool FlipY { get; set; }
     public void Begin(IRenderContext renderContext, Matrix4x4 matrix, Material material = null);
     public void Begin(IRenderContext renderContext, Material material = null);
     public void End();
-    public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 scale, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth);
+    public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 scale, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth, bool flipY = false);
     public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 scale, Color color, float rotation, float layerDepth);
     public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 scale, float layerDepth);
     public void DrawQuad(ITextureResource texture, VertexPositionColorTexture topRight, VertexPositionColorTexture bottomRight, VertexPositionColorTexture bottomLeft, VertexPositionColorTexture topLeft);
@@ -77,9 +76,6 @@ public class Renderer2D : IRenderer2D
 
     private IShaderResource _basicShader;
     private Material _basicMaterial;
-
-    public bool FlipY { get; set; }
-
     public Renderer2D(ILoggerService loggerService, IRenderingAPI renderAPI)
     {
         _logger = loggerService.GetSawmill("rendering.2d");
@@ -245,7 +241,7 @@ public class Renderer2D : IRenderer2D
         Begin(renderContext, _currentMatrix, material);
     }
 
-    public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth)
+    public void DrawTexture2D(ITextureResource texture, Vector2 position, Vector2 size, Vector2 uv1, Vector2 uv2, Color color, float rotation, float layerDepth, bool flipY = false)
     {
         var rotationQ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, rotation);
         var rotationMatrix = Matrix4x4.CreateFromQuaternion(rotationQ);
@@ -262,6 +258,13 @@ public class Renderer2D : IRenderer2D
         bottomRight = Vector3.Transform(bottomRight, transform);
         bottomLeft = Vector3.Transform(bottomLeft, transform);
         topLeft = Vector3.Transform(topLeft, transform);
+
+
+        if (flipY)
+        {
+            uv1.Y = 1 - uv1.Y;
+            uv2.Y = 1 - uv2.Y;
+        }
 
         DrawQuad(texture,
             new VertexPositionColorTexture(topRight, color, new Vector2(uv2.X, uv2.Y)), // top right 1,1
@@ -321,14 +324,6 @@ public class Renderer2D : IRenderer2D
             {
                 textureSlot = i;
                 break;
-            }
-        }
-
-        if (FlipY)
-        {
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                vertices[i].TextureCoordinate.Y = 1f - vertices[i].TextureCoordinate.Y;
             }
         }
 

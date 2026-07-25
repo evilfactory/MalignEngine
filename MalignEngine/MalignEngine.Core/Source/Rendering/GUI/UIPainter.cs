@@ -11,7 +11,7 @@ public interface IUIPainter
     void FillRect(RectangleF rect, Color color);
     void DrawRect(RectangleF rect, Color color, float thickness);
     void DrawText(Font font, string text, Vector2 position, int fontSize, Color color);
-    void DrawImage(ITextureResource texture, RectangleF rect);
+    void DrawImage(Sprite sprite, RectangleF rect);
 }
 
 public class UIPainter : IService, IUIPainter
@@ -34,9 +34,13 @@ public class UIPainter : IService, IUIPainter
         });
     }
 
-    public void DrawImage(ITextureResource texture, RectangleF rect)
+    public void DrawImage(Sprite sprite, RectangleF rect)
     {
-        _render2D.DrawTexture2D(texture, rect.Location, rect.Size * 2f, 0f);
+        Vector2 center = new(rect.Left + rect.Width * 0.5f, rect.Top + rect.Height * 0.5f);
+
+        Vector2 size = new(rect.Width, rect.Height);
+
+        _render2D.DrawTexture2D(sprite.Texture.Resource, center, size, sprite.UV1, sprite.UV2, Color.White, 0f, 0f, flipY: true);
     }
 
     public void FillRect(RectangleF rect, Color color)

@@ -93,9 +93,9 @@ class Experimentation : BaseSystem, ICameraDraw
         _inputService = inputService;
         _entityManager = entityManager;
 
-        /*
-        AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>("file:Content/FooSprite.xml");
+        AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>("/Content/FooSprite.xml");
 
+        /*
         EntityRef camera = _entityManager.World.CreateEntity();
         camera.Add(new Transform()
         {
@@ -215,6 +215,55 @@ class Experimentation : BaseSystem, ICameraDraw
             IsHitTestVisibile = true,
         };
 
+        Flex flex = new Flex()
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(150f),
+            Orientation = Orientation.Horizontal
+        };
+
+        Flex flex2 = new Flex()
+        {
+            Width = Length.Percent(0.5f),
+            Height = Length.Percent(1f),
+            Orientation = Orientation.Vertical
+        };
+
+
+        Border border1 = new Border()
+        {
+            Color = Color.Green,
+            Width = Length.Percent(0.5f),
+            Height = Length.Percent(1f)
+        };
+
+        Border border2 = new Border()
+        {
+            Color = Color.Red,
+            Width = Length.Percent(1f),
+            Height = Length.Percent(0.3f)
+        };
+
+        Border border3 = new Border()
+        {
+            Color = Color.Blue,
+            Width = Length.Percent(1f),
+            Height = Length.Fill
+        };
+
+        ImageBox image = new ImageBox()
+        {
+            Width = Length.Percent(1f),
+            Height = Length.Pixels(100f),
+            Sprite = sprite
+        };
+
+        flex.AddChild(border1);
+        flex2.AddChild(border2);
+        flex2.AddChild(border3);
+
+        flex.AddChild(flex2);
+
         border.AddChild(stack);
 
         stack.AddChild(text);
@@ -223,6 +272,8 @@ class Experimentation : BaseSystem, ICameraDraw
         stack.AddChild(button3);
         stack.AddChild(button4);
         stack.AddChild(textField);
+        stack.AddChild(flex);
+        stack.AddChild(image);
 
         uiManager.Root.AddChild(border);
     }
