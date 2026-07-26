@@ -1,4 +1,5 @@
 ﻿using MalignEngine.Editor;
+using System.Reflection;
 
 namespace MalignEngine.Experimentation;
 
@@ -8,38 +9,11 @@ class Program
     {
         Application application = new DesktopApplication();
 
-        // Core services
-        application.ServiceContainer.RegisterAll<WindowService>();
-        application.ServiceContainer.RegisterAll<GLRenderingAPI>();
-        application.ServiceContainer.RegisterAll<Renderer2D>();
-        application.ServiceContainer.RegisterAll<FontRenderer>();
-        application.ServiceContainer.RegisterAll<EventService>();
-        application.ServiceContainer.RegisterAll<InputService>();
-        application.ServiceContainer.RegisterAll<EntitySerializer>();
+        Defaults.Essentials(application);
+        EntityManager entityManager = Defaults.Entity(application);
+        EventLoop eventLoop = Defaults.EventLoop(application);
 
-        // Assets
-        application.ServiceContainer.RegisterAll<FontAssetLoader>();
-        application.ServiceContainer.RegisterAll<AssetService>();
-        application.ServiceContainer.RegisterAll<TextureAssetLoader>();
-        application.ServiceContainer.RegisterAll<PerformanceProfiler>();
-        application.ServiceContainer.RegisterAll<XmlSerializer>();
-        application.ServiceContainer.RegisterAll<SpriteXmlAssetLoader>();
-        application.ServiceContainer.RegisterAll<SceneXmlLoader>();
-        application.ServiceContainer.RegisterAll<ShaderAssetLoader>();
-
-        var entityManager = new EntityManager(new ServiceContainer(application.ServiceContainer), application.ServiceContainer.GetInstance<IScheduleManager>());
-
-        // World
-        entityManager.WorldContainer.RegisterAll<CameraSystem>();
-        entityManager.WorldContainer.RegisterAll<TransformSystem>();
-        entityManager.WorldContainer.RegisterAll<HierarchySystem>();
-        entityManager.WorldContainer.RegisterAll<SpriteRenderingSystem>();
-        entityManager.WorldContainer.RegisterAll<SceneSystem>();
-        entityManager.WorldContainer.RegisterAll<PhysicsSystem2D>();
-        entityManager.WorldContainer.RegisterAll<Experimentation>();
-
-        application.ServiceContainer.RegisterAll<UIManager>();
-        application.ServiceContainer.RegisterAll<UIPainter>();
+        entityManager.WorldContainer.RegisterAssembly(Assembly.GetExecutingAssembly(), [typeof(EntitySystem)], []);
 
         application.ServiceContainer.RegisterAll<ImGuiSystem>();
         application.ServiceContainer.RegisterAll<EditorSystem>();
@@ -48,23 +22,6 @@ class Program
         application.ServiceContainer.RegisterAll<EditorAssetViewer>();
         entityManager.WorldContainer.RegisterAll<EditorSceneViewSystem>();
         entityManager.WorldContainer.RegisterAll<EditorInspectorSystem>();
-
-        EventLoop eventLoop = new EventLoop(
-            application.ServiceContainer.GetInstance<IScheduleManager>(),
-            new ExecutionPipeline()
-                .Stage<IPreUpdate>((s, c) => s.OnPreUpdate((float)c.DeltaTime))
-                .Stage<IUpdate>((s, c) => s.OnUpdate((float)c.DeltaTime))
-                .Stage<IPostUpdate>((s, c) => s.OnPostUpdate((float)c.DeltaTime))
-                .Stage<ICommitWorldChanges>((s, c) => s.CommitWorldChanges()),
-            new ExecutionPipeline()
-                .Stage<IBeginFrame>((s, c) => s.BeginFrame())
-                .Stage<IPreDraw>((s, c) => s.OnPreDraw((float)c.DeltaTime))
-                .Stage<IDraw>((s, c) => s.OnDraw((float)c.DeltaTime))
-                .Stage<IPostDraw>((s, c) => s.OnPostDraw((float)c.DeltaTime))
-                .Stage<IEndFrame>((s, c) => s.EndFrame())
-            );
-
-        application.ServiceContainer.Register<IEventLoop, EventLoop>(new SingletonLifeTime(eventLoop));
 
         application.Initialize();
         eventLoop.Run();

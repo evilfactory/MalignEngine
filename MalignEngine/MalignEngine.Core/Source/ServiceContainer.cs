@@ -93,7 +93,7 @@ public interface IServiceContainer : IDisposable
     /// Goes through the entire assembly and calls <see cref="RegisterAll{T}(ILifeTime?)"/> on all types that implement IService.
     /// </summary>
     /// <param name="assembly"></param>
-    public void RegisterAssembly(Assembly assembly);
+    public void RegisterAssembly(Assembly assembly, IEnumerable<Type> baseTypes, IEnumerable<Type> excludedBaseTypes);
 }
 
 public class ServiceContainer : IServiceContainer
@@ -112,8 +112,9 @@ public class ServiceContainer : IServiceContainer
         }
     }
 
-    private readonly Dictionary<Type, List<ServiceImplementation>> serviceInterfaces = new Dictionary<Type, List<ServiceImplementation>>();
-    private readonly HashSet<ILifeTime> lifeTimes = new HashSet<ILifeTime>();
+    private readonly Dictionary<Type, List<ServiceImplementation>> _serviceInterfaces = new Dictionary<Type, List<ServiceImplementation>>();
+    private readonly HashSet<ILifeTime> _lifeTimes = new HashSet<ILifeTime>();
+    private readonly HashSet<Type> _registeredImplementationTypes = new HashSet<Type>();
 
     public ServiceContainer(IServiceContainer? parent = null)
     {
@@ -176,16 +177,18 @@ public class ServiceContainer : IServiceContainer
     {
         lifetime = lifetime ?? new SingletonLifeTime();
 
-        if (!serviceInterfaces.ContainsKey(interfaceType))
+        if (!_serviceInterfaces.ContainsKey(interfaceType))
         {
-            serviceInterfaces[interfaceType] = new List<ServiceImplementation>();
+            _serviceInterfaces[interfaceType] = new List<ServiceImplementation>();
         }
 
-        serviceInterfaces[interfaceType].Add(new ServiceImplementation(implementationType, lifetime));
-        
-        if (!lifeTimes.Contains(lifetime))
+        _serviceInterfaces[interfaceType].Add(new ServiceImplementation(implementationType, lifetime));
+
+        _registeredImplementationTypes.Add(implementationType);
+
+        if (!_lifeTimes.Contains(lifetime))
         {
-            lifeTimes.Add(lifetime);
+            _lifeTimes.Add(lifetime);
         }
     }
 
@@ -216,9 +219,9 @@ public class ServiceContainer : IServiceContainer
         {
             Type elementType = serviceType.GetGenericArguments()[0];
 
-            if (serviceInterfaces.ContainsKey(elementType))
+            if (_serviceInterfaces.ContainsKey(elementType))
             {
-                List<object> instances = serviceInterfaces[elementType].Select(x => x.LifeTime.GetInstance(MakeInstanceFactory(x.Implementation))).ToList();
+                List<object> instances = _serviceInterfaces[elementType].Select(x => x.LifeTime.GetInstance(MakeInstanceFactory(x.Implementation))).ToList();
 
                 Array array = Array.CreateInstance(elementType, instances.Count);
                 
@@ -244,9 +247,9 @@ public class ServiceContainer : IServiceContainer
         }
         else
         {
-            if (serviceInterfaces.ContainsKey(serviceType))
+            if (_serviceInterfaces.ContainsKey(serviceType))
             {
-                instance = serviceInterfaces[serviceType].First().LifeTime.GetInstance(MakeInstanceFactory(serviceInterfaces[serviceType].First().Implementation));
+                instance = _serviceInterfaces[serviceType].First().LifeTime.GetInstance(MakeInstanceFactory(_serviceInterfaces[serviceType].First().Implementation));
                 return true;
             }
             else
@@ -272,7 +275,7 @@ public class ServiceContainer : IServiceContainer
 
     public void Dispose()
     {
-        foreach (ILifeTime lifeTime in lifeTimes.Reverse())
+        foreach (ILifeTime lifeTime in _lifeTimes.Reverse())
         {
             lifeTime.Dispose();
         }
@@ -299,11 +302,13 @@ public class ServiceContainer : IServiceContainer
         return false;
     }
 
-    public void RegisterAssembly(Assembly assembly)
+    public void RegisterAssembly(Assembly assembly, IEnumerable<Type> baseTypes, IEnumerable<Type> excludedBaseTypes)
     {
         foreach (Type type in assembly.GetTypes())
         {
-            if (type.IsAssignableTo(typeof(IService)))
+            if (_registeredImplementationTypes.Contains(type)) { continue; }
+
+            if (baseTypes.Any(b => type.IsAssignableTo(b)) && !excludedBaseTypes.Any(b => type.IsAssignableTo(b)))
             {
                 RegisterAll(type);
             }

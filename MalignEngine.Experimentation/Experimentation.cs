@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 
 namespace MalignEngine.Experimentation;
 
-class Experimentation : BaseSystem, ICameraDraw
+class Experimentation : EntitySystem, ICameraDraw
 {
     private ILogger _logger;
     private IRenderingAPI _renderAPI;
