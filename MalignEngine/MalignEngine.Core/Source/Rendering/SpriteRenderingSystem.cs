@@ -8,8 +8,6 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
     private IRenderingAPI _renderApi;
     private IPerformanceProfiler? _performanceProfiler;
 
-    private List<RenderData> renderData = [];
-
     private struct RenderData
     {
         public SpriteRenderer SpriteRenderer;
@@ -31,7 +29,7 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
 
     public void OnCameraDraw(float deltaTime, OrthographicCamera camera)
     {
-        renderData.Clear();
+        List<RenderData> renderData = new List<RenderData>();
 
         var query = new Query().WithAll<SpriteRenderer, WorldTransform>();
         World.Query(query, (Entity entity) =>
