@@ -30,6 +30,13 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
                 name = nameComponent.Value.Name;
             }
 
+            Vector4? color = null;
+
+            if (entity.TryGet(out ComponentRef<SceneComponent> sceneComponent))
+            {
+                color = new Vector4(0f, 0.2f, 0.9f, 1f);
+            }
+
             if (entity.TryGet(out ComponentRef<Children> children))
             {
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow;
@@ -39,8 +46,11 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
                     flags |= ImGuiTreeNodeFlags.Selected;
                 }
 
+                if (color != null) { ImGui.PushStyleColor(ImGuiCol.Text, color.Value); }
                 if (ImGui.TreeNodeEx($"{name} - {entity.Id}", flags))
                 {
+                    if (color != null) { ImGui.PopStyleColor(); }
+
                     if (ImGui.IsItemClicked())
                     {
                         EditorSystem.SelectedEntity = entity;
@@ -48,13 +58,6 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
 
                     RecursiveEntityTree(children.Value.Values.ToArray());
                     ImGui.TreePop();
-                }
-                else
-                {
-                    if (ImGui.IsItemClicked())
-                    {
-                        EditorSystem.SelectedEntity = entity;
-                    }
                 }
             }
             else
@@ -66,21 +69,17 @@ public class EditorInspectorSystem : BaseEditorWindowSystem
                     flags |= ImGuiTreeNodeFlags.Selected;
                 }
 
+                if (color != null) { ImGui.PushStyleColor(ImGuiCol.Text, color.Value); }
                 if (ImGui.TreeNodeEx($"{name} - {entity.Id}", flags))
                 {
+                    if (color != null) { ImGui.PopStyleColor(); }
+
                     if (ImGui.IsItemClicked())
                     {
                         EditorSystem.SelectedEntity = entity;
                     }
 
                     ImGui.TreePop();
-                }
-                else
-                {
-                    if (ImGui.IsItemClicked())
-                    {
-                        EditorSystem.SelectedEntity = entity;
-                    }
                 }
             }
         }

@@ -64,7 +64,11 @@ public class GLRenderingAPI : IRenderingAPI, IBeginFrame, IEndFrame, IDisposable
                 _logger.LogWarning($"{id}: {type} of {severity}, raised from {source}: {stringMessage}");
                 break;
             case GLEnum.DebugSeverityLow:
+                _logger.LogVerbose($"{id}: {type} of {severity}, raised from {source}: {stringMessage}");
+                break;
             case GLEnum.DebugSeverityNotification:
+                //_logger.LogVerbose($"{id}: {type} of {severity}, raised from {source}: {stringMessage}");
+                break;
             default:
                 _logger.LogVerbose($"{id}: {type} of {severity}, raised from {source}: {stringMessage}");
                 break;
@@ -118,7 +122,15 @@ public class GLRenderingAPI : IRenderingAPI, IBeginFrame, IEndFrame, IDisposable
 
                 if (_window.window.IsInitialized)
                 {
-                    _window.SwapBuffers();
+                    using (_performanceProfiler?.BeginSample("rendering.api.finish"))
+                    {
+                        _gl.Finish();
+                    }
+
+                    using (_performanceProfiler?.BeginSample("window.swapbuffers"))
+                    {
+                        _window.SwapBuffers();
+                    }
                 }
             }
 
