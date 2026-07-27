@@ -31,6 +31,8 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
     {
         List<RenderData> renderData = new List<RenderData>();
 
+        _performanceProfiler?.BeginSample("rendering.entity.sprite.query");
+
         var query = new Query().WithAll<SpriteRenderer, WorldTransform>();
         World.Query(query, (Entity entity) =>
         {
@@ -39,9 +41,11 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
             renderData.Add(new RenderData() { Transform = transform, SpriteRenderer = spriteRenderer });
         });
 
+        _performanceProfiler?.EndSample();
+
         _renderApi.Submit(ctx =>
         {
-            _performanceProfiler?.BeginSample("DrawSprites");
+            _performanceProfiler?.BeginSample("rendering.entity.sprite.draw");
 
             _renderer2D.Begin(ctx, camera.Matrix);
 

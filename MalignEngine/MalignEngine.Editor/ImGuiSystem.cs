@@ -106,7 +106,7 @@ public class ImGuiSystem : BaseSystem, IPostDraw
 
     public void Image(ITextureResource texture, Vector2 size)
     {
-        ImGui.Image((IntPtr)((GLTextureResource)texture).GetHandle(), size);
+        ImGui.Image((IntPtr)((GLTextureResource)texture).GetHandle(), size, new Vector2(0f, 1f), new Vector2(1f, 0f));
     }
 
     public bool ImageButton(string id, ITextureResource texture, Vector2 size)
