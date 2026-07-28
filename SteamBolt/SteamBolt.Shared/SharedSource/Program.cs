@@ -82,7 +82,7 @@ internal class Program
         application.ServiceContainer.RegisterAll<EditorPerformanceSystem>();
         application.ServiceContainer.RegisterAll<EditorAssetViewer>();
         entityManager.WorldContainer.RegisterAll<EditorSceneViewSystem>();
-        entityManager.WorldContainer.RegisterAll<EditorInspectorSystem>();
+        entityManager.WorldContainer.RegisterAll<EntityInspectorEditor>();
         entityManager.WorldContainer.RegisterAll<EditorTile>();
 #endif
 

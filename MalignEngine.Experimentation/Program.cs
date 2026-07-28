@@ -15,13 +15,7 @@ class Program
 
         entityManager.WorldContainer.RegisterAssembly(Assembly.GetExecutingAssembly(), [typeof(EntitySystem)], []);
 
-        application.ServiceContainer.RegisterAll<ImGuiSystem>();
-        application.ServiceContainer.RegisterAll<EditorSystem>();
-        application.ServiceContainer.RegisterAll<EditorConsole>();
-        application.ServiceContainer.RegisterAll<EditorPerformanceSystem>();
-        application.ServiceContainer.RegisterAll<EditorAssetViewer>();
-        entityManager.WorldContainer.RegisterAll<EditorSceneViewSystem>();
-        entityManager.WorldContainer.RegisterAll<EditorInspectorSystem>();
+        Editor.Defaults.Editor(application, entityManager);
 
         application.Initialize();
         eventLoop.Run();
