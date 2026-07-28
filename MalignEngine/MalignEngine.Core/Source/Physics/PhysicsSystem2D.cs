@@ -22,7 +22,12 @@ public interface IPhysicsSystem2D : IService
     Vector2 FromPhysics(Entity entity, Vector2 physics);
 }
 
-public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
+public interface PhysicsStep : ISchedule
+{
+    void DoPhysicsStep(float deltatime);
+}
+
+public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, PhysicsStep
 {
     [Dependency]
     protected IPerformanceProfiler? _performanceProfiler;
@@ -115,7 +120,7 @@ public class PhysicsSystem2D : EntitySystem, IPhysicsSystem2D, IPostUpdate
         }
     }
 
-    public void OnPostUpdate(float deltaTime)
+    public void DoPhysicsStep(float deltaTime)
     {
         // Add physics bodies to simulation
         EntityManager.Query(new Query().Include<PhysicsBody2D>().Exclude<PhysicsSim>(), (Entity entity) =>

@@ -3,7 +3,7 @@ using MalignEngine.Network;
 
 namespace SteamBolt;
 
-public class SessionHandler : ISessionHandler
+public class SessionHandler : IService, ISessionHandler
 {
     private class AuthData : INetworkSerializable
     {

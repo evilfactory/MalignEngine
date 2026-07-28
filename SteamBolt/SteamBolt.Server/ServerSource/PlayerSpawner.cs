@@ -3,7 +3,7 @@ using MalignEngine.Network;
 
 namespace SteamBolt;
 
-public class PlayerSpawnerSystem : BaseSystem, IClientSessionStarted
+public class PlayerSpawnerSystem : EntitySystem, IClientSessionStarted
 {
     private EntityNetworkSystem _entityNetworkSystem;
     private IAssetService _assetService;

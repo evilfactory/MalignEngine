@@ -7,7 +7,7 @@ using System.Xml.Linq;
 
 namespace SteamBolt;
 
-public class EditorTile : BaseEditorWindowSystem, ICameraDraw
+public class EditorTile : BaseEditorWindowSystem, ICameraDraw, IEntitySystem
 {
     [Dependency]
     protected IAssetService AssetService = default!;

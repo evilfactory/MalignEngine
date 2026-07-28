@@ -4,11 +4,6 @@ using System.Numerics;
 
 namespace SteamBolt;
 
-public struct TileRendererComponent : IComponent
-{
-    public Entity TileMapEntity;
-}
-
 public class TileRenderer : EntitySystem, ICameraDraw
 {
     [Dependency]

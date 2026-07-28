@@ -1,19 +1,20 @@
 using System.ComponentModel.Design;
 using System.Reflection;
 
-namespace MalignEngine
+namespace MalignEngine;
+
+public interface IEntitySystem : IService { }
+
+public abstract class EntitySystem : BaseSystem, IEntitySystem
 {
-    public abstract class EntitySystem : BaseSystem
+    protected readonly IEntityManager EntityManager = default!;
+    protected readonly IEventService EventService = default!; 
+
+    protected IWorld World => EntityManager.World;
+
+    protected EntitySystem(IServiceContainer serviceContainer) : base(serviceContainer)
     {
-        protected readonly IEntityManager EntityManager = default!;
-        protected readonly IEventService EventService = default!; 
-
-        protected IWorld World => EntityManager.World;
-
-        protected EntitySystem(IServiceContainer serviceContainer) : base(serviceContainer)
-        {
-            EntityManager = serviceContainer.GetInstance<IEntityManager>();
-            EventService = serviceContainer.GetInstance<IEventService>();
-        }
+        EntityManager = serviceContainer.GetInstance<IEntityManager>();
+        EventService = serviceContainer.GetInstance<IEventService>();
     }
 }

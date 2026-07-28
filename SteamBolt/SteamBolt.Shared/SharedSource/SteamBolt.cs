@@ -6,14 +6,15 @@ using System.Numerics;
 
 namespace SteamBolt;
 
-public class SteamBolt : ISystem
+public class SteamBolt : EntitySystem
 {
-    public SteamBolt(ILoggerService loggerService,
+    public SteamBolt(IServiceContainer container,
+        ILoggerService loggerService,
         INetworkService _network,
         IAssetService assetService,
         IEntityManager entityManager,
         ITileSystem tileSystem,
-        SceneSystem sceneSystem)
+        SceneSystem sceneSystem) : base(container)
     {
         assetService.Mount("/Content/", new FileAssetSource("Content/"));
 

@@ -11,7 +11,7 @@ public interface IReplicator
     void Deserialize(ReplicationContext context, Entity entity, IReadMessage message);
 }
 
-public abstract class Replicator<T> : IReplicator where T : IComponent
+public abstract class Replicator<T> : IReplicator, IEntitySystem where T : IComponent
 {
     public abstract PacketChannel Channel { get; }
 
