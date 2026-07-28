@@ -14,7 +14,7 @@ public class ButtonStyle : Style
 public class Button : Widget
 {
     private readonly ButtonStyle _style;
-
+    public event Action ButtonClicked;
     public Border Border { get; }
     public TextBlock TextBlock { get; }
 
@@ -76,6 +76,8 @@ public class Button : Widget
     public override void OnClick(MouseButton button)
     {
         currentColor = _style.ClickColor;
+
+        ButtonClicked?.Invoke();
     }
 
     public override void OnMouseEnter()
