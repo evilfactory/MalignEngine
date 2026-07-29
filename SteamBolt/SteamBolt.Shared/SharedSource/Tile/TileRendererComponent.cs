@@ -4,5 +4,5 @@ namespace SteamBolt;
 
 public struct TileRendererComponent : IComponent
 {
-    public Entity TileMapEntity;
+    public Entity TileMap;
 }

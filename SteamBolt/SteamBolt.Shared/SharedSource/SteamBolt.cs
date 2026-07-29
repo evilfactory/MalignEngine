@@ -25,6 +25,13 @@ public class SteamBolt : EntitySystem
 
         assetService.PreLoadAsync(manifest).Wait();
 
+        Entity staticTileMap = tileSystem.CreateEmptyTileMap();
+
+        staticTileMap.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Static });
+        staticTileMap.AddOrSet(new Transform() { Position = new Vector3(0, 0, 0), Scale = Vector3.One });
+        staticTileMap.AddOrSet(new TileCollisionComponent() { TileMap = staticTileMap });
+        staticTileMap.AddOrSet(new TileRendererComponent() { TileMap = staticTileMap });
+
         for (int j = 1; j <= 2; j++)
         {
             Scene scene = assetService.FromPath<Scene>("/Content/Map.xml");
@@ -44,7 +51,7 @@ public class SteamBolt : EntitySystem
             exterior.AddOrSet(new PhysicsBody2D() { BodyType = PhysicsBodyType.Dynamic });
             exterior.AddOrSet(new Transform() { Position = new Vector3(5 * (j - 1), 0, 0), Scale = Vector3.One });
             exterior.AddOrSet(new TileCollisionComponent() { TileMap = interior });
-            exterior.AddOrSet(new TileRendererComponent() { TileMapEntity = interior });
+            exterior.AddOrSet(new TileRendererComponent() { TileMap = interior });
             exterior.AddOrSet(new ShipExteriorComponent() { Ship = ship });
 
             for (int i = 0; i < 4; i++)

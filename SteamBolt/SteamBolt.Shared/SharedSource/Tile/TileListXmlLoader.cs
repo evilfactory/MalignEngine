@@ -8,13 +8,11 @@ public class TileListXmlLoader : XmlAssetLoader<TileList>
 {
     public string RootName => "TileList";
 
-    private IAssetService _assetService;
-    private ILogger _logger;
+    private XmlSerializer _xmlSerializer;
 
-    public TileListXmlLoader(IAssetService assetService, ILoggerService loggerService)
+    public TileListXmlLoader(XmlSerializer xmlSerializer)
     {
-        _logger = loggerService.GetSawmill("loader.tilelist");
-        _assetService = assetService;
+        _xmlSerializer = xmlSerializer;
     }
 
     public Type GetAssetType() => typeof(TileList);
@@ -27,19 +25,9 @@ public class TileListXmlLoader : XmlAssetLoader<TileList>
 
         foreach (XElement child in element.Elements())
         {
-            string? identifier = child.Attribute("Identifier")?.Value;
-            string? spritePath = child.Attribute("Sprite")?.Value;
-            string? layerId = child.Attribute("Layer")?.Value;
-
-            if (identifier == null || spritePath == null || layerId == null)
-            {
-                _logger.LogWarning($"missing attribute {identifier} {spritePath} {layerId}");
-                continue;
-            }
-
-            AssetHandle<Sprite> sprite = _assetService.FromPath<Sprite>(spritePath);
-
-            definitions.Add(new TileDefinition(identifier, layerId, sprite));
+            TileDefinition tileDefinition = new TileDefinition();
+            _xmlSerializer.DeserializeObject(tileDefinition, child);
+            definitions.Add(tileDefinition);
         }
 
         TileList tileList = new TileList(definitions);

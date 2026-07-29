@@ -33,6 +33,7 @@ internal class Program
 #if SERVER
         application.ServiceContainer.RegisterAll<ServerSessionSystem>();
         application.ServiceContainer.RegisterAll<DummySpriteXmlAssetLoader>();
+        application.ServiceContainer.RegisterAll<DummyTextureAssetLoader>();
         application.ServiceContainer.RegisterAll<NetworkServer>();
 #elif CLIENT
         application.ServiceContainer.RegisterAll<ClientSessionSystem>();

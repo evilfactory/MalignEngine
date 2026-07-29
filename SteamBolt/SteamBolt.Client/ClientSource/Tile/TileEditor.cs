@@ -101,7 +101,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw, IEntitySystem
 
             foreach (TileDefinition tile in selectedTileList.Definitions)
             {
-                if (ImGuiService.ImageButton(tile.Identifier, tile.Sprite.Asset.Texture.Resource, new Vector2(100, 100), tile.Sprite.Asset.UV1, tile.Sprite.Asset.UV2))
+                if (ImGuiService.ImageButton(tile.Identifier, tile.Icon.Asset.Texture.Resource, new Vector2(100, 100), tile.Icon.Asset.UV1, tile.Icon.Asset.UV2))
                 {
                     _selectedTileDefinition = tile;
                 }
@@ -157,7 +157,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw, IEntitySystem
             Vector2 mousePosition = EditorSceneViewSystem.WorldMousePosition;
 
             Renderer2D.Begin(ctx);
-            SpriteRenderingSystem.DrawSprite(_selectedTileDefinition.Sprite, new Vector2((int)MathF.Round(mousePosition.X), (int)MathF.Round(mousePosition.Y)), Vector2.One, Color.White);
+            SpriteRenderingSystem.DrawSprite(_selectedTileDefinition.Icon, new Vector2((int)MathF.Round(mousePosition.X), (int)MathF.Round(mousePosition.Y)), Vector2.One, Color.White);
             Renderer2D.End();
         });
     }
