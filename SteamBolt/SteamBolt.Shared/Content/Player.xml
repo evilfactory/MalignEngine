@@ -14,7 +14,7 @@
 				<PlayerInputComponent />
 				<PhysicsBody2D BodyType="Dynamic" Mass="1">
 						<Fixtures>
-								<Fixture Density="10" Friction="0.2" Restitution="0" Type="RectangleShape2D" Width="1" Height="1"/>
+								<Fixture Density="10" Friction="0.2" Restitution="0" Type="RectangleShape2D" Width="0.8" Height="0.8"/>
 						</Fixtures>
 				</PhysicsBody2D>
 				<ShipSpaceControllerComponent/>

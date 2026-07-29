@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <TileList>
-		<TileData Identifier="wall" Icon="/Content/Tiles/WallSprite.xml" Texture="/Content/Tiles/TestQuarterTile.png" Columns="2" Rows="2" LayerId="wall" TileSize="32" />
-		<TileData Identifier="background" Icon="/Content/Tiles/BackgroundSprite.xml" Texture="/Content/Tiles/TestQuarterTile.png" Columns="2" Rows="2" LayerId="background" TileSize="32" />
+		<TileData Identifier="wall" Icon="/Content/Tiles/WallSprite.xml" Texture="/Content/Tiles/BlobTilesetTest.png" Columns="15" Rows="1" LayerId="wall" />
+		<TileData Identifier="background" Icon="/Content/Tiles/BackgroundSprite.xml" Texture="/Content/Tiles/BlobTilesetTest.png" Columns="15" Rows="1" LayerId="background" />
 </TileList>

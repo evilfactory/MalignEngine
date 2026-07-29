@@ -40,10 +40,12 @@ public class TileRenderer : EntitySystem, ICameraDraw
             ref TileRendererComponent tileRendererComponent = ref entity.Get<TileRendererComponent>();
 
             Vector2 position = Vector2.Zero;
+            Vector2 scale = Vector2.One;
 
             if (entity.TryGet(out ComponentRef<Transform> transform))
             {
                 position = transform.Value.Position.ToVector2();
+                scale = transform.Value.Scale.ToVector2();
             }
 
             TileMapComponent map = tileRendererComponent.TileMap.Get<TileMapComponent>();
@@ -67,15 +69,22 @@ public class TileRenderer : EntitySystem, ICameraDraw
                         bool sw = s && w && HasTile(tiles, point.X - 1, point.Y - 1, tile);
                         bool se = s && e && HasTile(tiles, point.X + 1, point.Y - 1, tile);
 
-                        QuarterShape topLeft = Resolve(n, w, nw);
-                        QuarterShape topRight = Resolve(n, e, ne);
-                        QuarterShape bottomRight = Resolve(s, e, se);
-                        QuarterShape bottomLeft = Resolve(s, w, sw);
+                        int bitwiseIndex = 
+                            (n ? 1 : 0) + 
+                            (ne ? 2 : 0) + 
+                            (e ? 4 : 0) + 
+                            (se ? 8 : 0) + 
+                            (s ? 16 : 0) + 
+                            (sw ? 32 : 0) + 
+                            (w ? 64 : 0) + 
+                            (nw ? 128 : 0);
 
-                        DrawQuarter(tile, position + new Vector2(point.X, point.Y), topLeft, QuarterPosition.TopLeft, layer.Order, GetEdgeRotation(QuarterPosition.TopLeft, n, w));
-                        DrawQuarter(tile, position + new Vector2(point.X, point.Y), topRight, QuarterPosition.TopRight, layer.Order, GetEdgeRotation(QuarterPosition.TopRight, n, e));
-                        DrawQuarter(tile, position + new Vector2(point.X, point.Y), bottomRight, QuarterPosition.BottomRight, layer.Order, GetEdgeRotation(QuarterPosition.BottomRight, s, e));
-                        DrawQuarter(tile, position + new Vector2(point.X, point.Y), bottomLeft, QuarterPosition.BottomLeft, layer.Order, GetEdgeRotation(QuarterPosition.BottomLeft, s, w));
+                        (int atlasIndex, float rotation) = DetermineFromBitMask(bitwiseIndex);
+
+                        (Vector2 uv0, Vector2 uv1) = tile.Definition.GetTileUVs(atlasIndex);
+
+                        _renderer2D.DrawTexture2D(tile.Definition.Texture.Asset.Resource, position + new Vector2(point.X, point.Y) * scale, scale, uv0, uv1, Color.White, rotation, layer.Order);
+
                     }
                     _renderer2D.End();
                 });
@@ -83,86 +92,75 @@ public class TileRenderer : EntitySystem, ICameraDraw
         });
     }
 
-    private static (Vector2 Offset, float Rotation) GetQuarterTransform(QuarterPosition position)
-    {
-        return position switch
-        {
-            QuarterPosition.TopLeft => (new Vector2(-0.25f, 0.25f), MathF.PI),
-            QuarterPosition.TopRight => (new Vector2(0.25f, 0.25f), MathF.PI / 2f),
-            QuarterPosition.BottomRight => (new Vector2(0.25f, -0.25f), 0f),
-            QuarterPosition.BottomLeft => (new Vector2(-0.25f, -0.25f), MathF.PI * 1.5f),
-
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
-
     private static bool HasTile(Dictionary<Vector2D<int>, Tile> tiles, int x, int y, Tile current)
     {
         return tiles.TryGetValue(new Vector2D<int>(x, y), out Tile other) && other.Definition == current.Definition;
     }
 
-    private void DrawQuarter(Tile tile, Vector2 position, QuarterShape shape, QuarterPosition quarterPosition, int layer, float rotation)
+    private (int AtlasIndex, float Rotation) DetermineFromBitMask(int bitMask)
     {
-        (Vector2 offset, float quarterRotation) = GetQuarterTransform(quarterPosition);
+        if (bitMask == 0) { return (0, 0f); }
 
-        (Vector2 uv0, Vector2 uv1) = tile.Definition.GetTileUVs((int)shape);
+        if (bitMask == 1) { return (1, 0f); }
+        if (bitMask == 4) { return (1, MathF.PI * 1.5f); }
+        if (bitMask == 16) { return (1, MathF.PI); }
+        if (bitMask == 64) { return (1, MathF.PI * 0.5f); }
 
-        _renderer2D.DrawTexture2D(tile.Definition.Texture.Asset.Resource, position + offset, new Vector2(0.5f, 0.5f), uv0, uv1, Color.White, quarterRotation, layer);
-    }
+        if (bitMask == 5) { return (2, 0f); }
+        if (bitMask == 20) { return (2, MathF.PI * 1.5f); }
+        if (bitMask == 80) { return (2, MathF.PI); }
+        if (bitMask == 65) { return (2, MathF.PI * 0.5f); }
 
-    private static float GetEdgeRotation(QuarterPosition position, bool sideA, bool sideB)
-    {
-        return position switch
-        {
-            QuarterPosition.TopLeft => (sideA, sideB) switch
-            {
-                (true, false) => MathF.PI / 2f,
-                (false, true) => 0f,
-                _ => 0f
-            },
+        if (bitMask == 7) { return (3, 0f); }
+        if (bitMask == 28) { return (3, MathF.PI * 1.5f); }
+        if (bitMask == 112) { return (3, MathF.PI); }
+        if (bitMask == 193) { return (3, MathF.PI * 0.5f); }
 
-            QuarterPosition.TopRight => (sideA, sideB) switch
-            {
-                (true, false) => MathF.PI,
-                (false, true) => MathF.PI / 2f,
-                _ => 0f
-            },
+        if (bitMask == 17) { return (4, 0f); }
+        if (bitMask == 68) { return (4, MathF.PI * 0.5f); }
 
-            QuarterPosition.BottomRight => (sideA, sideB) switch
-            {
-                (true, false) => MathF.PI * 1.5f,
-                (false, true) => MathF.PI,
-                _ => 0f
-            },
+        if (bitMask == 21) { return (5, 0f); }
+        if (bitMask == 84) { return (5, MathF.PI * 1.5f); }
+        if (bitMask == 81) { return (5, MathF.PI); }
+        if (bitMask == 69) { return (5, MathF.PI * 0.5f); }
 
-            QuarterPosition.BottomLeft => (sideA, sideB) switch
-            {
-                (true, false) => 0f,
-                (false, true) => MathF.PI * 1.5f,
-                _ => 0f
-            },
+        if (bitMask == 23) { return (6, 0f); }
+        if (bitMask == 92) { return (6, MathF.PI * 1.5f); }
+        if (bitMask == 113) { return (6, MathF.PI); }
+        if (bitMask == 197) { return (6, MathF.PI * 0.5f); }
 
-            _ => 0f
-        };
-    }
+        if (bitMask == 29) { return (7, 0f); }
+        if (bitMask == 116) { return (7, MathF.PI * 1.5f); }
+        if (bitMask == 209) { return (7, MathF.PI); }
+        if (bitMask == 71) { return (7, MathF.PI * 0.5f); }
 
-    private static QuarterShape Resolve(bool sideA, bool sideB, bool diagonal)
-    {
-        if (!sideA && !sideB)
-        {
-            return QuarterShape.Outer;
-        }
+        if (bitMask == 31) { return (8, 0f); }
+        if (bitMask == 124) { return (8, MathF.PI * 1.5f); }
+        if (bitMask == 241) { return (8, MathF.PI); }
+        if (bitMask == 199) { return (8, MathF.PI * 0.5f); }
 
-        if (!sideA || !sideB)
-        {
-            return QuarterShape.Edge;
-        }
+        if (bitMask == 85) { return (9, 0f); }
 
-        if (!diagonal)
-        {
-            return QuarterShape.Inner;
-        }
+        if (bitMask == 87) { return (10, 0f); }
+        if (bitMask == 93) { return (10, MathF.PI * 1.5f); }
+        if (bitMask == 117) { return (10, MathF.PI); }
+        if (bitMask == 213) { return (10, MathF.PI * 0.5f); }
 
-        return QuarterShape.Full;
+        if (bitMask == 95) { return (11, 0f); }
+        if (bitMask == 125) { return (11, MathF.PI * 1.5f); }
+        if (bitMask == 245) { return (11, MathF.PI); }
+        if (bitMask == 215) { return (11, MathF.PI * 0.5f); }
+
+        if (bitMask == 119) { return (12, 0f); }
+        if (bitMask == 221) { return (12, MathF.PI * 0.5f); }
+
+        if (bitMask == 127) { return (13, 0f); }
+        if (bitMask == 253) { return (13, MathF.PI * 1.5f); }
+        if (bitMask == 247) { return (13, MathF.PI); }
+        if (bitMask == 223) { return (13, MathF.PI * 0.5f); }
+
+        if (bitMask == 255) { return (14, 0f); }
+
+        return (0, 0f);
     }
 }
