@@ -34,8 +34,8 @@ public class TextField : Widget
 
         TextBlock = new TextBlock(style.TextStyle);
 
-        Border.AddChild(TextBlock);
-        AddChild(Border);
+        Border.Parent = TextBlock;
+        Border.Parent = this;
 
         IsHitTestVisibile = true;
     }

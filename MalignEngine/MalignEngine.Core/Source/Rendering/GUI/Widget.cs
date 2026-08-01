@@ -7,7 +7,24 @@ public enum VerticalAlignment { Top, Center, Bottom };
 
 public abstract class Widget
 {
-    public Widget? Parent { get; private set; }
+    public Widget? Parent
+    {
+        get => _parent;
+        set
+        {
+            if (_parent != null)
+            {
+                _parent._children.Remove(this);
+            }
+
+            if (value != null)
+            {
+                value._children.Add(this);
+            }
+
+            _parent = value;
+        }
+    }
     public IReadOnlyList<Widget> Children => _children;
     public RectangleF Bounds { get; set; }
 
@@ -23,12 +40,7 @@ public abstract class Widget
     public Vector2 DesiredSize { get; private set; }
 
     private readonly List<Widget> _children = [];
-
-    public void AddChild(Widget child)
-    {
-        child.Parent = this;
-        _children.Add(child);
-    }
+    private Widget? _parent;
 
     public virtual void Draw(IUIPainter painter)
     {

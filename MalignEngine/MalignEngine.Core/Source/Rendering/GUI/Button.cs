@@ -43,8 +43,8 @@ public class Button : Widget
             VerticalAlignment = VerticalAlignment.Center
         };
 
-        Border.AddChild(TextBlock);
-        AddChild(Border);
+        TextBlock.Parent = Border;
+        Border.Parent = this;
 
         currentColor = style.Color;
         targetColor = style.Color;

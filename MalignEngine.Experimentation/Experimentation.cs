@@ -258,24 +258,24 @@ class Experimentation : EntitySystem, ICameraDraw
             Sprite = sprite
         };
 
-        flex.AddChild(border1);
-        flex2.AddChild(border2);
-        flex2.AddChild(border3);
+        border1.Parent = flex;
+        border2.Parent = flex2;
+        border3.Parent = flex2;
 
-        flex.AddChild(flex2);
+        flex2.Parent = flex;
 
-        border.AddChild(stack);
+        stack.Parent = border;
 
-        stack.AddChild(text);
-        stack.AddChild(button);
-        stack.AddChild(button2);
-        stack.AddChild(button3);
-        stack.AddChild(button4);
-        stack.AddChild(textField);
-        stack.AddChild(flex);
-        stack.AddChild(image);
+        text.Parent = stack;
+        button.Parent = stack;
+        button2.Parent = stack;
+        button3.Parent = stack;
+        button4.Parent = stack;
+        textField.Parent = stack;
+        flex.Parent = stack;
+        image.Parent = stack;
 
-        uiManager.Root.AddChild(border);
+        border.Parent = uiManager.Root;
     }
 
     public override void OnUpdate(float deltaTime)

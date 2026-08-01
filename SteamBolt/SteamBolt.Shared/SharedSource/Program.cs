@@ -17,6 +17,8 @@ internal class Program
         application.ServiceContainer.RegisterAll<Renderer2D>();
         application.ServiceContainer.RegisterAll<FontRenderer>();
         application.ServiceContainer.RegisterAll<InputService>();
+        application.ServiceContainer.RegisterAll<UIManager>();
+        application.ServiceContainer.RegisterAll<UIPainter>();
 #endif
         application.ServiceContainer.RegisterAll<EntitySerializer>();
 
