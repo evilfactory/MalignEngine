@@ -6,22 +6,6 @@ namespace SteamBolt;
 
 public class TileRenderer : EntitySystem, ICameraDraw
 {
-    public enum QuarterShape
-    {
-        Full = 2,
-        Edge = 3,
-        Inner = 0,
-        Outer = 1
-    }
-
-    public enum QuarterPosition
-    {
-        TopLeft,
-        TopRight,
-        BottomRight,
-        BottomLeft
-    }
-
     [Dependency]
     private IRenderingAPI _renderAPI = null!;
     [Dependency]

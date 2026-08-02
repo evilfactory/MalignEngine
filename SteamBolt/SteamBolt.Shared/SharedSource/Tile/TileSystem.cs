@@ -8,7 +8,7 @@ public struct UpdateTileEvent : IEvent
     public Entity TileMapEntity;
     public TileMapComponent TileMapComponent;
     public TileLayer TileLayer;
-    public Vector2D<int> TilePosition;
+    public Point TilePosition;
     public Tile? NewTile;
 }
 
@@ -25,9 +25,9 @@ public class TileMapComponent : IComponent
 public interface ITileSystem
 {
     Entity CreateEmptyTileMap();
-    void SetTile(Entity tileMapEntity, string layerId, Vector2D<int> position, TileDefinition tileDefinition);
-    void RemoveTile(Entity tileMapEntity, string layerId, Vector2D<int> position);
-    Tile? GetTile(Entity tileMapEntity, string layerId, Vector2D<int> position);
+    void SetTile(Entity tileMapEntity, string layerId, Point position, TileDefinition tileDefinition);
+    void RemoveTile(Entity tileMapEntity, string layerId, Point position);
+    Tile? GetTile(Entity tileMapEntity, string layerId, Point position);
 }
 
 public class TileSystem : EntitySystem, ITileSystem
@@ -47,7 +47,25 @@ public class TileSystem : EntitySystem, ITileSystem
         return entity;
     }
 
-    public void SetTile(Entity tileMapEntity, string layerId, Vector2D<int> position, TileDefinition tileDefinition)
+    private Point TileToChunk(Point tilePosition)
+    {
+        return new Point(tilePosition.X / TileChunk.ChunkSize, tilePosition.Y / TileChunk.ChunkSize);
+    }
+
+    private TileChunk GetOrCreateChunk(TileLayer layer, Point tilePosition)
+    {
+        Point chunkPosition = TileToChunk(tilePosition);
+        if (layer.Chunks.TryGetValue(chunkPosition, out TileChunk? chunk))
+        {
+            return chunk;
+        }
+
+        chunk = new TileChunk();
+        layer.Chunks[chunkPosition] = chunk;
+        return chunk;
+    }
+
+    public void SetTile(Entity tileMapEntity, string layerId, Point position, TileDefinition tileDefinition)
     {
         TileMapComponent tileMapComponent = tileMapEntity.Get<TileMapComponent>();
         TileLayer layer = tileMapComponent.Layers.First(layer => layer.LayerId == layerId);
@@ -67,7 +85,7 @@ public class TileSystem : EntitySystem, ITileSystem
         });
     }
 
-    public void RemoveTile(Entity tileMapEntity, string layerId, Vector2D<int> position)
+    public void RemoveTile(Entity tileMapEntity, string layerId, Point position)
     {
         TileMapComponent tileMapComponent = tileMapEntity.Get<TileMapComponent>();
         TileLayer layer = tileMapComponent.Layers.First(layer => layer.LayerId == layerId);
@@ -84,7 +102,7 @@ public class TileSystem : EntitySystem, ITileSystem
         });
     }
 
-    public Tile? GetTile(Entity tileMapEntity, string layerId, Vector2D<int> position)
+    public Tile? GetTile(Entity tileMapEntity, string layerId, Point position)
     {
         TileMapComponent tileMapComponent = tileMapEntity.Get<TileMapComponent>();
         TileLayer layer = tileMapComponent.Layers.First(layer => layer.LayerId == layerId);

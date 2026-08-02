@@ -2,5 +2,5 @@ namespace SteamBolt;
 
 public struct Tile
 {
-    public TileDefinition Definition;
+    public TileDefinition? Definition;
 }
