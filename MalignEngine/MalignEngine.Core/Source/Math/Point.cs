@@ -9,7 +9,7 @@ using System.Numerics;
 namespace MalignEngine;
 
 /// <summary>
-/// Describes a 2D-point.
+/// Describes a 2D integer point.
 /// </summary>
 [DebuggerDisplay("{DebugDisplayString,nq}")]
 public struct Point : IEquatable<Point>

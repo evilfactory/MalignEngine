@@ -147,7 +147,7 @@ public class EditorTile : BaseEditorWindowSystem, ICameraDraw, IEntitySystem
         }
     }
 
-    public void OnCameraDraw(float delta, OrthographicCamera camera)
+    public void OnCameraDraw(CameraDrawContext context)
     {
         if (!EditorSceneViewSystem.IsWindowHovered) { return; }
         if (_selectedTileMap == null || _selectedTileDefinition == null) { return; }

@@ -275,7 +275,17 @@ class Experimentation : EntitySystem, ICameraDraw
         flex.Parent = stack;
         image.Parent = stack;
 
-        border.Parent = uiManager.Root;
+        //border.Parent = uiManager.Root;
+
+        for (int x = 0; x < 256; x++)
+        {
+            for (int y = 0; y < 256; y++)
+            {
+                AssetHandle<Scene> scene2 = _assetService.FromPath<Scene>("/Content/FooScene2.xml");
+                var newEntity = _sceneSystem.Instantiate(scene2);
+                newEntity.Get<Transform>().Position = new Vector3(x, y, 0);
+            }
+        }
     }
 
     public override void OnUpdate(float deltaTime)
@@ -310,7 +320,7 @@ class Experimentation : EntitySystem, ICameraDraw
         entity.Get<Transform>().Position += mov.ToVector3();
     }
 
-    public void OnCameraDraw(float delta, OrthographicCamera camera)
+    public void OnCameraDraw(CameraDrawContext context)
     {
         _renderAPI.Submit(ctx =>
         {

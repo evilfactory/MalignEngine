@@ -163,7 +163,7 @@ class Experimentation : BaseSystem, ICameraDraw
         entity.Get<Transform>().Position += mov.ToVector3();
     }
 
-    public void OnCameraDraw(float delta, OrthographicCamera camera)
+    public void OnCameraDraw(CameraDrawContext context)
     {
     }
 

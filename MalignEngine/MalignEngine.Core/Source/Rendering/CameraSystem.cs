@@ -2,9 +2,18 @@ using System.Numerics;
 
 namespace MalignEngine;
 
+public readonly struct CameraDrawContext
+{
+    public OrthographicCamera Camera { get; init; }
+    public Vector3 Position { get; init; }
+    public float Rotation { get; init; }
+    public IRenderingAPI Renderer { get; init; }
+    public float DeltaTime { get; init; }
+}
+
 public interface ICameraDraw : ISchedule
 {
-    public void OnCameraDraw(float delta, OrthographicCamera camera);
+    public void OnCameraDraw(CameraDrawContext context);
 }
 
 public struct CameraRenderData : IComponent
@@ -62,6 +71,11 @@ public class CameraSystem : EntitySystem
                 camera.Height = _windowService.FrameSize.Y;
             }
 
+            float halfWidth = camera.Width * 0.5f;
+            float halfHeight = camera.Height * 0.5f;
+
+            camera.VisibleBounds = new RectangleF(worldTransform.Position.X - halfWidth, worldTransform.Position.Y - halfHeight, camera.Width, camera.Height);
+
             camera.Matrix = CreateOrthographicMatrix(renderData.Output.Width, renderData.Output.Height, camera.ViewSize, worldTransform.Position.ToVector2());
 
             cameraEntities.Add(entity);
@@ -76,6 +90,7 @@ public class CameraSystem : EntitySystem
         {
             OrthographicCamera camera = cameraEntity.Get<OrthographicCamera>();
             CameraRenderData renderData = cameraEntity.Get<CameraRenderData>();
+            WorldTransform worldTransform = cameraEntity.Get<WorldTransform>();
 
             _renderApi.Submit(ctx =>
             {
@@ -85,7 +100,16 @@ public class CameraSystem : EntitySystem
                 ctx.Clear(camera.ClearColor);
             });
 
-            ScheduleManager.Run<ICameraDraw>(e => e.OnCameraDraw(delta, camera));
+            CameraDrawContext drawContext = new CameraDrawContext()
+            {
+                Camera = camera,
+                Position = worldTransform.Position,
+                Rotation = worldTransform.GetRotation2D(),
+                Renderer = _renderApi,
+                DeltaTime = delta,
+            };
+
+            ScheduleManager.Run<ICameraDraw>(e => e.OnCameraDraw(drawContext));
 
             if (camera.PostProcessingSteps != null)
             {

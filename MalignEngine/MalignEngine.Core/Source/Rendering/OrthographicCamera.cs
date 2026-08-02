@@ -15,5 +15,7 @@ public struct OrthographicCamera : IComponent
     public Matrix4x4 Matrix;
     public int Width, Height;
 
+    public RectangleF VisibleBounds;
+
     public PostProcessBaseSystem[] PostProcessingSteps;
 }

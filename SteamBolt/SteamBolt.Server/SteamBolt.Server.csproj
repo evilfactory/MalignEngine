@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\MalignEngine\MalignEngine.Core\MalignEngine.Core.csproj" />
+    <ProjectReference Include="..\..\MalignEngine\MalignEngine.Platform.Desktop\MalignEngine.Platform.Desktop.csproj" />
     <ProjectReference Include="..\..\MalignEngine\MalignEngine.Network\MalignEngine.Network.csproj" />
   </ItemGroup>
 

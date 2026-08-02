@@ -27,7 +27,7 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
         _renderer2D.DrawTexture2D(sprite.Texture.Resource, position, scale, new Vector2(sprite.UV1.X, 1f - sprite.UV2.Y), new Vector2(sprite.UV2.X, 1f - sprite.UV1.Y), color, rotation, depth);
     }
 
-    public void OnCameraDraw(float deltaTime, OrthographicCamera camera)
+    public void OnCameraDraw(CameraDrawContext context)
     {
         List<RenderData> renderData = new List<RenderData>();
 
@@ -38,6 +38,15 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
         {
             ref WorldTransform transform = ref entity.Get<WorldTransform>();
             ref SpriteRenderer spriteRenderer = ref entity.Get<SpriteRenderer>();
+
+            Vector2 halfSize = transform.Scale.ToVector2() / 2f;
+            RectangleF worldBounds = new(transform.Position.X - halfSize.X, transform.Position.Y - halfSize.Y, halfSize.X * 2, halfSize.Y * 2);
+
+            if (!context.Camera.VisibleBounds.Intersects(worldBounds))
+            {
+                return;
+            }
+
             renderData.Add(new RenderData() { Transform = transform, SpriteRenderer = spriteRenderer });
         });
 
@@ -47,7 +56,7 @@ public class SpriteRenderingSystem : EntitySystem, ICameraDraw
         {
             _performanceProfiler?.BeginSample("rendering.entity.sprite.draw");
 
-            _renderer2D.Begin(ctx, camera.Matrix);
+            _renderer2D.Begin(ctx, context.Camera.Matrix);
 
             for (int i = 0; i < renderData.Count; i++)
             {
