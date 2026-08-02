@@ -8,6 +8,14 @@
     <DefineConstants>$(DefineConstants);SERVER</DefineConstants>
   </PropertyGroup>
 
-  <Import Project="..\SteamBolt.Shared\SteamBolt.Shared.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\MalignEngine\MalignEngine.Core\MalignEngine.Core.csproj" />
+    <ProjectReference Include="..\..\MalignEngine\MalignEngine.Network\MalignEngine.Network.csproj" />
+  </ItemGroup>
+
   <Import Project="..\SteamBolt.Shared\Content.props" />
+
+  <ItemGroup>
+    <Compile Include="..\SteamBolt.Shared\SharedSource\**\*.cs" Link="SharedSource\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>
