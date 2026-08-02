@@ -16,6 +16,9 @@ public class HierarchySystem : EntitySystem
 {
     private readonly Dictionary<Entity, Entity> _knownParents = new();
 
+    [Dependency(optional: true)]
+    protected IPerformanceProfiler? _performanceProfiler;
+
     public IEnumerable<Entity> RootEntities
     {
         get
@@ -49,81 +52,84 @@ public class HierarchySystem : EntitySystem
 
     public override void OnUpdate(float deltaTime)
     {
-        World.Query(new Query().Include<ParentOf>(), entity =>
+        using (_performanceProfiler?.BeginSample("hierarchy.update"))
         {
-            ref var parentOf = ref entity.Get<ParentOf>();
-
-            if (!World.IsAlive(parentOf.Parent))
+            World.Query(new Query().Include<ParentOf>(), entity =>
             {
-                World.RemoveComponent<ParentOf>(entity);
-                return;
-            }
+                ref var parentOf = ref entity.Get<ParentOf>();
 
-            if (!_knownParents.TryGetValue(entity, out var oldParent))
-            {
-                Attach(entity, parentOf.Parent);
-                _knownParents[entity] = parentOf.Parent;
-                return;
-            }
-
-            if (oldParent != parentOf.Parent)
-            {
-                Detach(entity, oldParent);
-                Attach(entity, parentOf.Parent);
-                _knownParents[entity] = parentOf.Parent;
-            }
-        });
-
-        CleanupRemovedParents();
-
-        World.Query(new Query().Include<Children>().Include<Destroyed>(), entity =>
-        {
-            ref var children = ref entity.Get<Children>();
-
-            foreach (var child in children.Values)
-            {
-                if (!child.Has<Destroyed>())
+                if (!World.IsAlive(parentOf.Parent))
                 {
-                    EntityManager.Destroy(child);
+                    World.RemoveComponent<ParentOf>(entity);
+                    return;
                 }
-            }
-        });
 
-        World.Query(new Query().Include<ParentOf>().Include<Destroyed>(), entity =>
-        {
-            var parent = entity.Get<ParentOf>().Parent;
+                if (!_knownParents.TryGetValue(entity, out var oldParent))
+                {
+                    Attach(entity, parentOf.Parent);
+                    _knownParents[entity] = parentOf.Parent;
+                    return;
+                }
 
-            if (parent.IsAlive() && parent.Has<Children>())
+                if (oldParent != parentOf.Parent)
+                {
+                    Detach(entity, oldParent);
+                    Attach(entity, parentOf.Parent);
+                    _knownParents[entity] = parentOf.Parent;
+                }
+            });
+
+            CleanupRemovedParents();
+
+            World.Query(new Query().Include<Children>().Include<Destroyed>(), entity =>
             {
-                parent.Get<Children>().Values.Remove(entity);
-            }
+                ref var children = ref entity.Get<Children>();
 
-            entity.Remove<ParentOf>();
-        });
+                foreach (var child in children.Values)
+                {
+                    if (!child.Has<Destroyed>())
+                    {
+                        EntityManager.Destroy(child);
+                    }
+                }
+            });
 
-        World.Query(new Query().Include<ParentOf>().Exclude<Destroyed>(), entity =>
-        {
-            var parent = entity.Get<ParentOf>().Parent;
-
-            if (!parent.IsAlive() || parent.Has<Destroyed>())
+            World.Query(new Query().Include<ParentOf>().Include<Destroyed>(), entity =>
             {
+                var parent = entity.Get<ParentOf>().Parent;
+
+                if (parent.IsAlive() && parent.Has<Children>())
+                {
+                    parent.Get<Children>().Values.Remove(entity);
+                }
+
                 entity.Remove<ParentOf>();
-            }
-        });
+            });
 
-        World.Query(new Query().Include<Children>(), entity =>
-        {
-            ref var children = ref entity.Get<Children>();
-
-            children.Values.RemoveAll(
-                c => !c.IsAlive() || c.Has<Destroyed>()
-            );
-
-            if (children.Values.Count == 0)
+            World.Query(new Query().Include<ParentOf>().Exclude<Destroyed>(), entity =>
             {
-                entity.Remove<Children>();
-            }
-        });
+                var parent = entity.Get<ParentOf>().Parent;
+
+                if (!parent.IsAlive() || parent.Has<Destroyed>())
+                {
+                    entity.Remove<ParentOf>();
+                }
+            });
+
+            World.Query(new Query().Include<Children>(), entity =>
+            {
+                ref var children = ref entity.Get<Children>();
+
+                children.Values.RemoveAll(
+                    c => !c.IsAlive() || c.Has<Destroyed>()
+                );
+
+                if (children.Values.Count == 0)
+                {
+                    entity.Remove<Children>();
+                }
+            });
+        }
     }
 
     private void CleanupRemovedParents()

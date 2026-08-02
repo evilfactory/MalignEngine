@@ -3,11 +3,14 @@ namespace MalignEngine;
 
 public sealed class Query
 {
-    public IEnumerable<Type> All => all;
-    public IEnumerable<Type> None => none;
+    public IReadOnlyList<Type> All => all;
+    public IReadOnlyList<Type> None => none;
 
     private readonly List<Type> all = new List<Type>();
     private readonly List<Type> none = new List<Type>();
+
+    internal ComponentStorage[]? AllStorages;
+    internal ComponentStorage[]? NoneStorages;
 
     public Query() { }
 

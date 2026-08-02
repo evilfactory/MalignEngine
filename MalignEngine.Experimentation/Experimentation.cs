@@ -23,6 +23,9 @@ class Experimentation : EntitySystem, ICameraDraw
     private IVertexArrayResource _vertexArrayResource;
     private IFrameBufferResource _frameBufferResource;
 
+    [Dependency(optional: true)]
+    protected IPerformanceProfiler? _performanceProfiler;
+
     private SceneSystem _sceneSystem;
     private SceneXmlLoader _sceneXmlLoader;
     private CameraSystem _cameraSystem;
@@ -290,6 +293,14 @@ class Experimentation : EntitySystem, ICameraDraw
 
     public override void OnUpdate(float deltaTime)
     {
+        using (_performanceProfiler?.BeginSample("test"))
+        {
+            World.Query(new Query().Include<Transform>(), entity =>
+            {
+
+            });
+        }
+
         Vector2 mov = Vector2.Zero;
         if (_inputService.Keyboard.IsDown(Key.W))
         {

@@ -34,7 +34,7 @@ public sealed class World : IWorld
     private readonly List<int> _versions = new();
     private readonly Stack<int> _freeIds = new();
 
-    private readonly ConcurrentDictionary<Type, IComponentStorage> _storages = new();
+    private readonly ConcurrentDictionary<Type, ComponentStorage> _storages = new();
     public World() { }
 
     #region Entity
@@ -85,11 +85,11 @@ public sealed class World : IWorld
 
     #region Component
 
-    private IComponentStorage GetComponentStorage(Type type)
+    private ComponentStorage GetComponentStorage(Type type)
     {
         if (!_storages.ContainsKey(type))
         {
-            _storages.TryAdd(type, IComponentStorage.CreateFromType(type));
+            _storages.TryAdd(type, ComponentStorage.CreateFromType(type));
         }
 
         return _storages[type];
@@ -102,7 +102,7 @@ public sealed class World : IWorld
             throw new InvalidOperationException($"{entity} is not alive");
         }
 
-        IComponentStorage storage = GetComponentStorage(component.GetType());
+        ComponentStorage storage = GetComponentStorage(component.GetType());
         storage.AddOrSet(entity, component);
     }
 
@@ -113,7 +113,7 @@ public sealed class World : IWorld
             throw new InvalidOperationException($"{entity} is not alive");
         }
 
-        IComponentStorage storage = GetComponentStorage(type);
+        ComponentStorage storage = GetComponentStorage(type);
         if (storage.Has(entity))
         {
             storage.Remove(entity);
@@ -135,7 +135,7 @@ public sealed class World : IWorld
             throw new InvalidOperationException($"{entity} is not alive");
         }
 
-        IComponentStorage storage = GetComponentStorage(type);
+        ComponentStorage storage = GetComponentStorage(type);
         return storage.Has(entity);
     }
 
@@ -149,7 +149,7 @@ public sealed class World : IWorld
             throw new InvalidOperationException($"{entity} is not alive");
         }
 
-        IComponentStorage storage = GetComponentStorage(type);
+        ComponentStorage storage = GetComponentStorage(type);
 
         if (!storage.Has(entity))
         {
@@ -167,14 +167,14 @@ public sealed class World : IWorld
         }
 
         Type type = typeof(T);
-        IComponentStorage storage = GetComponentStorage(type);
+        ComponentStorage storage = GetComponentStorage(type);
 
         if (!storage.Has(entity))
         {
             throw new InvalidOperationException($"{entity} doesn't have component type {type.Name}");
         }
 
-        return ref ((IComponentStorage<T>)storage).Get(entity);
+        return ref ((ComponentStorage<T>)storage).Get(entity);
     }
 
     public ref T GetOrAddComponent<T>(Entity entity) where T : IComponent, new()
@@ -185,14 +185,14 @@ public sealed class World : IWorld
         }
 
         Type type = typeof(T);
-        IComponentStorage storage = GetComponentStorage(type);
+        ComponentStorage storage = GetComponentStorage(type);
 
         if (!storage.Has(entity))
         {
             storage.AddOrSet(entity, new T());
         }
 
-        return ref ((IComponentStorage<T>)storage).Get(entity);
+        return ref ((ComponentStorage<T>)storage).Get(entity);
     }
 
     public bool TryGetComponent(Entity entity, Type type, [NotNullWhen(returnValue: true)] out IComponent? component)
@@ -204,7 +204,7 @@ public sealed class World : IWorld
             return false;
         }
 
-        IComponentStorage storage = GetComponentStorage(type);
+        ComponentStorage storage = GetComponentStorage(type);
 
         if (!storage.Has(entity))
         {
@@ -226,7 +226,7 @@ public sealed class World : IWorld
             return false;
         }
 
-        IComponentStorage storage = GetComponentStorage(typeof(T));
+        ComponentStorage storage = GetComponentStorage(typeof(T));
 
         if (!storage.Has(entity))
         {
@@ -234,7 +234,7 @@ public sealed class World : IWorld
         }
         else
         {
-            component = new ComponentRef<T>(ref ((IComponentStorage<T>)storage).Get(entity));
+            component = new ComponentRef<T>(ref ((ComponentStorage<T>)storage).Get(entity));
             return true;
         }
     }
@@ -277,17 +277,23 @@ public sealed class World : IWorld
 
     private bool Matches(Entity entity, Query query)
     {
-        foreach (var type in query.All)
+        if (query.AllStorages == null || query.NoneStorages == null)
         {
-            if (!GetComponentStorage(type).Has(entity))
+            query.AllStorages = query.All.Select(type => GetComponentStorage(type)).ToArray();
+            query.NoneStorages = query.None.Select(type => GetComponentStorage(type)).ToArray();
+        }
+
+        foreach (var storage in query.AllStorages)
+        {
+            if (!storage.Has(entity))
             {
                 return false;
             }
         }
 
-        foreach (var type in query.None)
+        foreach (var storage in query.NoneStorages)
         {
-            if (GetComponentStorage(type).Has(entity))
+            if (storage.Has(entity))
             {
                 return false;
             }

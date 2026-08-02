@@ -12,6 +12,9 @@ public class TransformSystem : EntitySystem, IPostUpdate
 {
     private readonly HierarchySystem _hierarchySystem;
 
+    [Dependency(optional: true)]
+    protected IPerformanceProfiler? _performanceProfiler;
+
     public TransformSystem(IServiceContainer serviceContainer, HierarchySystem parentSystem) 
         : base(serviceContainer)
     {
@@ -20,9 +23,12 @@ public class TransformSystem : EntitySystem, IPostUpdate
 
     public void OnPostUpdate(float deltaTime)
     {
-        foreach (Entity root in _hierarchySystem.RootEntities)
+        using (_performanceProfiler?.BeginSample("transform.update"))
         {
-            UpdateTransformTree(root, null);
+            foreach (Entity root in _hierarchySystem.RootEntities)
+            {
+                UpdateTransformTree(root, null);
+            }
         }
     }
 
